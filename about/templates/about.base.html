@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block main %}
+<div class="row-fluid">
+  <div class="span10 offset1">
+  {% block content %}
+  {% endblock %}
+  </div>
+</div>
+{% endblock %}
+{% block script %}
+<script type="text/javascript">$("#tab-about").addClass('active')</script>
+{% endblock %}

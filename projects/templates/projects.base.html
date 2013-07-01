@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block main %}
+<div class="row-fluid">
+  <div class="span2">
+    <div class="well sidebar-nav">
+      <ul class="nav nav-list">
+        <li class="nav-header">Projects</li>
+        <li><a href="#">Search projects</a></li>
+        {% if user.is_authenticated %}
+        <li class="nav-header">My projects</li>
+        <li><a href="/project/nova">Nova</a></li>
+        <li><a href="#">Subscribe to ...</a></li>
+        {% endif %}
+      </ul>
+    </div><!--/.well -->
+    {% block extranav %}
+    {% endblock %}
+  </div><!--/span-->
+  <div class="span10">
+    {% block content %}
+    {% endblock %}
+  </div><!--/span-->
+</div>
+{% endblock %}
+{% block script %}
+<script type="text/javascript">$("#tab-projects").addClass('active')</script>
+{% endblock %}
