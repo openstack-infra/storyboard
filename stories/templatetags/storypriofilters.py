@@ -13,23 +13,24 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.conf import settings
-from django.contrib.auth import logout
-from django.http import HttpResponseRedirect, HttpResponseForbidden
-from django.shortcuts import render
+from django import template
 
-from stories.models import Story, Task
+register = template.Library()
 
+badges = ['', ' badge-info', ' badge-success', ' badge-warning',
+          ' badge-important']
+buttons = ['', ' btn-info', ' btn-success', ' btn-warning', ' btn-danger']
 
-def dashboard(request):
-    return render(request, "stories.dashboard.html")
+@register.filter(name='priobadge')
+def priobadge(value):
+    if value < 5:
+        return badges[value]
+    else:
+        return badges[4]
 
-
-def view(request, storyid):
-    story = Story.objects.get(id=storyid)
-    return render(request, "stories.view.html", {
-                  'story': story,
-                  'priorities': Story.STORY_PRIORITIES,
-                  })
+@register.filter(name='priobutton')
+def priobutton(value):
+    if value < 5:
+        return buttons[value]
+    else:
+        return buttons[4]

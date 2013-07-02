@@ -23,11 +23,18 @@ class Story(models.Model):
         ('B', 'Bug'),
         ('F', 'Feature'),
     )
+    STORY_PRIORITIES = (
+        (4, 'Critical'),
+        (3, 'High'),
+        (2, 'Medium'),
+        (1, 'Low'),
+        (0, 'Undefined'),
+    )
     creator = models.ForeignKey(User)
     title = models.CharField(max_length=100)
     description = models.TextField()
     story_type = models.CharField(max_length=1, choices=STORY_TYPES)
-    importance = models.IntegerField()
+    priority = models.IntegerField(choices=STORY_PRIORITIES)
 
 
 class Task(models.Model):
