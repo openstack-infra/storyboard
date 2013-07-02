@@ -65,7 +65,6 @@
 {% for tag in story.storytag_set.all %}
     <span class="label">{{ tag.name }}</span>
 {% endfor %}
-    <button class="btn btn-micro" type="button"><i class="icon-plus"></i></button>
    </p>
   </div>
 </div>
@@ -74,16 +73,18 @@
     <tbody>
 {% for comment in story.comment_set.all %}
      <tr><td colspan=2>
-       <i class="icon-comment"></i>
+       <i class="icon-{{ comment.comment_type }}"></i>
        by {{ comment.author.username }} on {{ comment.posted_date }}:
+     {% if comment.action %}<br>{{ comment.action }}{% endif %}
      </td></tr>
      <tr><td>{{ comment.content|markdown:"safe" }}</td></tr>
 {% endfor %}
     </tbody>
   </table>
-  <form>
-    <textarea class="input-block-level" rows="3" placeholder="Add a comment"></textarea>
-    <button class="btn btn-mini" type="button">Add comment</button>
+  <form method="POST" action="/story/{{ story.id }}/comment">
+    {% csrf_token %}
+    <textarea name="content" class="input-block-level" rows="3" placeholder="Add a comment"></textarea>
+    <button class="btn btn-mini" type="submit">Add comment</button>
   </form>
 </div>
 <!-- Modal -->

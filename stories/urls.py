@@ -19,4 +19,5 @@ from django.conf.urls.defaults import *
 urlpatterns = patterns('stories.views',
     (r'^$', 'dashboard'),
     (r'^(\d+)$', 'view'),
+    (r'^(\d+)/comment$', 'comment'),
 )

@@ -56,7 +56,9 @@ class Comment(models.Model):
     story = models.ForeignKey(Story)
     posted_date = models.DateTimeField(auto_now=True)
     author = models.ForeignKey(User)
-    content = models.TextField(verbose_name="Add your comment")
+    action = models.CharField(max_length=150, blank=True)
+    comment_type = models.CharField(max_length=20)
+    content = models.TextField(blank=True)
 
     class Meta:
         ordering = ['posted_date']

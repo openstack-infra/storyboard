@@ -14,14 +14,11 @@
 #    under the License.
 
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.conf import settings
-from django.contrib.auth import logout
+from django.views.decorators.http import require_POST
 from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import render
 
-from stories.models import Story, Task
-
+from stories.models import Story, Comment
 
 def dashboard(request):
     return render(request, "stories.dashboard.html")
@@ -33,3 +30,15 @@ def view(request, storyid):
                   'story': story,
                   'priorities': Story.STORY_PRIORITIES,
                   })
+
+@login_required
+@require_POST
+def comment(request, storyid):
+    story = Story.objects.get(id=storyid)
+    if 'content' in request.POST:
+        newcomment = Comment(story=story,
+                             author=request.user,
+                             comment_type="comment",
+                             content=request.POST['content'])
+        newcomment.save()
+    return HttpResponseRedirect('/story/%s' % storyid)
