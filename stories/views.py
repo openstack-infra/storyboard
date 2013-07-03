@@ -42,3 +42,12 @@ def comment(request, storyid):
                              content=request.POST['content'])
         newcomment.save()
     return HttpResponseRedirect('/story/%s' % storyid)
+
+@login_required
+@require_POST
+def set_priority(request, storyid):
+    story = Story.objects.get(id=storyid)
+    if 'priority' in request.POST:
+        story.priority = request.POST['priority']
+        story.save()
+    return HttpResponseRedirect('/story/%s' % storyid)

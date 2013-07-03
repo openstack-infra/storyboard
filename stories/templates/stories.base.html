@@ -24,5 +24,9 @@
 </div>
 {% endblock %}
 {% block script %}
-<script type="text/javascript">$("#tab-tasks").addClass('active')</script>
+<script type="text/javascript">
+$("#tab-tasks").addClass('active');
+{% block moarscript %}
+{% endblock %}
+</script>
 {% endblock %}
