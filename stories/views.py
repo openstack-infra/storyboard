@@ -19,7 +19,7 @@ from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from projects.models import Milestone
-from stories.models import Story, Task, Comment
+from stories.models import Story, Task, Comment, StoryTag
 
 def dashboard(request):
     return render(request, "stories.dashboard.html")
@@ -63,7 +63,7 @@ def edit_task(request, taskid):
     try:
         actions = []
         if (task.title != request.POST['title']):
-            actions.append("task title")
+            actions.append("title")
             task.title = request.POST['title']
         milestone = Milestone.objects.get(id=request.POST['milestone'])
         if (milestone != task.milestone):
@@ -78,7 +78,8 @@ def edit_task(request, taskid):
             actions.append("assignee -> %s" % assignee.username)
             task.assignee = assignee
         if actions:
-            msg = "Updated " + ", ".join(actions)
+            msg = "Updated %s/%s task " % (task.project.name, task.series.name)
+            msg += ", ".join(actions)
             task.save()
             newcomment = Comment(story=task.story,
                                  action=msg,
@@ -87,5 +88,47 @@ def edit_task(request, taskid):
                                  content=request.POST.get('comment', ''))
             newcomment.save()
     except KeyError as e:
-        print e
+        pass
     return HttpResponseRedirect('/story/%s' % task.story.id)
+
+@login_required
+@require_POST
+def edit_story(request, storyid):
+    story = Story.objects.get(id=storyid)
+    storytags = set(x.name for x in StoryTag.objects.filter(story=story))
+    onlytags = True
+    try:
+        actions = []
+        if (story.title != request.POST['title']):
+            onlytags = False
+            actions.append("title")
+            story.title = request.POST['title']
+        if (story.description != request.POST['description']):
+            onlytags = False
+            actions.append("description")
+            story.title = request.POST['title']
+        proposed_tags = set(request.POST['tags'].split())
+        print storytags
+        print proposed_tags
+        if proposed_tags != storytags:
+            actions.append("tags")
+            StoryTag.objects.filter(story=story).delete()
+            tags = []
+            for tag in proposed_tags:
+                tags.append(StoryTag(story=story, name=tag))
+            StoryTag.objects.bulk_create(tags)
+        if actions:
+            msg = "Updated story " + ", ".join(actions)
+            story.save()
+            if onlytags:
+                comment_type = "tags"
+            else:
+                comment_type = "align-left"
+            newcomment = Comment(story=story,
+                                 action=msg,
+                                 author=request.user,
+                                 comment_type=comment_type)
+            newcomment.save()
+    except KeyError as e:
+        print e
+    return HttpResponseRedirect('/story/%s' % story.id)

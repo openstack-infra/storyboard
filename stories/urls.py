@@ -19,6 +19,7 @@ from django.conf.urls.defaults import *
 urlpatterns = patterns('stories.views',
     (r'^$', 'dashboard'),
     (r'^(\d+)$', 'view'),
+    (r'^(\d+)/edit$', 'edit_story'),
     (r'^(\d+)/comment$', 'comment'),
     (r'^(\d+)/priority$', 'set_priority'),
     (r'^task/(\d+)$', 'edit_task'),
