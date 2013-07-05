@@ -52,8 +52,20 @@ def comment(request, storyid):
 def set_priority(request, storyid):
     story = Story.objects.get(id=storyid)
     if 'priority' in request.POST:
-        story.priority = request.POST['priority']
-        story.save()
+        priority = request.POST['priority']
+        if int(priority) != story.priority:
+            pr = story.get_priority_display()
+            story.priority = priority
+            story.save()
+            # We need to refresh the story to get get_priority_display to work
+            story = Story.objects.get(id=storyid)
+            msg = "Set priority: %s -> %s" % (pr, story.get_priority_display())
+            newcomment = Comment(story=story,
+                                 action=msg,
+                                 author=request.user,
+                                 comment_type="random",
+                                 content=request.POST.get('comment', ''))
+            newcomment.save()
     return HttpResponseRedirect('/story/%s' % storyid)
 
 @login_required

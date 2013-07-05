@@ -114,6 +114,7 @@
     <input class="btn btn-primary" type="submit" value="Save changes">
   </div>
 </div>
+</form>
 <!-- Set priority Modal -->
 <form method="POST" action="/story/{{ story.id }}/priority">
 <div id="editprio" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="editPriolLabel" aria-hidden="true">
@@ -131,7 +132,7 @@
 {% endfor %}
     </div>
     <label class="after-buttongroup">Comment</label>
-    <textarea class="input-block-level" rows="6"
+    <textarea class="input-block-level" rows="6" name="comment"
      placeholder="Add a comment"></textarea>
     <input type="hidden" id="priority" name="priority" value="{{ story.priority }}">
   </div>
@@ -144,11 +145,11 @@
 <!-- Edittask Modals -->
 {% for task in story.task_set.all %}
 <form method="POST" action="/story/task/{{ task.id }}">
-<div id="edittask{{ task.id }}" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="editPriolLabel" aria-hidden="true">
+<div id="edittask{{ task.id }}" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="editTaskLabel" aria-hidden="true">
   {% csrf_token %}
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-    <h3 id="editPrioLabel">Edit
+    <h3 id="editTaskLabel">Edit
     {{task.project.name}}/{{task.series.name}} task</h3>
   </div>
   <div class="modal-body">
