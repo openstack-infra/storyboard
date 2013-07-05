@@ -38,7 +38,7 @@ class Story(models.Model):
 
 
 class Task(models.Model):
-    STATUS_TYPES = (
+    TASK_STATUSES = (
         ('T', 'Todo'),
         ('R', 'In review'),
         ('L', 'Landed'),
@@ -48,7 +48,7 @@ class Task(models.Model):
     project = models.ForeignKey(Project)
     series = models.ForeignKey(Series)
     assignee = models.ForeignKey(User)
-    status = models.CharField(max_length=1, choices=STATUS_TYPES)
+    status = models.CharField(max_length=1, choices=TASK_STATUSES)
     milestone = models.ForeignKey(Milestone)
 
 

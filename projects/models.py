@@ -29,3 +29,6 @@ class Milestone(models.Model):
     name = models.CharField(max_length=50)
     series = models.ForeignKey(Series)
     active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['name']
