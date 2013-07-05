@@ -5,11 +5,11 @@
     <div class="well sidebar-nav">
       <ul class="nav nav-list">
         <li class="nav-header">Projects</li>
-        <li><a href="#">Search projects</a></li>
+        <li class="disabled"><a href="#">Search projects</a></li>
         {% if user.is_authenticated %}
         <li class="nav-header">My projects</li>
         <li><a href="/project/nova">Nova</a></li>
-        <li><a href="#">Subscribe to ...</a></li>
+        <li class="disabled"><a href="#">Subscribe to ...</a></li>
         {% endif %}
       </ul>
     </div><!--/.well -->

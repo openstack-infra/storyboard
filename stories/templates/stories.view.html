@@ -7,8 +7,8 @@
     <li class="nav-header">This story</li>
     <li><a href="#editprio" data-toggle="modal">Change priority</a></li>
     <li><a href="#editstory" data-toggle="modal">Modify story</a></li>
-    <li><a href="#">Add task</a></li>
-    <li><a href="#">Order tasks</a></li>
+    <li class="disabled"><a href="#">Add task</a></li>
+    <li class="disabled"><a href="#">Order tasks</a></li>
   </ul>
 </div><!--/.well -->
 {% endblock %}
@@ -49,7 +49,7 @@
           <td>{{ task.milestone.name }}</td>
           <td>
               <a href="#edittask{{ task.id }}" class="btn btn-micro" data-toggle="modal"><i class="icon-edit"></i></a>
-              <button class="btn btn-micro" type="button"><i class="icon-remove"></i></button>
+              <button class="btn btn-micro disabled" type="button"><i class="icon-remove"></i></button>
           </td>
         </tr>
 {% endfor %}
