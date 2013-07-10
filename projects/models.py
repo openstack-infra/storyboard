@@ -20,15 +20,34 @@ class Project(models.Model):
     name = models.CharField(max_length=50, primary_key=True)
     title = models.CharField(max_length=100)
 
+    def __unicode__(self):
+        return self.name
+
 
 class Series(models.Model):
+    SERIES_STATUS = (
+        (0, 'Old'),
+        (1, 'Supported'),
+        (2, 'Active'),
+        (3, 'Future'))
     name = models.CharField(max_length=50, primary_key=True)
+    status = models.IntegerField(choices=SERIES_STATUS)
+    release_date = models.DateTimeField()
+
+    def __unicode__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['release_date']
 
 
 class Milestone(models.Model):
     name = models.CharField(max_length=50)
     series = models.ForeignKey(Series)
     active = models.BooleanField(default=True)
+
+    def __unicode__(self):
+        return self.name
 
     class Meta:
         ordering = ['name']

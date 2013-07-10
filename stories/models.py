@@ -36,6 +36,9 @@ class Story(models.Model):
     story_type = models.CharField(max_length=1, choices=STORY_TYPES)
     priority = models.IntegerField(choices=STORY_PRIORITIES)
 
+    def __unicode__(self):
+        return str(self.id)
+
 
 class Task(models.Model):
     TASK_STATUSES = (
@@ -47,9 +50,13 @@ class Task(models.Model):
     title = models.CharField(max_length=100, blank=True)
     project = models.ForeignKey(Project)
     series = models.ForeignKey(Series)
-    assignee = models.ForeignKey(User)
-    status = models.CharField(max_length=1, choices=TASK_STATUSES)
-    milestone = models.ForeignKey(Milestone)
+    assignee = models.ForeignKey(User, blank=True, null=True)
+    status = models.CharField(max_length=1, choices=TASK_STATUSES, default='T')
+    milestone = models.ForeignKey(Milestone, blank=True, null=True)
+
+    def __unicode__(self):
+        return "%s %s/%s" % (
+            self.story.id, self.project.name, self.series.name)
 
 
 class Comment(models.Model):

@@ -18,7 +18,7 @@ from django.views.decorators.http import require_POST
 from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import render
 from django.contrib.auth.models import User
-from projects.models import Milestone
+from projects.models import Project, Milestone, Series
 from stories.models import Story, Task, Comment, StoryTag
 
 def dashboard(request):
@@ -27,12 +27,14 @@ def dashboard(request):
 
 def view(request, storyid):
     story = Story.objects.get(id=storyid)
+    active_series = Series.objects.filter(status__gt=0)
     milestones = Milestone.objects.all()
     return render(request, "stories.view.html", {
                   'story': story,
                   'milestones': milestones,
                   'priorities': Story.STORY_PRIORITIES,
                   'taskstatuses': Task.TASK_STATUSES,
+                  'active_series': active_series,
                   })
 
 @login_required
@@ -70,6 +72,34 @@ def set_priority(request, storyid):
 
 @login_required
 @require_POST
+def add_task(request, storyid):
+    story = Story.objects.get(id=storyid)
+    try:
+        if request.POST['series']:
+            series=Series.objects.get(name=request.POST['series'])
+        else:
+            series=Series.objects.get(status=2)
+        newtask = Task(
+            story=story,
+            title=request.POST['title'],
+            project=Project.objects.get(name=request.POST['project']),
+            series=series,
+            )
+        newtask.save()
+        msg = "Added %s/%s task " % (
+            newtask.project.name, newtask.series.name)
+        newcomment = Comment(story=story,
+                             action=msg,
+                             author=request.user,
+                             comment_type="indent-left",
+                             content=request.POST.get('comment', ''))
+        newcomment.save()
+    except KeyError as e:
+        pass
+    return HttpResponseRedirect('/story/%s' % story.id)
+
+@login_required
+@require_POST
 def edit_task(request, taskid):
     task = Task.objects.get(id=taskid)
     try:
@@ -96,7 +126,7 @@ def edit_task(request, taskid):
             newcomment = Comment(story=task.story,
                                  action=msg,
                                  author=request.user,
-                                 comment_type="tasks",
+                                 comment_type="align-left",
                                  content=request.POST.get('comment', ''))
             newcomment.save()
     except KeyError as e:
