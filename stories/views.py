@@ -91,7 +91,7 @@ def add_task(request, storyid):
         newcomment = Comment(story=story,
                              action=msg,
                              author=request.user,
-                             comment_type="indent-left",
+                             comment_type="plus-sign",
                              content=request.POST.get('comment', ''))
         newcomment.save()
     except KeyError as e:
@@ -126,11 +126,25 @@ def edit_task(request, taskid):
             newcomment = Comment(story=task.story,
                                  action=msg,
                                  author=request.user,
-                                 comment_type="align-left",
+                                 comment_type="tasks",
                                  content=request.POST.get('comment', ''))
             newcomment.save()
     except KeyError as e:
         pass
+    return HttpResponseRedirect('/story/%s' % task.story.id)
+
+@login_required
+@require_POST
+def delete_task(request, taskid):
+    task = Task.objects.get(id=taskid)
+    task.delete()
+    msg = "Deleted %s/%s task" % (task.project.name, task.series.name)
+    newcomment = Comment(story=task.story,
+                         action=msg,
+                         author=request.user,
+                         comment_type="remove-sign",
+                         content=request.POST.get('comment', ''))
+    newcomment.save()
     return HttpResponseRedirect('/story/%s' % task.story.id)
 
 @login_required

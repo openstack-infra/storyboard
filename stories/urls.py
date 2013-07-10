@@ -24,4 +24,5 @@ urlpatterns = patterns('stories.views',
     (r'^(\d+)/comment$', 'comment'),
     (r'^(\d+)/priority$', 'set_priority'),
     (r'^task/(\d+)$', 'edit_task'),
+    (r'^task/(\d+)/delete$', 'delete_task'),
 )
