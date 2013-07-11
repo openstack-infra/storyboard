@@ -27,6 +27,7 @@
 <hr>
 <div class="row-fluid">
   <div class="span12">
+{% if story.task_set.count %}
     <table class="table table-condensed">
       <thead>
         <tr>
@@ -39,7 +40,7 @@
         </tr>
       </thead>
       <tbody>
-{% for task in story.task_set.all %}
+  {% for task in story.task_set.all %}
         <tr class="{{ task.status|taskcolor }}">
           <td>{{ task.title }}</td>
           <td>{{ task.project.title }}</td>
@@ -52,9 +53,10 @@
               <a href="#deltask{{ task.id }}" class="btn btn-micro" data-toggle="modal"><i class="icon-remove"></i></a>
           </td>
         </tr>
-{% endfor %}
+  {% endfor %}
       </tbody>
     </table>
+{% endif %}
   </div>
 </div>
 <div class="row-fluid">
