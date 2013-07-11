@@ -41,7 +41,7 @@ def view(request, storyid):
 @require_POST
 def comment(request, storyid):
     story = Story.objects.get(id=storyid)
-    if 'content' in request.POST:
+    if request.POST.get('comment', False):
         newcomment = Comment(story=story,
                              author=request.user,
                              comment_type="comment",
