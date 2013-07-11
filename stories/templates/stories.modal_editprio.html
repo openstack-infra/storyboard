@@ -1,0 +1,32 @@
+{% load storyviewfilters %}
+<form method="POST" action="/story/{{ story.id }}/priority">
+<div id="editprio" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="editpriolLabel" aria-hidden="true">
+  {% csrf_token %}
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="editprioLabel">Change priority</h3>
+  </div>
+  <div class="modal-body">
+    <label>Priority</label>
+    <div class="btn-group" data-toggle="buttons-radio">
+{% for code, prio in priorities %}
+    <button type="button" data-value="{{code}}"
+            class="editprio_prio btn btn-small{{code|priobutton}}{% if story.priority == code %} active{% endif %}">{{ prio }}</button>
+{% endfor %}
+    </div>
+    <label class="after-buttongroup">Comment</label>
+    <textarea class="input-block-level" rows="6" name="comment"
+     placeholder="Add a comment"></textarea>
+    <input type="hidden" id="editprio_prio" name="priority" value="{{ story.priority }}">
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+    <input class="btn btn-primary" type="submit" value="Save changes">
+  </div>
+</div>
+</form>
+<script language="text/javascript">
+$(".editprio_prio").click(function() {
+    $("#editprio_prio").val($(this).data("value"));
+});
+</script>

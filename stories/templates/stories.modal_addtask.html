@@ -1,0 +1,45 @@
+<form method="POST" action="/story/{{story.id}}/addtask">{% csrf_token %}
+<div id="addtask" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="addtaskLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="addtaskLabel">Add new task</h3>
+  </div>
+  <div class="modal-body">
+    <label>Title <small>(optional)</small></label>
+    <input class="input-block-level" name="title"
+           type="text" placeholder="Optional task description" value="">
+    <label>Project</label>
+    <div class="input-prepend">
+    <span class="add-on"><i class="icon-cog"></i></span>
+    <input class="input-block-level" name="project" id="prependedInput"
+           type="text" value="">
+    </div>
+    <label>Series</label>
+    <div class="btn-group" data-toggle="buttons-radio">
+    {% for series in active_series %}
+      {% if series.status == 2 %}
+        <button type="button" data-value="{{ series.name }}"
+                class="addtask_series btn btn-small active">Current ({{series.name}})</button>
+      {% else %}
+        <button type="button" data-value="{{ series.name }}"
+                class="addtask_series btn btn-small
+{% if series.status == 1 %}btn-success{% endif %}">{{ series.name }}</button>
+      {% endif %}
+    {% endfor %}
+    </div>
+    <label class="after-buttongroup">Comment</label>
+    <textarea class="input-block-level" rows="6" name="comment"
+     placeholder="Add a comment"></textarea>
+    <input type="hidden" id="addtask_series" name="series" value="">
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+    <input class="btn btn-primary" type="submit" value="Add task">
+  </div>
+</div>
+</form>
+<script type="text/javascript">
+$(".addtask_series").click(function() {
+    $("#addtask_series").val($(this).data("value"));
+});
+</script>
