@@ -22,7 +22,10 @@ from projects.models import Project, Milestone, Series
 from stories.models import Story, Task, Comment, StoryTag
 
 def dashboard(request):
-    return render(request, "stories.dashboard.html")
+    recent_bugs = Story.objects.order_by("-id")[:5]
+    return render(request, "stories.dashboard.html", {
+                  'recent_bugs': recent_bugs,
+                 })
 
 
 def view(request, storyid):

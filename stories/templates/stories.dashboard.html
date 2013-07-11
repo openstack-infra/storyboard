@@ -1,9 +1,33 @@
 {% extends "stories.base.html" %}
+{% load storyviewfilters %}
 {% block content %}
 <div class="row-fluid">
   <div class="span12">
-    <p>Hola. This should contain the Tasks dashboard one day.</p>
-    <p>In the meantime, try <a href="/story/1">this one</a>.</p>
+    <h3>Stories</h3>
+    <h5>Recent bugs</h5>
+    <table class="table table-condensed table-hover">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Story</th>
+          <th>Priority</th>
+          <th>Affects</th>
+        </tr>
+      </thead>
+      <tbody>
+{% for story in recent_bugs %}
+        <tr>
+          <td>{{ story.id }}</td>
+          <td><small><a href="/story/{{story.id}}">{{ story.title }}</a></small></td>
+          <td><span class="badge{{ story.priority|priobadge }}">
+      {{ story.get_priority_display }}</span></td>
+          <td>
+  {% for task in story.task_set.all %}{{ task.project.name }}{% endfor %}
+          </td>
+        </tr>
+{% endfor %}
+      </tbody>
+    </table>
   </div>
 </div>
 {% endblock %}
