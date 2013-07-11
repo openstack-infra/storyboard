@@ -20,9 +20,12 @@ from django.contrib.auth import logout
 from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import render
 
+from projects.models import Project
 
-def dashboard(request):
-    return render(request, "projects.dashboard.html")
+def default_list(request):
+    return render(request, "projects.list.html", {
+        'projects': Project.objects.all(),
+        })
 
 def view(request, project):
     return render(request, "projects.view.html")

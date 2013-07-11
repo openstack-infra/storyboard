@@ -17,6 +17,6 @@ from django.conf.urls.defaults import *
 
 
 urlpatterns = patterns('projects.views',
-    (r'^$', 'dashboard'),
+    (r'^$', 'default_list'),
     (r'^(\S+)$', 'view'),
 )
