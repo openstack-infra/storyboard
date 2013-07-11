@@ -2,21 +2,25 @@
 {% block extranav %}
 <div class="well sidebar-nav">
   <ul class="nav nav-list">
-    <li class="nav-header">Nova</li>
-    <li><a href="#addstory" data-toggle="modal">Report a bug</a></li>
+    <li class="nav-header">{{project.name}}</li>
+    <li class="disabled"><a href="#">List bug tasks</a></li>
     <li class="disabled"><a href="#">Triage bugs
        <span class="badge badge-important">34</span></a></li>
-    <li class="disabled"><a href="#">Propose feature</a></li>
+    <li><a href="#addstory" data-toggle="modal">Report new bug</a></li>
+    <li class="divider"></li>
+    <li class="disabled"><a href="#">List feature tasks</a></li>
+    <li class="disabled"><a href="#">Propose new feature</a></li>
   </ul>
 </div><!--/.well -->
 {% endblock %}
 {% block content %}
 <div class="row-fluid">
   <div class="span12">
-    <h3>Nova</h3>
+    <h3>{{ project.title }} ({{ project.name }})</h3>
+    Interesting graphs and information shall be placed here.
   </div>
 </div>
 {% endblock %}
 {% block modals %}
-{% include "stories.modal_addstory.html" with project="nova" %}
+{% include "stories.modal_addstory.html" with project=project.name %}
 {% endblock %}

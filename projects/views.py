@@ -28,5 +28,7 @@ def default_list(request):
         })
 
 def view(request, project):
-    return render(request, "projects.view.html")
+    return render(request, "projects.view.html", {
+        'project': Project.objects.get(name=project),
+        })
 
