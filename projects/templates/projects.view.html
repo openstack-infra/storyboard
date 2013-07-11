@@ -3,7 +3,7 @@
 <div class="well sidebar-nav">
   <ul class="nav nav-list">
     <li class="nav-header">Nova</li>
-    <li class="disabled"><a href="#">Report a bug</a></li>
+    <li><a href="#addstory" data-toggle="modal">Report a bug</a></li>
     <li class="disabled"><a href="#">Triage bugs
        <span class="badge badge-important">34</span></a></li>
     <li class="disabled"><a href="#">Propose feature</a></li>
@@ -16,4 +16,7 @@
     <h3>Nova</h3>
   </div>
 </div>
+{% endblock %}
+{% block modals %}
+{% include "stories.modal_addstory.html" with project="nova" %}
 {% endblock %}

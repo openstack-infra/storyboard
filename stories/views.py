@@ -72,6 +72,45 @@ def set_priority(request, storyid):
 
 @login_required
 @require_POST
+def add_story(request):
+    try:
+        newstory = Story(
+            title=request.POST['title'],
+            description=request.POST['description'],
+            creator=request.user,
+            priority=0,
+            )
+        newstory.save()
+        proposed_projects = request.POST['projects'].split()
+        if proposed_projects:
+            series=Series.objects.get(status=2)
+            tasks = []
+            for project in proposed_projects:
+                tasks.append(Task(
+                    story=newstory,
+                    project=Project.objects.get(name=project),
+                    series=series,
+                ))
+            Task.objects.bulk_create(tasks)
+        proposed_tags = set(request.POST['tags'].split())
+        if proposed_tags:
+            tags = []
+            for tag in proposed_tags:
+                tags.append(StoryTag(story=newstory, name=tag))
+            StoryTag.objects.bulk_create(tags)
+        msg = 'Story created (%s)' % newstory.title
+        newcomment = Comment(story=newstory,
+                             action=msg,
+                             author=request.user,
+                             comment_type="star-empty",
+                             content='')
+        newcomment.save()
+    except KeyError as e:
+        pass
+    return HttpResponseRedirect('/story/%s' % newstory.id)
+
+@login_required
+@require_POST
 def add_task(request, storyid):
     story = Story.objects.get(id=storyid)
     try:
@@ -162,10 +201,8 @@ def edit_story(request, storyid):
         if (story.description != request.POST['description']):
             onlytags = False
             actions.append("description")
-            story.title = request.POST['title']
+            story.description = request.POST['description']
         proposed_tags = set(request.POST['tags'].split())
-        print storytags
-        print proposed_tags
         if proposed_tags != storytags:
             actions.append("tags")
             StoryTag.objects.filter(story=story).delete()
