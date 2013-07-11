@@ -1,0 +1,36 @@
+{% extends "projects.project.html" %}
+{% load storyviewfilters %}
+{% block content %}
+<div class="row-fluid">
+  <div class="span12">
+    <h3>Bug tasks for {{ project.title }}</h3>
+    <table class="table table-condensed table-hover">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Story</th>
+          <th>Priority</th>
+          <th>Task</th>
+          <th>Series</th>
+          <th>Assignee</th>
+          <th>Milestone</th>
+        </tr>
+      </thead>
+      <tbody>
+{% for task in tasks %}
+        <tr class="{{ task.status|taskcolor }}">
+          <td>{{ task.story.id }}</td>
+          <td><small><a href="/story/{{task.story.id}}">{{ task.story.title }}</a></small></td>
+          <td><span class="badge{{ task.story.priority|priobadge }}">
+      {{ task.story.get_priority_display }}</span></td>
+          <td>{{ task.title }}</td>
+          <td>{{ task.series.name }}</td>
+          <td>{{ task.assignee.username }}</td>
+          <td>{{ task.milestone.name }}</td>
+        </tr>
+{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

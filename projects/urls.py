@@ -18,5 +18,6 @@ from django.conf.urls.defaults import *
 
 urlpatterns = patterns('projects.views',
     (r'^$', 'default_list'),
-    (r'^(\S+)$', 'view'),
+    (r'^(\S+)/bugs$', 'list_bugtasks'),
+    (r'^(\S+)$', 'dashboard'),
 )

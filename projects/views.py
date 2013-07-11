@@ -21,14 +21,21 @@ from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import render
 
 from projects.models import Project
+from stories.models import Task
 
 def default_list(request):
     return render(request, "projects.list.html", {
         'projects': Project.objects.all(),
         })
 
-def view(request, project):
-    return render(request, "projects.view.html", {
-        'project': Project.objects.get(name=project),
+def dashboard(request, projectname):
+    return render(request, "projects.dashboard.html", {
+        'project': Project.objects.get(name=projectname),
         })
 
+def list_bugtasks(request, projectname):
+    project = Project.objects.get(name=projectname)
+    return render(request, "projects.list_tasks.html", {
+        'project': project,
+        'tasks': Task.objects.filter(project=project),
+        })
