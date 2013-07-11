@@ -114,25 +114,26 @@ def add_story(request):
 def add_task(request, storyid):
     story = Story.objects.get(id=storyid)
     try:
-        if request.POST['series']:
-            series=Series.objects.get(name=request.POST['series'])
-        else:
-            series=Series.objects.get(status=2)
-        newtask = Task(
-            story=story,
-            title=request.POST['title'],
-            project=Project.objects.get(name=request.POST['project']),
-            series=series,
-            )
-        newtask.save()
-        msg = "Added %s/%s task " % (
-            newtask.project.name, newtask.series.name)
-        newcomment = Comment(story=story,
-                             action=msg,
-                             author=request.user,
-                             comment_type="plus-sign",
-                             content=request.POST.get('comment', ''))
-        newcomment.save()
+        if request.POST['project']:
+            if request.POST['series']:
+                series=Series.objects.get(name=request.POST['series'])
+            else:
+                series=Series.objects.get(status=2)
+            newtask = Task(
+                story=story,
+                title=request.POST['title'],
+                project=Project.objects.get(name=request.POST['project']),
+                series=series,
+                )
+            newtask.save()
+            msg = "Added %s/%s task " % (
+               newtask.project.name, newtask.series.name)
+            newcomment = Comment(story=story,
+                                 action=msg,
+                                 author=request.user,
+                                 comment_type="plus-sign",
+                                 content=request.POST.get('comment', ''))
+            newcomment.save()
     except KeyError as e:
         pass
     return HttpResponseRedirect('/story/%s' % story.id)
@@ -146,17 +147,27 @@ def edit_task(request, taskid):
         if (task.title != request.POST['title']):
             actions.append("title")
             task.title = request.POST['title']
-        milestone = Milestone.objects.get(id=request.POST['milestone'])
+        if not request.POST['milestone']:
+            milestone = None
+            milestonename = "None"
+        else:
+            milestone = Milestone.objects.get(id=int(request.POST['milestone']))
+            milestonename = milestone.name
         if (milestone != task.milestone):
-            actions.append("milestone -> %s" % milestone.name)
+            actions.append("milestone -> %s" % milestonename)
             task.milestone = milestone
         status = request.POST['status']
         if (task.status != status):
             task.status = status
             actions.append("status -> %s" % task.get_status_display())
-        assignee = User.objects.get(username=request.POST['assignee'])
+        if not request.POST['assignee']:
+            assignee = None
+            assigneename = "None"
+        else:
+            assignee = User.objects.get(username=request.POST['assignee'])
+            assigneename = assignee.username
         if (assignee != task.assignee):
-            actions.append("assignee -> %s" % assignee.username)
+            actions.append("assignee -> %s" % assigneename)
             task.assignee = assignee
         if actions:
             msg = "Updated %s/%s task " % (task.project.name, task.series.name)
