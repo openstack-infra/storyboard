@@ -6,8 +6,10 @@
     <li><a href="/project/{{project.name}}">Dashboard</a></li>
     <li class="divider"></li>
     <li><a href="/project/{{project.name}}/bugs">List bug tasks</a></li>
-    <li class="disabled"><a href="#">Triage bugs
-       <span class="badge badge-important">34</span></a></li>
+    <li><a href="/project/{{project.name}}/bugs/triage">Triage bugs
+{% if triagecount > 0 %}<span class="badge
+{% if triagecount < 20 %}badge-success{% else %}{% if triagecount < 50 %}badge-warning{% else %}badge-important{% endif %}{% endif %}">
+{{ triagecount }}</span>{% endif %}</a></li>
     <li><a href="#addstory" data-toggle="modal">Report new bug</a></li>
     <li class="divider"></li>
     <li class="disabled"><a href="#">List feature tasks</a></li>

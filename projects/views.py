@@ -29,13 +29,30 @@ def default_list(request):
         })
 
 def dashboard(request, projectname):
+    project = Project.objects.get(name=projectname)
+    count = Task.objects.filter(project=project, story__priority=0).count()
     return render(request, "projects.dashboard.html", {
-        'project': Project.objects.get(name=projectname),
+        'project': project,
+        'triagecount': count,
         })
 
 def list_bugtasks(request, projectname):
     project = Project.objects.get(name=projectname)
+    count = Task.objects.filter(project=project, story__priority=0).count()
     return render(request, "projects.list_tasks.html", {
+        'title': "Active bug tasks",
         'project': project,
-        'tasks': Task.objects.filter(project=project),
+        'triagecount': count,
+        'tasks': Task.objects.filter(project=project, status__in=['T','R']),
+        })
+
+def list_bugtriage(request, projectname):
+    project = Project.objects.get(name=projectname)
+    tasks = Task.objects.filter(project=project, story__priority=0)
+    count = tasks.count()
+    return render(request, "projects.list_tasks.html", {
+        'title': "Bugs needing triage",
+        'project': project,
+        'triagecount': count,
+        'tasks': Task.objects.filter(project=project, story__priority=0),
         })
