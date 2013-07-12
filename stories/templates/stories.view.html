@@ -77,7 +77,7 @@
 {% for comment in story.comment_set.all %}
      <tr><td colspan=2>
        <i class="icon-{{ comment.comment_type }}"></i>
-       by {{ comment.author.username }} on {{ comment.posted_date }}:
+       by {{ comment.author.first_name }} {{ comment.author.last_name }} ({{ comment.author.username }}) on {{ comment.posted_date|date:"o-m-d H:i" }}:
      {% if comment.action %}<br>{{ comment.action }}{% endif %}
      </td></tr>
      <tr><td>{{ comment.content|markdown:"safe" }}</td></tr>
