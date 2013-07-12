@@ -70,6 +70,12 @@ Future features
   This lets you easily get customized views for the stuff that happens to
   matters to you, personally.
 
+*Gerrit integration*
+  StoryBoard should reuse the projects and groups defined for Gerrit. It should
+  reflect merges with deeper integration than with LP... potentially forcing
+  a 1:1 relationship between tasks and merges (one merge = one task marked
+  'Landed')
+
 *Series tracking*
   A new tab for StoryBoard, giving you per-series and per-milestone views of
   progress. Would replace the need for status.o.o/releasestatus. Series and
