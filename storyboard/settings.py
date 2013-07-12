@@ -94,7 +94,7 @@ STATICFILES_FINDERS = (
 )
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = 'h3f)nowb#w2r!%lzy6)-ggd4^nr6x@h)nlk4&amp;5m!$no78egwd_'
+SECRET_KEY = 'my_secret_key_here'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
@@ -192,7 +192,7 @@ LOGGING = {
 }
 
 # Override settings with local ones.
-#try:
-#    from local_settings import *
-#except ImportError:
-#    pass
+try:
+    from storyboard.local_settings import *
+except ImportError:
+    pass
