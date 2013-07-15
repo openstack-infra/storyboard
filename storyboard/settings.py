@@ -194,6 +194,6 @@ LOGGING = {
 
 # Override settings with local ones.
 try:
-    from storyboard.local_settings import *
+    from storyboard.local_settings import *  # noqa
 except ImportError:
     pass

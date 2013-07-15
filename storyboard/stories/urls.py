@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from django.conf.urls.defaults import *
+from django.conf.urls.defaults import patterns
 
 
 urlpatterns = patterns('storyboard.stories.views',
