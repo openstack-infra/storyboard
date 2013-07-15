@@ -22,7 +22,7 @@
           <td><span class="badge{{ story.priority|priobadge }}">
       {{ story.get_priority_display }}</span></td>
           <td>
-  {% for task in story.task_set.all %}{{ task.project.name }}{% endfor %}
+  {% for task in story.task_set.all %}{% if not forloop.first %}, {% endif %}{{ task.project.name }}{% endfor %}
           </td>
         </tr>
 {% endfor %}
