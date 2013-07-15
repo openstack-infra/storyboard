@@ -13,9 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from storyboard.stories.models import Story, Task, Comment, StoryTag
 from django.contrib import admin
 
+from storyboard.stories.models import Comment
+from storyboard.stories.models import Story
+from storyboard.stories.models import StoryTag
+from storyboard.stories.models import Task
 
 admin.site.register(Story)
 admin.site.register(Task)

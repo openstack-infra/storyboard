@@ -13,8 +13,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from storyboard.projects.models import Project, Series, Milestone
 from django.contrib import admin
+
+from storyboard.projects.models import Milestone
+from storyboard.projects.models import Project
+from storyboard.projects.models import Series
 
 
 admin.site.register(Project)
