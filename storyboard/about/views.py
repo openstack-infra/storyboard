@@ -13,11 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.conf import settings
 from django.contrib.auth import logout
-from django.http import HttpResponseRedirect, HttpResponseForbidden
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
 

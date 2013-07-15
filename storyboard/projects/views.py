@@ -13,20 +13,17 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.conf import settings
-from django.contrib.auth import logout
-from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import render
 
 from storyboard.projects.models import Project
 from storyboard.stories.models import Task
 
+
 def default_list(request):
     return render(request, "projects.list.html", {
         'projects': Project.objects.all(),
-        })
+    })
+
 
 def dashboard(request, projectname):
     project = Project.objects.get(name=projectname)
@@ -34,7 +31,8 @@ def dashboard(request, projectname):
     return render(request, "projects.dashboard.html", {
         'project': project,
         'triagecount': count,
-        })
+    })
+
 
 def list_bugtasks(request, projectname):
     project = Project.objects.get(name=projectname)
@@ -43,8 +41,9 @@ def list_bugtasks(request, projectname):
         'title': "Active bug tasks",
         'project': project,
         'triagecount': count,
-        'tasks': Task.objects.filter(project=project, status__in=['T','R']),
-        })
+        'tasks': Task.objects.filter(project=project, status__in=['T', 'R']),
+    })
+
 
 def list_bugtriage(request, projectname):
     project = Project.objects.get(name=projectname)
@@ -55,4 +54,4 @@ def list_bugtriage(request, projectname):
         'project': project,
         'triagecount': count,
         'tasks': Task.objects.filter(project=project, story__priority=0),
-        })
+    })
