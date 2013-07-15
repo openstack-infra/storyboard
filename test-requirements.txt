@@ -1,0 +1,7 @@
+hacking>=0.5.3,<0.6
+
+coverage
+discover
+fixtures>=0.3.12
+testrepository>=0.0.13
+testtools>=0.9.26

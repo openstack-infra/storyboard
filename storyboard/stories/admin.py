@@ -13,12 +13,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from django.conf.urls.defaults import *
+from storyboard.stories.models import Story, Task, Comment, StoryTag
+from django.contrib import admin
 
 
-urlpatterns = patterns('projects.views',
-    (r'^$', 'default_list'),
-    (r'^(\S+)/bugs/triage$', 'list_bugtriage'),
-    (r'^(\S+)/bugs$', 'list_bugtasks'),
-    (r'^(\S+)$', 'dashboard'),
-)
+admin.site.register(Story)
+admin.site.register(Task)
+admin.site.register(Comment)
+admin.site.register(StoryTag)

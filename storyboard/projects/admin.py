@@ -13,9 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from django.conf.urls.defaults import *
+from storyboard.projects.models import Project, Series, Milestone
+from django.contrib import admin
 
 
-urlpatterns = patterns('about.views',
-    (r'^$', 'welcome'),
-)
+admin.site.register(Project)
+admin.site.register(Series)
+admin.site.register(Milestone)

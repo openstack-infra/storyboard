@@ -21,10 +21,10 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     (r'^openid/', include('django_openid_auth.urls')),
-    (r'^$', 'about.views.welcome'),
-    (r'^about/',  include('about.urls')),
-    (r'^project/',  include('projects.urls')),
-    (r'^story/',  include('stories.urls')),
+    (r'^$', 'storyboard.about.views.welcome'),
+    (r'^about/',  include('storyboard.about.urls')),
+    (r'^project/',  include('storyboard.projects.urls')),
+    (r'^story/',  include('storyboard.stories.urls')),
     url(r'^admin/', include(admin.site.urls)),
-    (r'^logout$', 'about.views.dologout'),
+    (r'^logout$', 'storyboard.about.views.dologout'),
 )

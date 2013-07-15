@@ -1,4 +1,4 @@
-# Copyright 2011 Thierry Carrez <thierry@openstack.org>
+# Copyright 2013 Thierry Carrez <thierry@openstack.org>
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -13,10 +13,17 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from projects.models import Project, Series, Milestone
-from django.contrib import admin
+from django.conf.urls.defaults import *
 
 
-admin.site.register(Project)
-admin.site.register(Series)
-admin.site.register(Milestone)
+urlpatterns = patterns('storyboard.stories.views',
+    (r'^$', 'dashboard'),
+    (r'^(\d+)$', 'view'),
+    (r'^(\d+)/addtask$', 'add_task'),
+    (r'^new$', 'add_story'),
+    (r'^(\d+)/edit$', 'edit_story'),
+    (r'^(\d+)/comment$', 'comment'),
+    (r'^(\d+)/priority$', 'set_priority'),
+    (r'^task/(\d+)$', 'edit_task'),
+    (r'^task/(\d+)/delete$', 'delete_task'),
+)

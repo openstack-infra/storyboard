@@ -20,8 +20,8 @@ from django.contrib.auth import logout
 from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import render
 
-from projects.models import Project
-from stories.models import Task
+from storyboard.projects.models import Project
+from storyboard.stories.models import Task
 
 def default_list(request):
     return render(request, "projects.list.html", {

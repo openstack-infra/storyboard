@@ -133,9 +133,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_openid_auth',
     'django.contrib.admin',
-    'about',
-    'projects',
-    'stories',
+    'storyboard.about',
+    'storyboard.projects',
+    'storyboard.stories',
 ]
 
 AUTHENTICATION_BACKENDS = (

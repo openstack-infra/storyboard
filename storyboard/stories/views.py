@@ -18,8 +18,9 @@ from django.views.decorators.http import require_POST
 from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import render
 from django.contrib.auth.models import User
-from projects.models import Project, Milestone, Series
-from stories.models import Story, Task, Comment, StoryTag
+
+from storyboard.projects.models import Project, Milestone, Series
+from storyboard.stories.models import Story, Task, Comment, StoryTag
 
 def dashboard(request):
     recent_bugs = Story.objects.order_by("-id")[:5]

@@ -118,9 +118,13 @@ Prerequisites
 
 You'll need the following Python modules installed:
  - django (1.4+)
- - python-django-auth-openid
- - python-markdown
+ - django-openid-auth
+ - markdown
+ - python-openid
 
+You can get them by running::
+
+  pip install -r requirements.txt
 
 Configuration and DB creation
 -----------------------------
