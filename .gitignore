@@ -10,3 +10,4 @@ storyboard.db
 AUTHORS
 ChangeLog
 *.egg-info
+.testrepository
