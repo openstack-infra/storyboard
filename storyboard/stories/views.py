@@ -14,13 +14,18 @@
 #    under the License.
 
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
+from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from django.contrib.auth.models import User
+from django.views.decorators.http import require_POST
 
-from storyboard.projects.models import Project, Milestone, Series
-from storyboard.stories.models import Story, Task, Comment, StoryTag
+from storyboard.projects.models import Milestone
+from storyboard.projects.models import Project
+from storyboard.projects.models import Series
+from storyboard.stories.models import Comment
+from storyboard.stories.models import Story
+from storyboard.stories.models import StoryTag
+from storyboard.stories.models import Task
 
 
 def dashboard(request):
@@ -247,5 +252,5 @@ def edit_story(request, storyid):
                                  comment_type=comment_type)
             newcomment.save()
     except KeyError as e:
-        print e
+        print(e)
     return HttpResponseRedirect('/story/%s' % story.id)
