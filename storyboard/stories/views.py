@@ -14,18 +14,25 @@
 #    under the License.
 
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
-from django.http import HttpResponseRedirect, HttpResponseForbidden
-from django.shortcuts import render
 from django.contrib.auth.models import User
-from projects.models import Project, Milestone, Series
-from stories.models import Story, Task, Comment, StoryTag
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
+from django.views.decorators.http import require_POST
+
+from storyboard.projects.models import Milestone
+from storyboard.projects.models import Project
+from storyboard.projects.models import Series
+from storyboard.stories.models import Comment
+from storyboard.stories.models import Story
+from storyboard.stories.models import StoryTag
+from storyboard.stories.models import Task
+
 
 def dashboard(request):
     recent_bugs = Story.objects.order_by("-id")[:5]
     return render(request, "stories.dashboard.html", {
                   'recent_bugs': recent_bugs,
-                 })
+                  })
 
 
 def view(request, storyid):
@@ -40,6 +47,7 @@ def view(request, storyid):
                   'active_series': active_series,
                   })
 
+
 @login_required
 @require_POST
 def comment(request, storyid):
@@ -51,6 +59,7 @@ def comment(request, storyid):
                              content=request.POST['content'])
         newcomment.save()
     return HttpResponseRedirect('/story/%s' % storyid)
+
 
 @login_required
 @require_POST
@@ -73,6 +82,7 @@ def set_priority(request, storyid):
             newcomment.save()
     return HttpResponseRedirect('/story/%s' % storyid)
 
+
 @login_required
 @require_POST
 def add_story(request):
@@ -82,11 +92,11 @@ def add_story(request):
             description=request.POST['description'],
             creator=request.user,
             priority=0,
-            )
+        )
         newstory.save()
         proposed_projects = request.POST['projects'].split()
         if proposed_projects:
-            series=Series.objects.get(status=2)
+            series = Series.objects.get(status=2)
             tasks = []
             for project in proposed_projects:
                 tasks.append(Task(
@@ -108,9 +118,10 @@ def add_story(request):
                              comment_type="star-empty",
                              content='')
         newcomment.save()
-    except KeyError as e:
+    except KeyError:
         pass
     return HttpResponseRedirect('/story/%s' % newstory.id)
+
 
 @login_required
 @require_POST
@@ -119,27 +130,28 @@ def add_task(request, storyid):
     try:
         if request.POST['project']:
             if request.POST['series']:
-                series=Series.objects.get(name=request.POST['series'])
+                series = Series.objects.get(name=request.POST['series'])
             else:
-                series=Series.objects.get(status=2)
+                series = Series.objects.get(status=2)
             newtask = Task(
                 story=story,
                 title=request.POST['title'],
                 project=Project.objects.get(name=request.POST['project']),
                 series=series,
-                )
+            )
             newtask.save()
             msg = "Added %s/%s task " % (
-               newtask.project.name, newtask.series.name)
+                newtask.project.name, newtask.series.name)
             newcomment = Comment(story=story,
                                  action=msg,
                                  author=request.user,
                                  comment_type="plus-sign",
                                  content=request.POST.get('comment', ''))
             newcomment.save()
-    except KeyError as e:
+    except KeyError:
         pass
     return HttpResponseRedirect('/story/%s' % story.id)
+
 
 @login_required
 @require_POST
@@ -154,7 +166,8 @@ def edit_task(request, taskid):
             milestone = None
             milestonename = "None"
         else:
-            milestone = Milestone.objects.get(id=int(request.POST['milestone']))
+            milestone = Milestone.objects.get(
+                id=int(request.POST['milestone']))
             milestonename = milestone.name
         if (milestone != task.milestone):
             actions.append("milestone -> %s" % milestonename)
@@ -182,9 +195,10 @@ def edit_task(request, taskid):
                                  comment_type="tasks",
                                  content=request.POST.get('comment', ''))
             newcomment.save()
-    except KeyError as e:
+    except KeyError:
         pass
     return HttpResponseRedirect('/story/%s' % task.story.id)
+
 
 @login_required
 @require_POST
@@ -199,6 +213,7 @@ def delete_task(request, taskid):
                          content=request.POST.get('comment', ''))
     newcomment.save()
     return HttpResponseRedirect('/story/%s' % task.story.id)
+
 
 @login_required
 @require_POST
@@ -237,5 +252,5 @@ def edit_story(request, storyid):
                                  comment_type=comment_type)
             newcomment.save()
     except KeyError as e:
-        print e
+        print(e)
     return HttpResponseRedirect('/story/%s' % story.id)

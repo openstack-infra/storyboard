@@ -90,7 +90,7 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    #'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
 # Make this unique, and don't share it with anybody.
@@ -100,7 +100,7 @@ SECRET_KEY = 'my_secret_key_here'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
+    #'django.template.loaders.eggs.Loader',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -119,7 +119,8 @@ ROOT_URLCONF = 'storyboard.urls'
 WSGI_APPLICATION = 'storyboard.wsgi.application'
 
 TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
+    # Put strings here, like "/home/html/django_templates" or
+    # "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
 )
@@ -133,9 +134,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_openid_auth',
     'django.contrib.admin',
-    'about',
-    'projects',
-    'stories',
+    'storyboard.about',
+    'storyboard.projects',
+    'storyboard.stories',
 ]
 
 AUTHENTICATION_BACKENDS = (
@@ -193,6 +194,6 @@ LOGGING = {
 
 # Override settings with local ones.
 try:
-    from storyboard.local_settings import *
+    from storyboard.local_settings import *  # noqa
 except ImportError:
     pass

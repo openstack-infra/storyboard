@@ -1,0 +1,7 @@
+d2to1>=0.2.10,<0.3
+pbr>=0.5.10,<0.6
+
+django>=1.4
+django-openid-auth
+markdown
+python-openid

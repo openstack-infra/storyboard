@@ -5,3 +5,9 @@
 *.db
 *~
 local_settings.py
+storyboard.db
+.tox
+AUTHORS
+ChangeLog
+*.egg-info
+.testrepository

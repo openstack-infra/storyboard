@@ -1,4 +1,4 @@
-# Copyright 2013 Thierry Carrez <thierry@openstack.org>
+# Copyright 2011 Thierry Carrez <thierry@openstack.org>
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -13,18 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.conf import settings
-from django.contrib.auth import logout
-from django.http import HttpResponseRedirect, HttpResponseForbidden
-from django.shortcuts import render
+from django.conf.urls.defaults import patterns
 
 
-def welcome(request):
-    return render(request, "about.welcome.html")
-
-
-def dologout(request):
-    logout(request)
-    return HttpResponseRedirect('/')
+urlpatterns = patterns('storyboard.projects.views',
+    (r'^$', 'default_list'),
+    (r'^(\S+)/bugs/triage$', 'list_bugtriage'),
+    (r'^(\S+)/bugs$', 'list_bugtasks'),
+    (r'^(\S+)$', 'dashboard'),
+)

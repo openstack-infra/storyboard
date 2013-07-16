@@ -20,7 +20,9 @@ register = template.Library()
 badges = ['', ' badge-info', ' badge-success', ' badge-warning',
           ' badge-important']
 buttons = ['', ' btn-info', ' btn-success', ' btn-warning', ' btn-danger']
-taskcolors = { 'T': 'info', 'R': 'warning', 'L': 'success' }
+taskcolors = {'T': 'info', 'R': 'warning', 'L': 'success'}
+
+
 @register.filter(name='priobadge')
 def priobadge(value):
     if value < 5:
@@ -28,12 +30,14 @@ def priobadge(value):
     else:
         return badges[4]
 
+
 @register.filter(name='priobutton')
 def priobutton(value):
     if value < 5:
         return buttons[value]
     else:
         return buttons[4]
+
 
 @register.filter(name='taskcolor')
 def taskcolor(value):

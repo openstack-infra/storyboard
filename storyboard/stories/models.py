@@ -13,9 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from django.db import models
 from django.contrib.auth.models import User
-from projects.models import Project, Series, Milestone
+from django.db import models
+
+from storyboard.projects.models import Milestone
+from storyboard.projects.models import Project
+from storyboard.projects.models import Series
 
 
 class Story(models.Model):

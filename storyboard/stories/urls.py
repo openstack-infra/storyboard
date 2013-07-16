@@ -1,4 +1,4 @@
-# Copyright 2011 Thierry Carrez <thierry@openstack.org>
+# Copyright 2013 Thierry Carrez <thierry@openstack.org>
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -13,12 +13,17 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from django.conf.urls.defaults import *
+from django.conf.urls.defaults import patterns
 
 
-urlpatterns = patterns('projects.views',
-    (r'^$', 'default_list'),
-    (r'^(\S+)/bugs/triage$', 'list_bugtriage'),
-    (r'^(\S+)/bugs$', 'list_bugtasks'),
-    (r'^(\S+)$', 'dashboard'),
+urlpatterns = patterns('storyboard.stories.views',
+    (r'^$', 'dashboard'),
+    (r'^(\d+)$', 'view'),
+    (r'^(\d+)/addtask$', 'add_task'),
+    (r'^new$', 'add_story'),
+    (r'^(\d+)/edit$', 'edit_story'),
+    (r'^(\d+)/comment$', 'comment'),
+    (r'^(\d+)/priority$', 'set_priority'),
+    (r'^task/(\d+)$', 'edit_task'),
+    (r'^task/(\d+)/delete$', 'delete_task'),
 )

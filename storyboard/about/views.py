@@ -13,17 +13,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from django.conf.urls.defaults import *
+from django.contrib.auth import logout
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
 
 
-urlpatterns = patterns('stories.views',
-    (r'^$', 'dashboard'),
-    (r'^(\d+)$', 'view'),
-    (r'^(\d+)/addtask$', 'add_task'),
-    (r'^new$', 'add_story'),
-    (r'^(\d+)/edit$', 'edit_story'),
-    (r'^(\d+)/comment$', 'comment'),
-    (r'^(\d+)/priority$', 'set_priority'),
-    (r'^task/(\d+)$', 'edit_task'),
-    (r'^task/(\d+)/delete$', 'delete_task'),
-)
+def welcome(request):
+    return render(request, "about.welcome.html")
+
+
+def dologout(request):
+    logout(request)
+    return HttpResponseRedirect('/')
