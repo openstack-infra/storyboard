@@ -18,7 +18,6 @@ from django.db import models
 
 from storyboard.projects.models import Milestone
 from storyboard.projects.models import Project
-from storyboard.projects.models import Series
 
 
 class Story(models.Model):
@@ -52,14 +51,13 @@ class Task(models.Model):
     story = models.ForeignKey(Story)
     title = models.CharField(max_length=100, blank=True)
     project = models.ForeignKey(Project)
-    series = models.ForeignKey(Series)
     assignee = models.ForeignKey(User, blank=True, null=True)
     status = models.CharField(max_length=1, choices=TASK_STATUSES, default='T')
-    milestone = models.ForeignKey(Milestone, blank=True, null=True)
+    milestone = models.ForeignKey(Milestone)
 
     def __unicode__(self):
         return "%s %s/%s" % (
-            self.story.id, self.project.name, self.series.name)
+            self.story.id, self.project.name, self.branch.short_name)
 
 
 class Comment(models.Model):

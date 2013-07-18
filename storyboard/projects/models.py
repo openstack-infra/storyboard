@@ -24,14 +24,15 @@ class Project(models.Model):
         return self.name
 
 
-class Series(models.Model):
-    SERIES_STATUS = (
-        (0, 'Old'),
-        (1, 'Supported'),
-        (2, 'Active'),
-        (3, 'Future'))
-    name = models.CharField(max_length=50, primary_key=True)
-    status = models.IntegerField(choices=SERIES_STATUS)
+class Branch(models.Model):
+    BRANCH_STATUS = (
+        ('M', 'master'),
+        ('R', 'release'),
+        ('S', 'stable'),
+        ('U', 'unsupported'))
+    name = models.CharField(max_length=50)
+    short_name = models.CharField(max_length=20)
+    status = models.CharField(max_length=1, choices=BRANCH_STATUS)
     release_date = models.DateTimeField()
 
     def __unicode__(self):
@@ -43,8 +44,9 @@ class Series(models.Model):
 
 class Milestone(models.Model):
     name = models.CharField(max_length=50)
-    series = models.ForeignKey(Series)
-    active = models.BooleanField(default=True)
+    branch = models.ForeignKey(Branch)
+    released = models.BooleanField(default=False)
+    undefined = models.BooleanField(default=False)
 
     def __unicode__(self):
         return self.name

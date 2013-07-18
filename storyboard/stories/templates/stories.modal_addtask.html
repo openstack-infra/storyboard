@@ -14,23 +14,29 @@
     <input class="input-block-level" name="project" id="prependedInput"
            type="text" value="">
     </div>
-    <label>Series</label>
-    <div class="btn-group" data-toggle="buttons-radio">
-    {% for series in active_series %}
-      {% if series.status == 2 %}
-        <button type="button" data-value="{{ series.name }}"
-                class="addtask_series btn btn-small active">Current ({{series.name}})</button>
+    <label>Branch / Milestone</label>
+{% regroup milestones by branch as branch_list %}
+<div class="btn-toolbar" data-toggle="buttons-radio">
+  {% for branch in branch_list %}
+    <div class="btn-group">
+        <button type="button" data-value="{{ milestone.id }}"
+                class="btn btn-small disabled"><b>{{branch.grouper.name}}</b></button>
+    {% for milestone in branch.list %}
+      {% if milestone.branch.status == 'M' and milestone.undefined %}
+        <button type="button" data-value="{{ milestone.id }}"
+                class="addtask_milestone btn btn-small active">{{milestone.name}}</button>
       {% else %}
-        <button type="button" data-value="{{ series.name }}"
-                class="addtask_series btn btn-small
-{% if series.status == 1 %}btn-success{% endif %}">{{ series.name }}</button>
+        <button type="button" data-value="{{ milestone.id }}"
+                class="addtask_milestone btn btn-small">{{ milestone.name }}</button>
       {% endif %}
     {% endfor %}
     </div>
-    <label class="after-buttongroup">Comment</label>
+  {% endfor %}
+</div>
+    <label>Comment</label>
     <textarea class="input-block-level" rows="6" name="comment"
      placeholder="Add a comment"></textarea>
-    <input type="hidden" id="addtask_series" name="series" value="">
+    <input type="hidden" id="addtask_milestone" name="milestone" value="">
   </div>
   <div class="modal-footer">
     <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
@@ -39,7 +45,7 @@
 </div>
 </form>
 <script type="text/javascript">
-$(".addtask_series").click(function() {
-    $("#addtask_series").val($(this).data("value"));
+$(".addtask_milestone").click(function() {
+    $("#addtask_milestone").val($(this).data("value"));
 });
 </script>
