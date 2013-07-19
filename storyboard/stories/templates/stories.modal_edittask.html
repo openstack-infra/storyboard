@@ -5,7 +5,7 @@
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
     <h3 id="edittaskLabel">Edit
-    {{task.project.name}}/{{task.series.name}} task</h3>
+    {{task.project.name}}/{{task.milestone.branch.short_name}} task</h3>
   </div>
   <div class="modal-body">
     <label>Title <small>(optional)</small></label>
@@ -18,20 +18,21 @@
     </div>
     <label>Milestone</label>
     <div class="btn-group" data-toggle="buttons-radio">
-      <button type="button" data-value=""
-              class="btn btn-small edittask_ms{{task.id}}
-              {% if not task.milestone %}active{% endif %}">
-              None</button>
+    {% if task.milestone not in milestones %}
+      <button type="button" data-value="{{task.milestone.id}}"
+              class="btn btn-small active edittask_ms{{task.id}} btn-success">
+              {{ task.milestone.name }}</button>
+    {% endif %}
     {% for milestone in milestones %}
-      {% if milestone.series == task.series %}}
+      {% if milestone.branch == task.milestone.branch %}}
       <button type="button" data-value="{{milestone.id}}"
               class="btn btn-small
 {% if task.milestone == milestone %}active{% endif %}
-{% if milestone.active or task.milestone == milestone %}edittask_ms{{task.id}}{%endif%}
-{% if not milestone.active %}btn-success
+{% if not milestone.released or task.milestone == milestone %}edittask_ms{{task.id}}{%endif%}
+{% if milestone.released %}btn-success
   {% if task.milestone != milestone %}disabled{%endif%}
 {% endif %}"
-{% if task.milestone != milestone and not milestone.active %}disabled="disabled"{%endif%}>
+{% if task.milestone != milestone and milestone.released %}disabled="disabled"{%endif%}>
               {{ milestone.name }}</button>
       {% endif %}
     {% endfor %}

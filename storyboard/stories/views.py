@@ -21,7 +21,6 @@ from django.views.decorators.http import require_POST
 
 from storyboard.projects.models import Milestone
 from storyboard.projects.models import Project
-from storyboard.projects.models import Series
 from storyboard.stories.models import Comment
 from storyboard.stories.models import Story
 from storyboard.stories.models import StoryTag
@@ -37,14 +36,13 @@ def dashboard(request):
 
 def view(request, storyid):
     story = Story.objects.get(id=storyid)
-    active_series = Series.objects.filter(status__gt=0)
-    milestones = Milestone.objects.all()
+    milestones = Milestone.objects.filter(
+        released=False).order_by('branch__release_date')
     return render(request, "stories.view.html", {
                   'story': story,
                   'milestones': milestones,
                   'priorities': Story.STORY_PRIORITIES,
                   'taskstatuses': Task.TASK_STATUSES,
-                  'active_series': active_series,
                   })
 
 
@@ -96,13 +94,14 @@ def add_story(request):
         newstory.save()
         proposed_projects = request.POST['projects'].split()
         if proposed_projects:
-            series = Series.objects.get(status=2)
+            master_undefined_milestone = Milestone.objects.get(
+                branch__status='M', undefined=True)
             tasks = []
             for project in proposed_projects:
                 tasks.append(Task(
                     story=newstory,
                     project=Project.objects.get(name=project),
-                    series=series,
+                    milestone=master_undefined_milestone,
                 ))
             Task.objects.bulk_create(tasks)
         proposed_tags = set(request.POST['tags'].split())
@@ -129,19 +128,20 @@ def add_task(request, storyid):
     story = Story.objects.get(id=storyid)
     try:
         if request.POST['project']:
-            if request.POST['series']:
-                series = Series.objects.get(name=request.POST['series'])
+            if request.POST['milestone']:
+                milestone = Milestone.objects.get(id=request.POST['milestone'])
             else:
-                series = Series.objects.get(status=2)
+                milestone = Milestone.objects.get(branch__status='M',
+                                                  undefined=True)
             newtask = Task(
                 story=story,
                 title=request.POST['title'],
                 project=Project.objects.get(name=request.POST['project']),
-                series=series,
+                milestone=milestone,
             )
             newtask.save()
             msg = "Added %s/%s task " % (
-                newtask.project.name, newtask.series.name)
+                newtask.project.name, newtask.milestone.branch.short_name)
             newcomment = Comment(story=story,
                                  action=msg,
                                  author=request.user,
@@ -162,13 +162,8 @@ def edit_task(request, taskid):
         if (task.title != request.POST['title']):
             actions.append("title")
             task.title = request.POST['title']
-        if not request.POST['milestone']:
-            milestone = None
-            milestonename = "None"
-        else:
-            milestone = Milestone.objects.get(
-                id=int(request.POST['milestone']))
-            milestonename = milestone.name
+        milestone = Milestone.objects.get(id=int(request.POST['milestone']))
+        milestonename = milestone.name
         if (milestone != task.milestone):
             actions.append("milestone -> %s" % milestonename)
             task.milestone = milestone
@@ -186,7 +181,8 @@ def edit_task(request, taskid):
             actions.append("assignee -> %s" % assigneename)
             task.assignee = assignee
         if actions:
-            msg = "Updated %s/%s task " % (task.project.name, task.series.name)
+            msg = "Updated %s/%s task " % (task.project.name,
+                                           task.milestone.branch.short_name)
             msg += ", ".join(actions)
             task.save()
             newcomment = Comment(story=task.story,
@@ -205,7 +201,8 @@ def edit_task(request, taskid):
 def delete_task(request, taskid):
     task = Task.objects.get(id=taskid)
     task.delete()
-    msg = "Deleted %s/%s task" % (task.project.name, task.series.name)
+    msg = "Deleted %s/%s task" % (task.project.name,
+                                  task.milestone.branch.short_name)
     newcomment = Comment(story=task.story,
                          action=msg,
                          author=request.user,

@@ -17,7 +17,7 @@ Current features
 
 *Bug tracking*
   Like Launchpad Bugs, StoryBoard implements bugs as stories, with tasks that
-  may affect various project/series combinations. You can currently create
+  may affect various project/branch combinations. You can currently create
   bugs, tasks for bugs, edit their status, comment on them, etc. The current
   POC is incomplete: it does not do any sort of form client-side validation,
   and is missing search features, pagination, results ordering. This should
@@ -76,38 +76,13 @@ Future features
   a 1:1 relationship between tasks and merges (one merge = one task marked
   'Landed')
 
-*Series tracking*
-  A new tab for StoryBoard, giving you per-series and per-milestone views of
-  progress. Would replace the need for status.o.o/releasestatus. Series and
+*Development cycle tracking*
+  A new tab for StoryBoard, giving you per-cycle and per-milestone views of
+  progress. Would replace the need for status.o.o/releasestatus. Cycles and
   milestones could be specified per project, although having a default, common
   set would avoid duplication (and allow cross-project milestone views).
 
-*Story dependencies*
-  Some stories relate to each other (duplicates, related, depend on...) and we
-  should be able to access those easily.
-
-*Official tags*
-  Currently all tags are considered custom (grey color). A set of official tags
-  should be created (with associated colors and autocomplete magic) for easier
-  reuse of popular tags.
-
-*Privileged actions*
-  Currently everyone can do everything. Features prioritization, for example,
-  should probably be restricted to PTL/drivers-style group.
-
-*Embargoed vulnerabilities support*
-  Support for private stories that can be accessed only by a per-story set of
-  users.
-
-*Patches in comments*
-  Have the ability to attach patches to comments.
-
-*Email notifications*
-  We'd certainly need email notifications of some kind, too.
-
-*Admin actions*
-  Currently creating series/milestones/projects is done through the default
-  Django admin app. StoryBoard could use something a bit more friendly.
+See https://github.com/ttx/storyboard/issues for more feature backlog.
 
 
 Install, test and run
@@ -142,8 +117,8 @@ Basic test using Django development server
 Run Django development server:
 ./manage.py runserver
 
-Create basic data (at least a series, a milestone, a project) through the
-admin server (using the admin credentials above) at:
+Create basic data (at least a master and release branch, a milestone, a
+project) through the admin server (using the admin credentials above) at:
 http://127.0.0.1:8000/admin/
 
 Then log out and access the application at:

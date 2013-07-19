@@ -33,7 +33,7 @@
         <tr>
           <th>Task</th>
           <th>Project</th>
-          <th>Series</th>
+          <th>Branch</th>
           <th>Assignee</th>
           <th>Status</th>
           <th>Milestone</th>
@@ -44,10 +44,10 @@
         <tr class="{{ task.status|taskcolor }}">
           <td>{{ task.title }}</td>
           <td>{{ task.project.title }}</td>
-          <td>{{ task.series.name }}</td>
+          <td>{{ task.milestone.branch.name }}</td>
           <td>{{ task.assignee.username }}</td>
           <td>{{ task.get_status_display }}</td>
-          <td>{{ task.milestone.name }}</td>
+          <td>{% if not task.milestone.undefined %}{{ task.milestone.name }}{% endif %}</td>
           <td>
               <a href="#edittask{{ task.id }}" class="btn btn-micro" data-toggle="modal"><i class="icon-edit"></i></a>
               <a href="#deltask{{ task.id }}" class="btn btn-micro" data-toggle="modal"><i class="icon-remove"></i></a>

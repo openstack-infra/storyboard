@@ -15,11 +15,11 @@
 
 from django.contrib import admin
 
+from storyboard.projects.models import Branch
 from storyboard.projects.models import Milestone
 from storyboard.projects.models import Project
-from storyboard.projects.models import Series
 
 
+admin.site.register(Branch)
 admin.site.register(Project)
-admin.site.register(Series)
 admin.site.register(Milestone)

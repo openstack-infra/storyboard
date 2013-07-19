@@ -11,7 +11,7 @@
           <th>Story</th>
           <th>Priority</th>
           <th>Task</th>
-          <th>Series</th>
+          <th>Branch</th>
           <th>Assignee</th>
           <th>Milestone</th>
         </tr>
@@ -24,9 +24,9 @@
           <td><span class="badge{{ task.story.priority|priobadge }}">
       {{ task.story.get_priority_display }}</span></td>
           <td>{{ task.title }}</td>
-          <td>{{ task.series.name }}</td>
+          <td>{{ task.milestone.branch.name }}</td>
           <td>{{ task.assignee.username }}</td>
-          <td>{{ task.milestone.name }}</td>
+          <td>{% if not task.milestone.undefined %}{{ task.milestone.name }}{% endif %}</td>
         </tr>
 {% endfor %}
       </tbody>
