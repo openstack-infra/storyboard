@@ -21,10 +21,6 @@ from storyboard.projects.models import Project
 
 
 class Story(models.Model):
-    STORY_TYPES = (
-        ('B', 'Bug'),
-        ('F', 'Feature'),
-    )
     STORY_PRIORITIES = (
         (4, 'Critical'),
         (3, 'High'),
@@ -35,7 +31,7 @@ class Story(models.Model):
     creator = models.ForeignKey(User)
     title = models.CharField(max_length=100)
     description = models.TextField()
-    story_type = models.CharField(max_length=1, choices=STORY_TYPES)
+    is_bug = models.BooleanField(default=True)
     priority = models.IntegerField(choices=STORY_PRIORITIES)
 
     def __unicode__(self):

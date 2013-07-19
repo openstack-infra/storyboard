@@ -9,9 +9,8 @@
       <thead>
         <tr>
           <th>#</th>
-          <th>Story</th>
+          <th>Bug</th>
           <th>Priority</th>
-          <th>Affects</th>
         </tr>
       </thead>
       <tbody>
@@ -21,9 +20,26 @@
           <td><small><a href="/story/{{story.id}}">{{ story.title }}</a></small></td>
           <td><span class="badge{{ story.priority|priobadge }}">
       {{ story.get_priority_display }}</span></td>
-          <td>
-  {% for task in story.task_set.all %}{% if not forloop.first %}, {% endif %}{{ task.project.name }}{% endfor %}
-          </td>
+        </tr>
+{% endfor %}
+      </tbody>
+    </table>
+    <h5>Recent features</h5>
+    <table class="table table-condensed table-hover">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Feature</th>
+          <th>Priority</th>
+        </tr>
+      </thead>
+      <tbody>
+{% for story in recent_features %}
+        <tr>
+          <td>{{ story.id }}</td>
+          <td><small><a href="/story/{{story.id}}">{{ story.title }}</a></small></td>
+          <td><span class="badge{{ story.priority|priobadge }}">
+      {{ story.get_priority_display }}</span></td>
         </tr>
 {% endfor %}
       </tbody>

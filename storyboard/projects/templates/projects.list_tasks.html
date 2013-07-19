@@ -7,11 +7,11 @@
     <table class="table table-condensed table-hover">
       <thead>
         <tr>
+          <th>Priority</th>
           <th>#</th>
           <th>Story</th>
-          <th>Priority</th>
           <th>Task</th>
-          <th>Branch</th>
+{% if is_bug %}<th>Branch</th>{% endif %}
           <th>Assignee</th>
           <th>Milestone</th>
         </tr>
@@ -19,12 +19,12 @@
       <tbody>
 {% for task in tasks %}
         <tr class="{{ task.status|taskcolor }}">
-          <td>{{ task.story.id }}</td>
-          <td><small><a href="/story/{{task.story.id}}">{{ task.story.title }}</a></small></td>
           <td><span class="badge{{ task.story.priority|priobadge }}">
       {{ task.story.get_priority_display }}</span></td>
+          <td>{{ task.story.id }}</td>
+          <td><small><a href="/story/{{task.story.id}}">{{ task.story.title }}</a></small></td>
           <td>{{ task.title }}</td>
-          <td>{{ task.milestone.branch.name }}</td>
+{% if is_bug %}<td>{{ task.milestone.branch.name }}</td>{% endif %}
           <td>{{ task.assignee.username }}</td>
           <td>{% if not task.milestone.undefined %}{{ task.milestone.name }}{% endif %}</td>
         </tr>

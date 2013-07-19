@@ -14,8 +14,9 @@
     <input class="input-block-level" name="project" id="prependedInput"
            type="text" value="">
     </div>
+{% if story.is_bug %}
     <label>Branch / Milestone</label>
-{% regroup milestones by branch as branch_list %}
+  {% regroup milestones by branch as branch_list %}
 <div class="btn-toolbar" data-toggle="buttons-radio">
   {% for branch in branch_list %}
     <div class="btn-group">
@@ -33,7 +34,23 @@
     </div>
   {% endfor %}
 </div>
-    <label>Comment</label>
+{% else %}
+    <label>Milestone</label>
+    <div class="btn-group" data-toggle="buttons-radio">
+    {% for milestone in milestones %}
+      {% if milestone.branch.status == 'M' %}
+        {% if milestone.undefined %}
+        <button type="button" data-value="{{ milestone.id }}"
+                class="addtask_milestone btn btn-small active">{{milestone.name}}</button>
+        {% else %}
+        <button type="button" data-value="{{ milestone.id }}"
+                class="addtask_milestone btn btn-small">{{ milestone.name }}</button>
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+    </div>
+{% endif %}
+    <label class="after-buttongroup">Comment</label>
     <textarea class="input-block-level" rows="6" name="comment"
      placeholder="Add a comment"></textarea>
     <input type="hidden" id="addtask_milestone" name="milestone" value="">

@@ -27,31 +27,59 @@ def default_list(request):
 
 def dashboard(request, projectname):
     project = Project.objects.get(name=projectname)
-    count = Task.objects.filter(project=project, story__priority=0).count()
+    bugcount = Task.objects.filter(project=project,
+                                   story__is_bug=True,
+                                   story__priority=0).count()
     return render(request, "projects.dashboard.html", {
         'project': project,
-        'triagecount': count,
+        'bugtriagecount': bugcount,
+    })
+
+
+def list_featuretasks(request, projectname):
+    project = Project.objects.get(name=projectname)
+    bugcount = Task.objects.filter(project=project,
+                                   story__is_bug=True,
+                                   story__priority=0).count()
+    featuretasks = Task.objects.filter(project=project,
+                                   story__is_bug=False,
+                                   status__in=['T', 'R'])
+    return render(request, "projects.list_tasks.html", {
+        'title': "Active feature tasks",
+        'project': project,
+        'bugtriagecount': bugcount,
+        'tasks': featuretasks,
+        'is_bug': False,
     })
 
 
 def list_bugtasks(request, projectname):
     project = Project.objects.get(name=projectname)
-    count = Task.objects.filter(project=project, story__priority=0).count()
+    bugcount = Task.objects.filter(project=project,
+                                   story__is_bug=True,
+                                   story__priority=0).count()
+    bugtasks = Task.objects.filter(project=project,
+                                   story__is_bug=True,
+                                   status__in=['T', 'R'])
     return render(request, "projects.list_tasks.html", {
         'title': "Active bug tasks",
         'project': project,
-        'triagecount': count,
-        'tasks': Task.objects.filter(project=project, status__in=['T', 'R']),
+        'bugtriagecount': bugcount,
+        'tasks': bugtasks,
+        'is_bug': True,
     })
 
 
 def list_bugtriage(request, projectname):
     project = Project.objects.get(name=projectname)
-    tasks = Task.objects.filter(project=project, story__priority=0)
-    count = tasks.count()
+    tasks = Task.objects.filter(project=project,
+                                story__is_bug=True,
+                                story__priority=0)
+    bugcount = tasks.count()
     return render(request, "projects.list_tasks.html", {
         'title': "Bugs needing triage",
         'project': project,
-        'triagecount': count,
-        'tasks': Task.objects.filter(project=project, story__priority=0),
+        'bugtriagecount': bugcount,
+        'tasks': tasks,
+        'is_bug': True,
     })

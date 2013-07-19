@@ -25,12 +25,15 @@ from storyboard.stories.models import Comment
 from storyboard.stories.models import Story
 from storyboard.stories.models import StoryTag
 from storyboard.stories.models import Task
+from storyboard.stories.utils import format_taskname
 
 
 def dashboard(request):
-    recent_bugs = Story.objects.order_by("-id")[:5]
+    recent_bugs = Story.objects.filter(is_bug=True).order_by("-id")[:5]
+    recent_features = Story.objects.filter(is_bug=False).order_by("-id")[:5]
     return render(request, "stories.dashboard.html", {
                   'recent_bugs': recent_bugs,
+                  'recent_features': recent_features,
                   })
 
 
@@ -89,6 +92,7 @@ def add_story(request):
             title=request.POST['title'],
             description=request.POST['description'],
             creator=request.user,
+            is_bug=bool(request.POST['story_type']),
             priority=0,
         )
         newstory.save()
@@ -128,9 +132,10 @@ def add_task(request, storyid):
     story = Story.objects.get(id=storyid)
     try:
         if request.POST['project']:
+            milestone = None
             if request.POST['milestone']:
                 milestone = Milestone.objects.get(id=request.POST['milestone'])
-            else:
+            if not milestone or milestone.branch.status != 'M':
                 milestone = Milestone.objects.get(branch__status='M',
                                                   undefined=True)
             newtask = Task(
@@ -140,8 +145,7 @@ def add_task(request, storyid):
                 milestone=milestone,
             )
             newtask.save()
-            msg = "Added %s/%s task " % (
-                newtask.project.name, newtask.milestone.branch.short_name)
+            msg = "Added %s task " % format_taskname(newtask)
             newcomment = Comment(story=story,
                                  action=msg,
                                  author=request.user,
@@ -181,8 +185,7 @@ def edit_task(request, taskid):
             actions.append("assignee -> %s" % assigneename)
             task.assignee = assignee
         if actions:
-            msg = "Updated %s/%s task " % (task.project.name,
-                                           task.milestone.branch.short_name)
+            msg = "Updated %s task " % format_taskname(task)
             msg += ", ".join(actions)
             task.save()
             newcomment = Comment(story=task.story,
@@ -201,8 +204,7 @@ def edit_task(request, taskid):
 def delete_task(request, taskid):
     task = Task.objects.get(id=taskid)
     task.delete()
-    msg = "Deleted %s/%s task" % (task.project.name,
-                                  task.milestone.branch.short_name)
+    msg = "Deleted %s task" % format_taskname(task)
     newcomment = Comment(story=task.story,
                          action=msg,
                          author=request.user,

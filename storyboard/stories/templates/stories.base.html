@@ -5,8 +5,8 @@
     <div class="well sidebar-nav">
       <ul class="nav nav-list">
         <li class="nav-header">Stories</li>
-        <li><a href="#addstory" data-toggle="modal">Add new bug</a></li>
-        <li class="disabled"><a href="#">Add new feature</a></li>
+        <li><a href="#addbug" data-toggle="modal">Add new bug</a></li>
+        <li><a href="#addfeature" data-toggle="modal">Add new feature</a></li>
         <li class="disabled"><a href="#">Search stories</a></li>
         <li class="nav-header">Reports</li>
         <li class="disabled"><a href="#">A report</a></li>
@@ -25,7 +25,8 @@
 <script type="text/javascript">
 $("#tab-stories").addClass('active');
 </script>
-{% include "stories.modal_addstory.html" %}
+{% include "stories.modal_addstory.html" with story_type='bug' %}
+{% include "stories.modal_addstory.html" with story_type='feature' %}
   {% block modals %}
   {% endblock %}
 {% endblock %}

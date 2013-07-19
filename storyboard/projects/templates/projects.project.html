@@ -7,16 +7,17 @@
     <li class="divider"></li>
     <li><a href="/project/{{project.name}}/bugs">List bug tasks</a></li>
     <li><a href="/project/{{project.name}}/bugs/triage">Triage bugs
-{% if triagecount > 0 %}<span class="badge
-{% if triagecount < 20 %}badge-success{% else %}{% if triagecount < 50 %}badge-warning{% else %}badge-important{% endif %}{% endif %}">
-{{ triagecount }}</span>{% endif %}</a></li>
-    <li><a href="#addstory" data-toggle="modal">Report new bug</a></li>
+{% if bugtriagecount > 0 %}<span class="badge
+{% if bugtriagecount < 20 %}badge-success{% else %}{% if bugtriagecount < 50 %}badge-warning{% else %}badge-important{% endif %}{% endif %}">
+{{ bugtriagecount }}</span>{% endif %}</a></li>
+    <li><a href="#addbug" data-toggle="modal">Report new bug</a></li>
     <li class="divider"></li>
-    <li class="disabled"><a href="#">List feature tasks</a></li>
-    <li class="disabled"><a href="#">Propose new feature</a></li>
+    <li><a href="/project/{{project.name}}/features">List feature tasks</a></li>
+    <li><a href="#addfeature" data-toggle="modal">Propose new feature</a></li>
   </ul>
 </div><!--/.well -->
 {% endblock %}
 {% block modals %}
-{% include "stories.modal_addstory.html" with project=project.name %}
+{% include "stories.modal_addstory.html" with project=project.name story_type='bug' %}
+{% include "stories.modal_addstory.html" with project=project.name story_type='feature' %}
 {% endblock %}

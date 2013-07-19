@@ -15,7 +15,8 @@
 {% block content %}
 <div class="row-fluid">
   <div class="span2">
-    <h3>Bug {{ story.id }}</h3>
+    <h3>{% if story.is_bug %}Bug{% else %}Feature{% endif %}
+        {{ story.id }}</h3>
   </div>
   <div class="span10">
     <a href=#editprio data-toggle="modal">
@@ -33,7 +34,9 @@
         <tr>
           <th>Task</th>
           <th>Project</th>
+{% if story.is_bug %}
           <th>Branch</th>
+{% endif %}
           <th>Assignee</th>
           <th>Status</th>
           <th>Milestone</th>
@@ -44,7 +47,9 @@
         <tr class="{{ task.status|taskcolor }}">
           <td>{{ task.title }}</td>
           <td>{{ task.project.title }}</td>
+{% if story.is_bug %}
           <td>{{ task.milestone.branch.name }}</td>
+{% endif %}
           <td>{{ task.assignee.username }}</td>
           <td>{{ task.get_status_display }}</td>
           <td>{% if not task.milestone.undefined %}{{ task.milestone.name }}{% endif %}</td>

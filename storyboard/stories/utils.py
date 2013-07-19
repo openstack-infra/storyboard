@@ -1,4 +1,4 @@
-# Copyright 2011 Thierry Carrez <thierry@openstack.org>
+# Copyright 2013 Thierry Carrez <thierry@openstack.org>
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -13,13 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from django.conf.urls.defaults import patterns
 
-
-urlpatterns = patterns('storyboard.projects.views',
-    (r'^$', 'default_list'),
-    (r'^(\S+)/bugs/triage$', 'list_bugtriage'),
-    (r'^(\S+)/bugs$', 'list_bugtasks'),
-    (r'^(\S+)/features$', 'list_featuretasks'),
-    (r'^(\S+)$', 'dashboard'),
-)
+def format_taskname(task):
+    if not task.story.is_bug:
+        if not task.title:
+            return task.project.name
+        return "%s (%s)" % (task.project.name, task.title)
+    return "%s (%s)" % (task.project.name, task.milestone.branch.short_name)
