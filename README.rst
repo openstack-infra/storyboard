@@ -117,9 +117,15 @@ Basic test using Django development server
 Run Django development server:
 ./manage.py runserver
 
-Create basic data (at least a master and release branch, a milestone, a
-project) through the admin server (using the admin credentials above) at:
-http://127.0.0.1:8000/admin/
+Create basic data via the admin interface: http://127.0.0.1:8000/admin,
+using the admin credentials above.
+
+At least:
+ * a master branch
+ * a release branch
+ * a milestone associated with the master branch
+  - the milestone also has to have the undefined box checked
+ * a project
 
 Then log out and access the application at:
 http://127.0.0.1:8000/
