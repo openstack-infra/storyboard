@@ -1,4 +1,4 @@
-# Copyright 2011 Thierry Carrez <thierry@openstack.org>
+# Copyright 2013 Thierry Carrez <thierry@openstack.org>
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -13,15 +13,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from django.contrib import admin
-
-from storyboard.projects.models import Branch
-from storyboard.projects.models import Milestone
 from storyboard.projects.models import Project
 from storyboard.projects.models import ProjectGroup
 
 
-admin.site.register(Branch)
-admin.site.register(Project)
-admin.site.register(ProjectGroup)
-admin.site.register(Milestone)
+def retrieve_projects(name, group):
+    if group:
+        ref = ProjectGroup.objects.get(name=name)
+        return ref, ref.members.all()
+    else:
+        ref = Project.objects.get(name=name)
+        return ref, [ref]

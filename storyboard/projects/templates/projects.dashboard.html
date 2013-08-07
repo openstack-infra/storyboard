@@ -2,8 +2,13 @@
 {% block content %}
 <div class="row-fluid">
   <div class="span12">
-    <h3>{{ project.title }} ({{ project.name }})</h3>
-    Interesting graphs and information shall be placed here.
+    <h3>{{ ref.title }} ({{ ref.name }})</h3>
+    <h4>Groups</h4>
+    <ul>
+    {% for group in ref.projectgroup_set.all %}
+    <li><a href="/projectgroup/{{group.name}}">{{group.title}}</a></li>
+    {% endfor %}
+    </ul>
   </div>
 </div>
 {% endblock %}

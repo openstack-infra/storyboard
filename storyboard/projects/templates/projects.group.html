@@ -1,0 +1,14 @@
+{% extends "projects.project.html" %}
+{% block content %}
+<div class="row-fluid">
+  <div class="span12">
+    <h3>Project group: {{ ref.title }} ({{ ref.name }})</h3>
+    <h4>Projects</h4>
+    <ul>
+    {% for project in ref.members.all %}
+    <li><a href="/project/{{ project.name }}">{{ project.title }}</a></li>
+    {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}

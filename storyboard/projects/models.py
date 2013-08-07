@@ -24,6 +24,15 @@ class Project(models.Model):
         return self.name
 
 
+class ProjectGroup(models.Model):
+    name = models.CharField(max_length=50, primary_key=True)
+    title = models.CharField(max_length=100)
+    members = models.ManyToManyField(Project)
+
+    def __unicode__(self):
+        return self.name
+
+
 class Branch(models.Model):
     BRANCH_STATUS = (
         ('M', 'master'),

@@ -2,22 +2,28 @@
 {% block extranav %}
 <div class="well sidebar-nav">
   <ul class="nav nav-list">
-    <li class="nav-header">{{project.name}}</li>
-    <li><a href="/project/{{project.name}}">Dashboard</a></li>
+    <li class="nav-header">{{ref.name}}</li>
+    <li><a href="/project{% if is_group %}group{% endif %}/{{ref.name}}">Dashboard</a></li>
     <li class="divider"></li>
-    <li><a href="/project/{{project.name}}/bugs">List bug tasks</a></li>
-    <li><a href="/project/{{project.name}}/bugs/triage">Triage bugs
+    <li><a href="/project{% if is_group %}group{% endif %}/{{ref.name}}/bugs">List bug tasks</a></li>
+    <li><a href="/project{% if is_group %}group{% endif %}/{{ref.name}}/bugs/triage">Triage bugs
 {% if bugtriagecount > 0 %}<span class="badge
 {% if bugtriagecount < 20 %}badge-success{% else %}{% if bugtriagecount < 50 %}badge-warning{% else %}badge-important{% endif %}{% endif %}">
 {{ bugtriagecount }}</span>{% endif %}</a></li>
+{% if not is_group %}
     <li><a href="#addbug" data-toggle="modal">Report new bug</a></li>
+{% endif %}
     <li class="divider"></li>
-    <li><a href="/project/{{project.name}}/features">List feature tasks</a></li>
+    <li><a href="/project{% if is_group %}group{% endif %}/{{ref.name}}/features">List feature tasks</a></li>
+{% if not is_group %}
     <li><a href="#addfeature" data-toggle="modal">Propose new feature</a></li>
+{% endif %}
   </ul>
 </div><!--/.well -->
 {% endblock %}
 {% block modals %}
-{% include "stories.modal_addstory.html" with project=project.name story_type='bug' %}
-{% include "stories.modal_addstory.html" with project=project.name story_type='feature' %}
+{% if not is_group %}
+  {% include "stories.modal_addstory.html" with project=ref.name story_type='bug' %}
+  {% include "stories.modal_addstory.html" with project=ref.name story_type='feature' %}
+{% endif %}
 {% endblock %}

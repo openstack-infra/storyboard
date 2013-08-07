@@ -15,6 +15,12 @@ investing more into developing it.
 Current features
 ----------------
 
+*Project views*
+  Basic project views that let you retrieve the list of tasks for a given
+  project, as well as an example of a workflow-oriented view (the 'Triage
+  bugs' view). The current POC is is also just a minimal stub of the project
+  view feature set.
+
 *Bug tracking*
   Like Launchpad Bugs, StoryBoard implements bugs as stories, with tasks that
   may affect various project/branch combinations. You can currently create
@@ -23,11 +29,18 @@ Current features
   and is missing search features, pagination, results ordering. This should
   definitely be improved if we go forward with this.
 
-*Project views*
-  Basic project views that let you retrieve the list of tasks for a given
-  project, as well as an example of a workflow-oriented view (the 'Triage
-  bugs' view). The current POC is is also just a minimal stub of the project
-  view feature set.
+
+*Feature tracking*
+  The equivalent of Launchpad Blueprints, they inherit the same 'story'
+  framework as bugs. That means they don't have most of the limitations of
+  LP blueprints: you can comment in them, you can have tasks affecting multiple
+  projects, you can even have multiple tasks affecting the same project and
+  order them !
+
+*Project groups*
+  Projects can be grouped together arbitrarily, and all 'project' views can
+  be reused by project groups. That makes it easy to triage or track all
+  tasks for projects within a given OpenStack program.
 
 *Markdown descriptions and comments*
   Story descriptions and comments can use markdown for richer interaction.
@@ -51,18 +64,6 @@ No invalid/wontfix/opinion status
 
 Future features
 ---------------
-
-*Feature tracking*
-  The equivalent of Launchpad Blueprints, they inherit the same 'story'
-  framework as bugs. That means they don't have most of the limitations of
-  LP blueprints: you can comment in them, you can have tasks affecting multiple
-  projects, you can even have multiple tasks affecting the same project and
-  order them !
-
-*Project groups*
-  Projects can be grouped together arbitrarily, and all 'project' views can
-  be reused by project groups. That makes it easy to triage or track all
-  tasks for projects within a given OpenStack program.
 
 *Subscription*
   Users should be able to subscribe to tasks (and get them in a specific view)

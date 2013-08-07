@@ -3,7 +3,7 @@
 {% block content %}
 <div class="row-fluid">
   <div class="span12">
-    <h3>{{ title }} for {{ project.title }}</h3>
+    <h3>{{ title }} for {{ ref.name }}</h3>
     <table class="table table-condensed table-hover">
       <thead>
         <tr>
@@ -12,6 +12,7 @@
           <th>Story</th>
           <th>Task</th>
 {% if is_bug %}<th>Branch</th>{% endif %}
+{% if is_group %}<th>Project</th>{% endif %}
           <th>Assignee</th>
           <th>Milestone</th>
         </tr>
@@ -25,6 +26,7 @@
           <td><small><a href="/story/{{task.story.id}}">{{ task.story.title }}</a></small></td>
           <td>{{ task.title }}</td>
 {% if is_bug %}<td>{{ task.milestone.branch.name }}</td>{% endif %}
+{% if is_group %}<td>{{ task.project.name }}</td>{% endif %}
           <td>{{ task.assignee.username }}</td>
           <td>{% if not task.milestone.undefined %}{{ task.milestone.name }}{% endif %}</td>
         </tr>
