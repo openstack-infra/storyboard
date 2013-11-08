@@ -53,7 +53,7 @@ class Task(models.Model):
 
     def __unicode__(self):
         return "%s %s/%s" % (
-            self.story.id, self.project.name, self.branch.short_name)
+            self.story.id, self.project.name, self.milestone.branch.short_name)
 
 
 class Comment(models.Model):

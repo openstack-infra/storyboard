@@ -3,7 +3,7 @@
 {% block content %}
 <div class="row-fluid">
   <div class="span12">
-    <h3>{{ title }} for {{ ref.name }}</h3>
+    <h3 class="span6">{{ title }} for {{ ref.name }}</h3>
     <table class="table table-condensed table-hover">
       <thead>
         <tr>
@@ -33,6 +33,35 @@
 {% endfor %}
       </tbody>
     </table>
+
+    <div class="row-fluid">
+      <div class="pagination span3">
+          <ul>
+              <li><a class="fist-page-link">&laquo</a></li>
+              <li><a class="last-page-link">&raquo</a></li>
+          </ul>
+      </div>
+      <div class="pull-right" style="margin-top: 20px">
+        <div class="btn-group">
+          <a class="btn dropdown-toggle" href="#" data-toggle="dropdown" id="pagination_current_value">
+              <span class="caret"></span></a>
+          <ul class="dropdown-menu" id="page-size">
+            <li><a data-value="15">15 tasks per page</a></li>
+            <li><a data-value="30">30 tasks per page</a></li>
+            <li><a data-value="50">50 tasks per page</a></li>
+            <li><a data-value="100">100 tasks per page</a></li>
+            <li class="divider"></li>
+            <li><a data-value="-1">All tasks</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+{% endblock %}
+{% block postscript %}
+    <script src="/static/js/pagination.js"></script>
+    <script type="text/javascript">$(function() {setPaginationDropdownValue("{{ page_size }}")})</script>
+    <script type="text/javascript">$(function() {bindPaginationDropdownHandlers()})</script>
+    <script type="text/javascript">$(function() {setPaginationLinks({{ page_count }}, {{ page_number }}, {{ page_size }})})</script>
 {% endblock %}
