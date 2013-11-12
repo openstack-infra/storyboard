@@ -7,14 +7,15 @@
     <table class="table table-condensed table-hover">
       <thead>
         <tr>
-          <th>Priority</th>
-          <th>#</th>
-          <th>Story</th>
-          <th>Task</th>
-{% if is_bug %}<th>Branch</th>{% endif %}
-{% if is_group %}<th>Project</th>{% endif %}
-          <th>Assignee</th>
-          <th>Milestone</th>
+          <th class="sortable-column" data-order-key="story__priority"><a href="#">Priority</a></th>
+          <th class="sortable-column" data-order-key="id"><a href="#">#</a></th>
+          <th class="sortable-column" data-order-key="story__title"><a href="#">Story</a></th>
+          <th class="sortable-column" data-order-key="title"><a href="#">Task</a></th>
+{% if is_bug %}<th class="sortable-column" data-order-key="milestone__branch__name"><a href="#">Branch</a></th>{% endif %}
+{% if is_group %}<th class="sortable-column" data-order-key="project__name"><a href="#">Project</a></th>{% endif %}
+          <th class="sortable-column" data-order-key="assignee__username"><a href="#">Assignee</a></th>
+          <th class="sortable-column" data-order-key="milestone__name"><a href="#">Milestone</a>
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -22,7 +23,7 @@
         <tr class="{{ task.status|taskcolor }}">
           <td><span class="badge{{ task.story.priority|priobadge }}">
       {{ task.story.get_priority_display }}</span></td>
-          <td>{{ task.story.id }}</td>
+          <td>{{ task.id }}</td>
           <td><small><a href="/story/{{task.story.id}}">{{ task.story.title }}</a></small></td>
           <td>{{ task.title }}</td>
 {% if is_bug %}<td>{{ task.milestone.branch.name }}</td>{% endif %}
@@ -60,8 +61,19 @@
 </div>
 {% endblock %}
 {% block postscript %}
+    <script src="/static/js/common.js"></script>
     <script src="/static/js/pagination.js"></script>
+    <script src="/static/js/ordering.js"></script>
     <script type="text/javascript">$(function() {setPaginationDropdownValue("{{ page_size }}")})</script>
     <script type="text/javascript">$(function() {bindPaginationDropdownHandlers()})</script>
     <script type="text/javascript">$(function() {setPaginationLinks({{ page_count }}, {{ page_number }}, {{ page_size }})})</script>
+    <script type="text/javascript">$(function() {setPageType("{{ page_type }}")})</script>
+    <script type="text/javascript">$(function() {bindOrderingHandlers()})</script>
+    <script type="text/javascript">
+        $(function() {
+            {% for field, type in arrow_object.items %}
+                addOrderArrow("{{ field }}", "{{ type }}");
+            {% endfor %}
+        })
+    </script>
 {% endblock %}

@@ -18,6 +18,7 @@ from django.conf.urls.defaults import patterns
 
 urlpatterns = patterns('storyboard.projects.views',
     (r'^$', 'default_list'),
+    (r'^setorder/$', 'set_order'),
     (r'^(.+)/bugs/triage$', 'list_bugtriage'),
     (r'^(.+)/bugs$', 'list_bugtasks'),
     (r'^(.+)/features$', 'list_featuretasks'),
