@@ -53,7 +53,7 @@ def view(request, storyid):
 @require_POST
 def comment(request, storyid):
     story = Story.objects.get(id=storyid)
-    if request.POST.get('comment', False):
+    if request.POST.get('content', False):
         newcomment = Comment(story=story,
                              author=request.user,
                              comment_type="comment",
