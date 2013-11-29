@@ -4,3 +4,4 @@ Django>=1.4,<1.6
 django-openid-auth
 markdown
 python-openid
+six>=1.4.1
