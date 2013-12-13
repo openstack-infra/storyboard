@@ -12,8 +12,17 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import pbr.version
+"""
+test_storyboard
+----------------------------------
+
+Tests for `storyboard` module.
+"""
+
+from storyboard.tests import base
 
 
-__version__ = pbr.version.VersionInfo(
-    'storyboard').version_string()
+class TestStories(base.TestCase):
+
+    def test_something(self):
+        pass

@@ -1,3 +1,4 @@
+# flake8: noqa
 """
 WSGI config for storyboard project.
 

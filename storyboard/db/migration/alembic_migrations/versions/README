@@ -1,0 +1,3 @@
+This directory contains the migration scripts for the storyboard project.  Please
+see the README in storyboard/db/migration on how to use and generate new
+migrations.
