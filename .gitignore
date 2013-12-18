@@ -57,3 +57,7 @@ ChangeLog
 
 # Local settings
 local_settings.py
+
+# IDE settings
+.idea
+*.iml
