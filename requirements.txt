@@ -1,12 +1,14 @@
 pbr>=0.5.21,<1.0
 
+alembic>=0.4.1
+Babel>=0.9.6
 Django>=1.4,<1.6
 django-openid-auth
+iso8601>=0.1.8
 markdown
+oslo.config>=1.2.0
+pecan>=0.2.0
 python-openid
 six>=1.4.1
-Babel>=0.9.6
 SQLAlchemy>=0.8,<=0.8.99
-alembic>=0.4.1
-oslo.config>=1.2.0
-iso8601>=0.1.8
+WSME>=0.5b6
