@@ -1,0 +1,6 @@
+- project: Test-Project
+  description: First project
+  group: Group-1
+- project: Test-Project-Two
+  description: Second project
+  group: Group-1

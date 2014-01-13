@@ -42,6 +42,11 @@ Downgrade the database by a certain number of revisions:
 $ storyboard-db-manage --config-file /path/to/storyboard.conf \
     downgrade --delta <# of revs>
 
+This utility should be also used to load Project Groups and Projects form a .yaml
+file description. The description sample is provided in etc/projects.yaml.
+$ storyboard-db-manage --config-file /path/to/storyboard.conf \
+    load_projects /path/to/projects.yaml
+
 
 DEVELOPERS:
 A database migration script is required when you submit a change to storyboard
