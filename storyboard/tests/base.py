@@ -19,11 +19,14 @@ import os
 
 import fixtures
 from oslo.config import cfg
+from storyboard.openstack.common import log as logging
 import testtools
 
 
 CONF = cfg.CONF
 _TRUE_VALUES = ('true', '1', 'yes')
+
+logging.setup('storyboard')
 
 
 class TestCase(testtools.TestCase):

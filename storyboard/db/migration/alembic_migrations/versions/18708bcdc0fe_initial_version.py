@@ -27,8 +27,32 @@ down_revision = None
 from alembic import op
 import sqlalchemy as sa
 
+MYSQL_ENGINE = 'InnoDB'
+MYSQL_CHARSET = 'utf8'
+
+
+def _define_enums():
+    branch_status = sa.Enum(
+        'master', 'release', 'stable', 'unsupported',
+        name='branch_status')
+
+    storyboard_priority = sa.Enum(
+        'Undefined', 'Low', 'Medium', 'High', 'Critical',
+        name='priority')
+
+    task_status = sa.Enum(
+        'Todo', 'In review', 'Landed',
+        name='task_status')
+
+    return {
+        'branch_status': branch_status,
+        'storyboard_priority': storyboard_priority,
+        'task_status': task_status
+    }
+
 
 def upgrade(active_plugins=None, options=None):
+    enums = _define_enums()
 
     op.create_table(
         'branches',
@@ -36,14 +60,12 @@ def upgrade(active_plugins=None, options=None):
         sa.Column('created_at', sa.DateTime(), nullable=True),
         sa.Column('updated_at', sa.DateTime(), nullable=True),
         sa.Column('name', sa.String(length=50), nullable=True),
-        sa.Column(
-            'status',
-            sa.Enum(
-                'master', 'release', 'stable', 'unsupported',
-                name='branch_status'), nullable=True),
+        sa.Column('status', enums['branch_status'], nullable=True),
         sa.Column('release_date', sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('name', name='uniq_branch_name')
+        sa.UniqueConstraint('name', name='uniq_branch_name'),
+        mysql_engine=MYSQL_ENGINE,
+        mysql_charset=MYSQL_CHARSET
     )
     op.create_table(
         'project_groups',
@@ -53,7 +75,9 @@ def upgrade(active_plugins=None, options=None):
         sa.Column('name', sa.String(length=50), nullable=True),
         sa.Column('title', sa.Unicode(length=100), nullable=True),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('name', name='uniq_group_name')
+        sa.UniqueConstraint('name', name='uniq_group_name'),
+        mysql_engine=MYSQL_ENGINE,
+        mysql_charset=MYSQL_CHARSET
     )
     op.create_table(
         'users',
@@ -71,7 +95,9 @@ def upgrade(active_plugins=None, options=None):
         sa.Column('last_login', sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('email', name='uniq_user_email'),
-        sa.UniqueConstraint('username', name='uniq_user_username')
+        sa.UniqueConstraint('username', name='uniq_user_username'),
+        mysql_engine=MYSQL_ENGINE,
+        mysql_charset=MYSQL_CHARSET
     )
     op.create_table(
         'teams',
@@ -80,7 +106,9 @@ def upgrade(active_plugins=None, options=None):
         sa.Column('updated_at', sa.DateTime(), nullable=True),
         sa.Column('name', sa.Unicode(length=255), nullable=True),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('name', name='uniq_team_name')
+        sa.UniqueConstraint('name', name='uniq_team_name'),
+        mysql_engine=MYSQL_ENGINE,
+        mysql_charset=MYSQL_CHARSET
     )
     op.create_table(
         'permissions',
@@ -90,7 +118,9 @@ def upgrade(active_plugins=None, options=None):
         sa.Column('name', sa.Unicode(length=50), nullable=True),
         sa.Column('codename', sa.Unicode(length=255), nullable=True),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('name', name='uniq_team_name')
+        sa.UniqueConstraint('name', name='uniq_permission_name'),
+        mysql_engine=MYSQL_ENGINE,
+        mysql_charset=MYSQL_CHARSET
     )
     op.create_table(
         'team_membership',
@@ -98,7 +128,9 @@ def upgrade(active_plugins=None, options=None):
         sa.Column('team_id', sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(['team_id'], ['teams.id'], ),
         sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
-        sa.PrimaryKeyConstraint()
+        sa.PrimaryKeyConstraint(),
+        mysql_engine=MYSQL_ENGINE,
+        mysql_charset=MYSQL_CHARSET
     )
     op.create_table(
         'user_permissions',
@@ -106,7 +138,9 @@ def upgrade(active_plugins=None, options=None):
         sa.Column('permission_id', sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(['permission_id'], ['permissions.id'], ),
         sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
-        sa.PrimaryKeyConstraint()
+        sa.PrimaryKeyConstraint(),
+        mysql_engine=MYSQL_ENGINE,
+        mysql_charset=MYSQL_CHARSET
     )
     op.create_table(
         'team_permissions',
@@ -114,7 +148,9 @@ def upgrade(active_plugins=None, options=None):
         sa.Column('team_id', sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(['team_id'], ['teams.id'], ),
         sa.ForeignKeyConstraint(['permission_id'], ['permissions.id'], ),
-        sa.PrimaryKeyConstraint()
+        sa.PrimaryKeyConstraint(),
+        mysql_engine=MYSQL_ENGINE,
+        mysql_charset=MYSQL_CHARSET
     )
     op.create_table(
         'stories',
@@ -125,13 +161,11 @@ def upgrade(active_plugins=None, options=None):
         sa.Column('title', sa.Unicode(length=100), nullable=True),
         sa.Column('description', sa.UnicodeText(), nullable=True),
         sa.Column('is_bug', sa.Boolean(), nullable=True),
-        sa.Column(
-            'priority',
-            sa.Enum(
-                'Undefined', 'Low', 'Medium', 'High', 'Critical',
-                name='priority'), nullable=True),
+        sa.Column('priority', enums['storyboard_priority'], nullable=True),
         sa.ForeignKeyConstraint(['creator_id'], ['users.id'], ),
-        sa.PrimaryKeyConstraint('id')
+        sa.PrimaryKeyConstraint('id'),
+        mysql_engine=MYSQL_ENGINE,
+        mysql_charset=MYSQL_CHARSET
     )
     op.create_table(
         'milestones',
@@ -144,7 +178,9 @@ def upgrade(active_plugins=None, options=None):
         sa.Column('undefined', sa.Boolean(), nullable=True),
         sa.ForeignKeyConstraint(['branch_id'], ['branches.id'], ),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('name', name='uniq_milestone_name')
+        sa.UniqueConstraint('name', name='uniq_milestone_name'),
+        mysql_engine=MYSQL_ENGINE,
+        mysql_charset=MYSQL_CHARSET
     )
     op.create_table(
         'projects',
@@ -156,7 +192,9 @@ def upgrade(active_plugins=None, options=None):
         sa.Column('team_id', sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(['team_id'], ['teams.id'], ),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('name', name='uniq_project_name')
+        sa.UniqueConstraint('name', name='uniq_project_name'),
+        mysql_engine=MYSQL_ENGINE,
+        mysql_charset=MYSQL_CHARSET
     )
     op.create_table(
         'project_group_mapping',
@@ -164,7 +202,9 @@ def upgrade(active_plugins=None, options=None):
         sa.Column('project_group_id', sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(['project_group_id'], ['project_groups.id'], ),
         sa.ForeignKeyConstraint(['project_id'], ['projects.id'], ),
-        sa.PrimaryKeyConstraint()
+        sa.PrimaryKeyConstraint(),
+        mysql_engine=MYSQL_ENGINE,
+        mysql_charset=MYSQL_CHARSET
     )
     op.create_table(
         'tasks',
@@ -172,8 +212,7 @@ def upgrade(active_plugins=None, options=None):
         sa.Column('created_at', sa.DateTime(), nullable=True),
         sa.Column('updated_at', sa.DateTime(), nullable=True),
         sa.Column('title', sa.Unicode(length=100), nullable=True),
-        sa.Column(
-            'status', sa.Enum('Todo', 'In review', 'Landed'), nullable=True),
+        sa.Column('status', enums['task_status'], nullable=True),
         sa.Column('story_id', sa.Integer(), nullable=True),
         sa.Column('project_id', sa.Integer(), nullable=True),
         sa.Column('assignee_id', sa.Integer(), nullable=True),
@@ -182,7 +221,9 @@ def upgrade(active_plugins=None, options=None):
         sa.ForeignKeyConstraint(['milestone_id'], ['milestones.id'], ),
         sa.ForeignKeyConstraint(['project_id'], ['projects.id'], ),
         sa.ForeignKeyConstraint(['story_id'], ['stories.id'], ),
-        sa.PrimaryKeyConstraint('id')
+        sa.PrimaryKeyConstraint('id'),
+        mysql_engine=MYSQL_ENGINE,
+        mysql_charset=MYSQL_CHARSET
     )
     op.create_table(
         'comments',
@@ -196,7 +237,9 @@ def upgrade(active_plugins=None, options=None):
         sa.Column('author_id', sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(['author_id'], ['users.id'], ),
         sa.ForeignKeyConstraint(['story_id'], ['stories.id'], ),
-        sa.PrimaryKeyConstraint('id')
+        sa.PrimaryKeyConstraint('id'),
+        mysql_engine=MYSQL_ENGINE,
+        mysql_charset=MYSQL_CHARSET
     )
     op.create_table(
         'storytags',
@@ -207,20 +250,31 @@ def upgrade(active_plugins=None, options=None):
         sa.Column('story_id', sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(['story_id'], ['stories.id'], ),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('name', name='uniq_story_tags_name')
+        sa.UniqueConstraint('name', name='uniq_story_tags_name'),
+        mysql_engine=MYSQL_ENGINE,
+        mysql_charset=MYSQL_CHARSET
     )
 
 
 def downgrade(active_plugins=None, options=None):
+    # be careful with the order, keep FKs in mind
+    op.drop_table('project_group_mapping')
+    op.drop_table('team_membership')
+    op.drop_table('team_permissions')
+    op.drop_table('user_permissions')
     op.drop_table('storytags')
     op.drop_table('comments')
     op.drop_table('tasks')
-    op.drop_table('project_groups')
     op.drop_table('projects')
     op.drop_table('milestones')
     op.drop_table('stories')
-    op.drop_table('team_membership')
+    op.drop_table('permissions')
     op.drop_table('teams')
     op.drop_table('users')
-    op.drop_table('groups')
+    op.drop_table('project_groups')
     op.drop_table('branches')
+
+    # Need to explicitly delete enums during migrations for Postgres
+    enums = _define_enums()
+    for enum in enums.values():
+        enum.drop(op.get_bind())

@@ -6,7 +6,7 @@ markdown
 python-openid
 six>=1.4.1
 Babel>=0.9.6
-SQLAlchemy>=0.8
+SQLAlchemy>=0.8,<=0.8.99
 alembic>=0.4.1
 oslo.config>=1.2.0
 iso8601>=0.1.8
