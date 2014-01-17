@@ -117,7 +117,7 @@ def upgrade(active_plugins=None, options=None):
         sa.PrimaryKeyConstraint()
     )
     op.create_table(
-        'storyboard',
+        'stories',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('created_at', sa.DateTime(), nullable=True),
         sa.Column('updated_at', sa.DateTime(), nullable=True),
@@ -181,7 +181,7 @@ def upgrade(active_plugins=None, options=None):
         sa.ForeignKeyConstraint(['assignee_id'], ['users.id'], ),
         sa.ForeignKeyConstraint(['milestone_id'], ['milestones.id'], ),
         sa.ForeignKeyConstraint(['project_id'], ['projects.id'], ),
-        sa.ForeignKeyConstraint(['story_id'], ['storyboard.id'], ),
+        sa.ForeignKeyConstraint(['story_id'], ['stories.id'], ),
         sa.PrimaryKeyConstraint('id')
     )
     op.create_table(
@@ -195,7 +195,7 @@ def upgrade(active_plugins=None, options=None):
         sa.Column('story_id', sa.Integer(), nullable=True),
         sa.Column('author_id', sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(['author_id'], ['users.id'], ),
-        sa.ForeignKeyConstraint(['story_id'], ['storyboard.id'], ),
+        sa.ForeignKeyConstraint(['story_id'], ['stories.id'], ),
         sa.PrimaryKeyConstraint('id')
     )
     op.create_table(
@@ -205,7 +205,7 @@ def upgrade(active_plugins=None, options=None):
         sa.Column('updated_at', sa.DateTime(), nullable=True),
         sa.Column('name', sa.String(length=20), nullable=True),
         sa.Column('story_id', sa.Integer(), nullable=True),
-        sa.ForeignKeyConstraint(['story_id'], ['storyboard.id'], ),
+        sa.ForeignKeyConstraint(['story_id'], ['stories.id'], ),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('name', name='uniq_story_tags_name')
     )
@@ -218,7 +218,7 @@ def downgrade(active_plugins=None, options=None):
     op.drop_table('project_groups')
     op.drop_table('projects')
     op.drop_table('milestones')
-    op.drop_table('storyboard')
+    op.drop_table('stories')
     op.drop_table('team_membership')
     op.drop_table('teams')
     op.drop_table('users')
