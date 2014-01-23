@@ -33,6 +33,9 @@ lock_path = $state_path/lock
 # Port the bind the API server to
 # bind_port = 8080
 
+# OpenId Authentication endpoint
+# openid_url = https://login.launchpad.net/+openid
+
 [database]
 # This line MUST be changed to actually run storyboard
 # Example:

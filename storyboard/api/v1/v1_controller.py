@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from storyboard.api.v1.auth import AuthController
 from storyboard.api.v1.project_groups import ProjectGroupsController
 from storyboard.api.v1.projects import ProjectsController
 from storyboard.api.v1.stories import StoriesController
@@ -29,3 +30,5 @@ class V1Controller(object):
     users = UsersController()
     stories = StoriesController()
     tasks = TasksController()
+
+    openid = AuthController()

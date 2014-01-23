@@ -82,7 +82,46 @@ def _entity_update(kls, entity_id, values):
     return entity
 
 
-# BEGIN Projects
+## BEGIN Users
+
+def user_get(user_id):
+    return _entity_get(models.User, user_id)
+
+
+def user_get_by_openid(openid):
+    query = model_query(models.User, get_session())
+    return query.filter_by(openid=openid).first()
+
+
+def user_create(values):
+    user = models.User()
+    user.update(values.copy())
+
+    session = get_session()
+    with session.begin():
+        try:
+            user.save(session=session)
+        except db_exc.DBDuplicateEntry as e:
+            raise exc.DuplicateEntry("Duplicate entry for User: %s"
+                                     % e.columns)
+
+    return user
+
+
+def user_update(user_id, values):
+    session = get_session()
+
+    with session.begin():
+        user = _entity_get(models.User, user_id)
+        if user is None:
+            raise exc.NotFound("User %s not found" % user_id)
+
+        user.update(values.copy())
+
+    return user
+
+
+## BEGIN Projects
 
 def project_get(project_id):
     return _entity_get(models.Project, project_id)

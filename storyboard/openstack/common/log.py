@@ -532,12 +532,7 @@ def _setup_logging_from_conf():
         else:
             handler.setFormatter(ContextFormatter(datefmt=datefmt))
 
-    if CONF.debug:
-        log_root.setLevel(logging.DEBUG)
-    elif CONF.verbose:
-        log_root.setLevel(logging.INFO)
-    else:
-        log_root.setLevel(logging.WARNING)
+    log_root.setLevel(logging.DEBUG)
 
     for pair in CONF.default_log_levels:
         mod, _sep, level_name = pair.partition('=')
