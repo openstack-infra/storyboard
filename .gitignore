@@ -56,7 +56,7 @@ AUTHORS
 ChangeLog
 
 # Local settings
-local_settings.py
+etc/storyboard.conf
 
 # IDE settings
 .idea

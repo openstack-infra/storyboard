@@ -27,14 +27,14 @@ CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
 API_OPTS = [
-    cfg.StrOpt('host',
+    cfg.StrOpt('bind_host',
                default='0.0.0.0',
                help='API host'),
-    cfg.IntOpt('port',
+    cfg.IntOpt('bind_port',
                default=8080,
                help='API port')
 ]
-CONF.register_opts(API_OPTS, 'api')
+CONF.register_opts(API_OPTS)
 
 
 def get_pecan_config():
@@ -69,8 +69,8 @@ def start():
     CONF(project='storyboard')
 
     # Create the WSGI server and start it
-    host = cfg.CONF.api.host
-    port = cfg.CONF.api.port
+    host = cfg.CONF.bind_host
+    port = cfg.CONF.bind_port
     srv = simple_server.make_server(host, port, root)
 
     LOG.info(_('Starting server in PID %s') % os.getpid())
