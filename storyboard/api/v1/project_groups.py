@@ -21,9 +21,17 @@ import storyboard.api.v1.wsme_models as wsme_models
 
 
 class ProjectGroupsController(rest.RestController):
+    """REST controller for Project Groups.
+
+    At this moment it provides read-only operations.
+    """
 
     @wsme_pecan.wsexpose(wsme_models.ProjectGroup, int)
     def get_one(self, id):
+        """Retrieve information about the given project group.
+
+        :param name: project group name.
+        """
         group = wsme_models.ProjectGroup.get(id=id)
         if not group:
             raise ClientSideError("Project Group %s not found" % id,
@@ -32,12 +40,17 @@ class ProjectGroupsController(rest.RestController):
 
     @wsme_pecan.wsexpose([wsme_models.ProjectGroup])
     def get(self):
+        """Retrieve a list of projects groups."""
         groups = wsme_models.ProjectGroup.get_all()
         return groups
 
     @wsme_pecan.wsexpose(wsme_models.ProjectGroup,
                          body=wsme_models.ProjectGroup)
     def post(self, group):
+        """Create a new project group.
+
+        :param group: a project group within the request body.
+        """
         created_group = wsme_models.ProjectGroup.create(wsme_entry=group)
         if not created_group:
             raise ClientSideError("Could not create ProjectGroup")
@@ -46,6 +59,11 @@ class ProjectGroupsController(rest.RestController):
     @wsme_pecan.wsexpose(wsme_models.ProjectGroup, int,
                          body=wsme_models.ProjectGroup)
     def put(self, id, group):
+        """Modify this project group.
+
+        :param id: An ID of the project group.
+        :param group: a project group within the request body.
+        """
         updated_group = wsme_models.ProjectGroup.update("id", id, group)
         if not updated_group:
             raise ClientSideError("Could not update group %s" % id)

@@ -21,9 +21,17 @@ import storyboard.api.v1.wsme_models as wsme_models
 
 
 class ProjectsController(rest.RestController):
+    """REST controller for Projects.
+
+    At this moment it provides read-only operations.
+    """
 
     @wsme_pecan.wsexpose(wsme_models.Project, unicode)
     def get_one(self, name):
+        """Retrieve information about the given project.
+
+        :param name: project name.
+        """
         project = wsme_models.Project.get(name=name)
         if not project:
             raise ClientSideError("Project %s not found" % name,
@@ -32,5 +40,7 @@ class ProjectsController(rest.RestController):
 
     @wsme_pecan.wsexpose([wsme_models.Project])
     def get(self):
+        """Retrieve a list of projects.
+        """
         projects = wsme_models.Project.get_all()
         return projects

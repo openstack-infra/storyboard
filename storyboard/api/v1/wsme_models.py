@@ -191,46 +191,121 @@ def update_db_model(cls, db_entry, wsme_entry):
 
 
 class Project(_Base):
+    """The Storyboard Registry describes the open source world as ProjectGroups
+    and Products. Each ProjectGroup may be responsible for several Projects.
+    For example, the OpenStack Infrastructure Project has Zuul, Nodepool,
+    Storyboard as Projects, among others.
+    """
+
     name = wtypes.text
+    """At least one lowercase letter or number, followed by letters, numbers,
+    dots, hyphens or pluses. Keep this name short; it is used in URLs.
+    """
+
     description = wtypes.text
+    """Details about the project's work, highlights, goals, and how to
+    contribute. Use plain text, paragraphs are preserved and URLs are
+    linked in pages.
+    """
+
+    @classmethod
+    def sample(cls):
+        return cls(
+            name="Storyboard",
+            description="Awesome project")
 
 
 class ProjectGroup(_Base):
+    """Represents a group of projects."""
+
     name = wtypes.text
+    """A unique name, used in URLs, identifying the project group. All
+    lowercase, no special characters. Examples: infra, compute.
+    """
+
     title = wtypes.text
+    """The full name of the project group, which can contain spaces, special
+    characters, etc.
+    """
+
+    @classmethod
+    def sample(cls):
+        return cls(
+            name="Infra",
+            title="Awesome project")
 
 
 class Permission(_Base):
+    """Permissions can be associated with users and teams."""
     pass
 
 
 class Task(_Base):
+    """Represents a task within a story."""
     pass
 
 
 class StoryTag(_Base):
+    """Tags are used classifying user-stories."""
     pass
 
 
+# TODO(ruhe): clarify and document what are 'action' and 'type' for
 class Comment(_Base):
+    """Represents a comment."""
+
     #todo(nkonovalov): replace with a enum
     action = wtypes.text
+    """Comment action. Allowed values: unknown."""
+
     comment_type = wtypes.text
+    """Comment type. Allowed values: unknown."""
+
     content = wtypes.text
+    """All the text/plain chunks joined together as a unicode string."""
 
     story_id = int
+    """ID of corresponding user-story."""
+
     author_id = int
+    """Comment author ID."""
+
+    @classmethod
+    def sample(cls):
+        return cls(
+            action="action",
+            comment_type="type1",
+            content="comment content goes here",
+            story_id=42,
+            author_id=67)
 
 
 class Story(_Base):
+    """Represents a user-story."""
+
     title = wtypes.text
+    """A descriptive label for this tracker to show in listings."""
+
     description = wtypes.text
+    """A brief introduction or overview of this bug tracker instance."""
+
     is_bug = bool
+    """Is this a bug or a feature :)"""
+
     #todo(nkonovalov): replace with a enum
     priority = wtypes.text
+    """Priority.
+    Allowed values: ['Undefined', 'Low', 'Medium', 'High', 'Critical'].
+    """
+
     tasks = wtypes.ArrayType(Task)
+    """List of linked tasks."""
+
     comments = wtypes.ArrayType(Comment)
+    """List of linked comments."""
+
     tags = wtypes.ArrayType(StoryTag)
+    """List of linked tags."""
 
     @classmethod
     def add_task(cls, story_id, task):
@@ -241,25 +316,76 @@ class Story(_Base):
         return cls.create_and_add_item("id", story_id, Comment, comment,
                                        "comments")
 
+    @classmethod
+    def sample(cls):
+        return cls(
+            title="Use Storyboard to manage Storyboard",
+            description="We should use Storyboard to manage Storyboard",
+            is_bug=False,
+            priority='Critical',
+            tasks=[],
+            comments=[],
+            tags=[])
+
 
 class User(_Base):
+    """Represents a user."""
+
     username = wtypes.text
+    """A short unique name, beginning with a lower-case letter or number, and
+    containing only letters, numbers, dots, hyphens, or plus signs"""
+
     first_name = wtypes.text
+    """First name."""
+
     last_name = wtypes.text
+    """Last name."""
+
     email = wtypes.text
+    """Email Address."""
+
+    # TODO(ruhe): clarify and document what are these fields for
     is_staff = bool
     is_active = bool
     is_superuser = bool
+
     last_login = datetime
+    """Date of the last login."""
+
     #teams = wtypes.ArrayType(Team)
+
     permissions = wtypes.ArrayType(Permission)
+    """List of associated permissions"""
+
     #tasks = wtypes.ArrayType(Task)
+
+    @classmethod
+    def sample(cls):
+        return cls(
+            username="elbarto",
+            first_name="Bart",
+            last_name="Simpson",
+            email="skinnerstinks@springfield.net",
+            is_staff=False,
+            is_active=True,
+            is_superuser=True,
+            last_login=datetime(2014, 1, 1, 16, 42),
+            permissions=[])
 
 
 class Team(_Base):
+    """A group of people and other teams."""
+
     name = wtypes.text
+    """A short unique name, beginning with a lower-case letter or number,
+    and containing only letters, numbers, dots, hyphens, or plus signs.
+    """
+
     users = wtypes.ArrayType(User)
+    """List of direct members."""
+
     permissions = wtypes.ArrayType(Permission)
+    """Collection of associated permissions."""
 
     @classmethod
     def add_user(cls, team_name, username):

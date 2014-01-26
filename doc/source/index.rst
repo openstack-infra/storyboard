@@ -36,6 +36,14 @@ Table of contents
    contributing
 
 
+Client API Reference
+--------------------
+
+.. toctree::
+  :maxdepth: 1
+
+  webapi/v1
+
 Indices and tables
 ==================
 
