@@ -1,17 +1,46 @@
-If you would like to contribute to the development of OpenStack,
-you must follow the steps in the "If you're a developer, start here"
-section of this page:
+.. _contributing:
 
-   http://wiki.openstack.org/HowToContribute
+==========================
+Contributing to Storyboard
+==========================
 
-Once those steps have been completed, changes to OpenStack
-should be submitted for review via the Gerrit tool, following
-the workflow documented at:
+If you're interested in contributing to the Storyboard project,
+the following will help get you started.
 
-   http://wiki.openstack.org/GerritWorkflow
+Contributor License Agreement
+-----------------------------
 
-Pull requests submitted through GitHub will be ignored.
+.. index::
+   single: license; agreement
 
-Storyboard uses itself for bug tracking. Bugs should be filed at:
+In order to contribute to the Storyboard project, you need to have
+signed OpenStack's contributor's agreement.
 
-   https://stories.openstack.org
+.. seealso::
+
+   * http://wiki.openstack.org/HowToContribute
+   * http://wiki.openstack.org/CLA
+
+Project Hosting Details
+-------------------------
+
+Bug tracker
+    http://storyboard.openstack.org
+
+Mailing list (prefix subjects with ``[storyboard]`` for faster responses)
+    http://lists.openstack.org/cgi-bin/mailman/listinfo/openstack-infra
+
+Wiki
+    https://wiki.openstack.org/wiki/StoryBoard
+
+Code Hosting
+    * https://git.openstack.org/cgit/openstack-infra/storyboard/
+
+    * https://git.openstack.org/cgit/openstack-infra/storyboard-webclient
+
+Code Review
+    https://review.openstack.org/#/q/status:open+AND+(project:openstack-infra/storyboard+OR+project:openstack-infra/storyboard-webclient),n,z
+
+    Please read `GerritWorkflow`_ before sending your first patch for review.
+
+.. _GerritWorkflow: https://wiki.openstack.org/wiki/GerritWorkflow
