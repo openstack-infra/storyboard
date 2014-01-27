@@ -21,9 +21,6 @@ Tests for `storyboard` module.
 import copy
 import json
 
-from mock import patch
-
-from storyboard.tests.api.utils import FakeSession
 from storyboard.tests import base
 
 SAMPLE_STORY = {
@@ -38,19 +35,11 @@ SAMPLE_STORY_REQUEST = {
 
 class TestStories(base.FunctionalTest):
 
-    @patch("storyboard.openstack.common.db.sqlalchemy.session.get_session")
-    def test_stories_endpoint(self, session_mock):
-        fake_session = FakeSession()
-        session_mock.return_value = fake_session
-
+    def test_stories_endpoint(self):
         response = self.get_json(path="/stories")
         self.assertEqual([], response)
 
-    @patch("storyboard.openstack.common.db.sqlalchemy.session.get_session")
-    def test_create(self, session_mock):
-        fake_session = FakeSession()
-        session_mock.return_value = fake_session
-
+    def test_create(self):
         response = self.post_json("/stories", SAMPLE_STORY_REQUEST)
         story = json.loads(response.body)
 
@@ -59,11 +48,7 @@ class TestStories(base.FunctionalTest):
         self.assertEqual(story["title"], SAMPLE_STORY["title"])
         self.assertEqual(story["description"], SAMPLE_STORY["description"])
 
-    @patch("storyboard.openstack.common.db.sqlalchemy.session.get_session")
-    def test_update(self, session_mock):
-        fake_session = FakeSession()
-        session_mock.return_value = fake_session
-
+    def test_update(self):
         response = self.post_json("/stories", SAMPLE_STORY_REQUEST)
         old_story = json.loads(response.body)
 

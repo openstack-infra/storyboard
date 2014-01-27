@@ -21,12 +21,31 @@ import fixtures
 from oslo.config import cfg
 import pecan
 import pecan.testing
+from storyboard.openstack.common import lockutils
 from storyboard.openstack.common import log as logging
 import testtools
 
+from storyboard.tests.db.db_fixture import Database
+
+cfg.set_defaults(lockutils.util_opts, lock_path='/tmp')
 
 CONF = cfg.CONF
 _TRUE_VALUES = ('true', '1', 'yes')
+
+_DB_CACHE = None
+
+test_opts = [
+    cfg.StrOpt('sqlite_clean_db',
+               default='clean.sqlite',
+               help='File name of clean sqlite db')]
+
+CONF.register_opts(test_opts)
+CONF.import_opt('connection',
+                'storyboard.openstack.common.db.sqlalchemy.session',
+                group='database')
+CONF.import_opt('sqlite_db',
+                'storyboard.openstack.common.db.sqlalchemy.session')
+
 
 logging.setup('storyboard')
 
@@ -90,9 +109,18 @@ class FunctionalTest(TestCase):
 
     def setUp(self):
         super(FunctionalTest, self).setUp()
-        self.app = self._make_app()
 
+        CONF.set_override("connection", "sqlite://", "database")
+        self.init_db_cache()
+        self.app = self._make_app()
         self.addCleanup(self._reset_pecan)
+
+    @lockutils.synchronized("storyboard", "db_init", True)
+    def init_db_cache(self):
+        global _DB_CACHE
+        if not _DB_CACHE:
+            _DB_CACHE = Database()
+        self.useFixture(_DB_CACHE)
 
     def _make_app(self):
         config = {
