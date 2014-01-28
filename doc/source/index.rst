@@ -1,19 +1,40 @@
-.. storyboard documentation master file, created by
-   sphinx-quickstart on Tue Jul  9 22:26:36 2013.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+======================================
+Welcome to Storyboard's documentation!
+======================================
 
-Welcome to storyboard's documentation!
-========================================================
+Introduction
+============
 
-Contents:
+StoryBoard is a web application for task tracking across inter-related projects.
+It is meant to be suitable for OpenStack task tracking.
+
+StoryBoard consists of two components:
+	* `Storyboard API service`_ - is a Python application leveraging
+	  `Pecan`_/`WSME`_ for REST API layer
+	* `Storyboard Web Client`_ - is an all-javascript webclient for the
+	  Storyboard API
+
+
+.. _Pecan: http://pecan.readthedocs.org/en/latest/
+.. _WSME: http://wsme.readthedocs.org/en/latest/
+.. _Storyboard API service: https://git.openstack.org/cgit/openstack-infra/storyboard/
+.. _Storyboard Web Client: https://git.openstack.org/cgit/openstack-infra/storyboard-webclient
+
+
+
+This documentation offers information on how Storyboard works and how to
+contribute to the project.
+
+
+Table of contents
+=================
 
 .. toctree::
    :maxdepth: 2
 
-   readme
-   installation
+   install/index
    contributing
+
 
 Indices and tables
 ==================
