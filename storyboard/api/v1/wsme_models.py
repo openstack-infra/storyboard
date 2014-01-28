@@ -198,7 +198,6 @@ class Project(_Base):
 class ProjectGroup(_Base):
     name = wtypes.text
     title = wtypes.text
-    projects = wtypes.ArrayType(Project)
 
 
 class Permission(_Base):
