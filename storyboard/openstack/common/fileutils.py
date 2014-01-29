@@ -1,5 +1,3 @@
-# vim: tabstop=4 shiftwidth=4 softtabstop=4
-
 # Copyright 2011 OpenStack Foundation.
 # All Rights Reserved.
 #
@@ -15,14 +13,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-
 import contextlib
 import errno
 import os
 import tempfile
 
 from storyboard.openstack.common import excutils
-from storyboard.openstack.common.gettextutils import _  # noqa
+from storyboard.openstack.common.gettextutils import _
 from storyboard.openstack.common import log as logging
 
 LOG = logging.getLogger(__name__)
