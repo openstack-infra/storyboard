@@ -1,0 +1,87 @@
+============
+ V1 Web API
+============
+
+###
+API
+###
+
+Projects
+========
+.. rest-controller:: storyboard.api.v1.projects:ProjectsController
+   :webprefix: /v1/projects
+
+Project Groups
+==============
+.. rest-controller:: storyboard.api.v1.project_groups:ProjectGroupsController
+   :webprefix: /v1/projects
+
+Stories
+=======
+.. rest-controller:: storyboard.api.v1.stories:StoriesController
+   :webprefix: /v1/projects
+
+Tasks
+=====
+.. rest-controller:: storyboard.api.v1.tasks:TasksController
+   :webprefix: /v1/projects
+
+Teams
+=====
+.. rest-controller:: storyboard.api.v1.teams:TeamsController
+   :webprefix: /v1/projects
+
+Users
+=====
+.. rest-controller:: storyboard.api.v1.users:UsersController
+   :webprefix: /v1/projects
+
+
+############
+Object model
+############
+
+Comment
+=======
+.. autotype:: storyboard.api.v1.wsme_models.Comment
+   :members:
+
+Permission
+==========
+.. autotype:: storyboard.api.v1.wsme_models.Permission
+   :members:
+
+Project
+=======
+.. autotype:: storyboard.api.v1.wsme_models.Project
+   :members:
+
+ProjectGroup
+============
+.. autotype:: storyboard.api.v1.wsme_models.ProjectGroup
+   :members:
+
+Story
+=====
+.. autotype:: storyboard.api.v1.wsme_models.Story
+   :members:
+
+StoryTag
+========
+.. autotype:: storyboard.api.v1.wsme_models.StoryTag
+   :members:
+
+Task
+====
+.. autotype:: storyboard.api.v1.wsme_models.Task
+   :members:
+
+Team
+====
+.. autotype:: storyboard.api.v1.wsme_models.Team
+   :members:
+
+User
+====
+.. autotype:: storyboard.api.v1.wsme_models.User
+   :members:

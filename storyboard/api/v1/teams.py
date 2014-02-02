@@ -22,6 +22,7 @@ import storyboard.api.v1.wsme_models as wsme_models
 
 
 class TeamsController(rest.RestController):
+    """Manages teams."""
 
     _custom_actions = {
         "add_user": ["POST"]
@@ -29,6 +30,10 @@ class TeamsController(rest.RestController):
 
     @wsme_pecan.wsexpose(wsme_models.Team, unicode)
     def get_one(self, name):
+        """Retrieve details about one team.
+
+        :param name: unique name to identify the team.
+        """
         team = wsme_models.Team.get(name=name)
         if not team:
             raise ClientSideError("Team %s not found" % name,
@@ -37,11 +42,16 @@ class TeamsController(rest.RestController):
 
     @wsme_pecan.wsexpose([wsme_models.Team])
     def get(self):
+        """Retrieve definitions of all of the teams."""
         teams = wsme_models.Team.get_all()
         return teams
 
     @wsme_pecan.wsexpose(wsme_models.Team, wsme_models.Team)
     def post(self, team):
+        """Create a new team.
+
+        :param team: a team within the request body.
+        """
         created_team = wsme_models.Team.create(wsme_entry=team)
         if not created_team:
             raise ClientSideError("Could not create a team")
@@ -49,6 +59,11 @@ class TeamsController(rest.RestController):
 
     @wsme_pecan.wsexpose(wsme_models.Team, unicode, unicode)
     def add_user(self, team_name, username):
+        """Associate a user with the team.
+
+        :param team_name: unique name to identify the team.
+        :param username: unique name to identify the user.
+        """
         updated_team = wsme_models.Team.add_user(team_name, username)
         if not updated_team:
             raise ClientSideError("Could not add user %s to team %s"

@@ -21,14 +21,20 @@ import storyboard.api.v1.wsme_models as wsme_models
 
 
 class UsersController(rest.RestController):
+    """Manages users."""
 
     @wsme_pecan.wsexpose([wsme_models.User])
     def get(self):
+        """Retrieve definitions of all of the users."""
         users = wsme_models.User.get_all()
         return users
 
     @wsme_pecan.wsexpose(wsme_models.User, unicode)
     def get_one(self, username):
+        """Retrieve details about one user.
+
+        :param username: unique name to identify the user.
+        """
         user = wsme_models.User.get(username=username)
         if not user:
             raise ClientSideError("User %s not found" % username,
@@ -37,6 +43,10 @@ class UsersController(rest.RestController):
 
     @wsme_pecan.wsexpose(wsme_models.User, wsme_models.User)
     def post(self, user):
+        """Create a new user.
+
+        :param user: a user within the request body.
+        """
         created_user = wsme_models.User.create(wsme_entry=user)
         if not created_user:
             raise ClientSideError("Could not create User")
@@ -44,6 +54,11 @@ class UsersController(rest.RestController):
 
     @wsme_pecan.wsexpose(wsme_models.User, unicode, wsme_models.User)
     def put(self, username, user):
+        """Modify this user.
+
+        :param username: unique name to identify the user.
+        :param user: a user within the request body.
+        """
         updated_user = wsme_models.User.update("username", username, user)
         if not updated_user:
             raise ClientSideError("Could not update user %s" % username)
