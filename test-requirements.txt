@@ -10,13 +10,15 @@ testrepository>=0.0.17
 testscenarios>=0.4,<0.5
 testtools>=0.9.32
 
-# Doc requirements
-sphinx>=1.1.2,<1.2
-sphinxcontrib-pecanwsme>=0.5
-eventlet>=0.13.0
+# Some of the tests use real MySQL and Postgres databases
 MySQL-python
 psycopg2
-
 # openstack/common/db/sqlalchemy/utils.py depends on this
 # we don't use migrate framework in storyboard
 sqlalchemy-migrate>=0.8.2
+# this is a dependency of openstack/common/sqlalchemy/utils
+eventlet>=0.13.0
+
+# Doc requirements
+sphinx>=1.1.2,<1.2
+sphinxcontrib-pecanwsme>=0.5
