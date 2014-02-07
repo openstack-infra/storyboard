@@ -44,6 +44,7 @@ from storyboard.tests import base
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
 
+cfg.set_defaults(lockutils.util_opts, lock_path='/tmp')
 synchronized = lockutils.synchronized_with_prefix('storyboard-')
 
 
@@ -240,7 +241,7 @@ class BaseMigrationTestCase(base.TestCase):
         self.assertEqual('', err,
                          "Failed to run: %s\n%s" % (cmd, output))
 
-    @synchronized('pgadmin', external=True, lock_path='/tmp')
+    @synchronized('pgadmin', external=True)
     def _reset_pg(self, conn_pieces):
         (user, password, database, host) = \
             get_pgsql_connection_info(conn_pieces)
@@ -264,7 +265,7 @@ class BaseMigrationTestCase(base.TestCase):
         os.unsetenv('PGPASSWORD')
         os.unsetenv('PGUSER')
 
-    @synchronized('mysql', external=True, lock_path='/tmp')
+    @synchronized('mysql', external=True)
     def _reset_mysql(self, conn_pieces):
         # We can execute the MySQL client to destroy and re-create
         # the MYSQL database, which is easier and less error-prone
@@ -278,7 +279,7 @@ class BaseMigrationTestCase(base.TestCase):
                 'host': host, 'sql': sql})
         self.execute_cmd(cmd)
 
-    @synchronized('sqlite', external=True, lock_path='/tmp')
+    @synchronized('sqlite', external=True)
     def _reset_sqlite(self, conn_pieces):
         # We can just delete the SQLite database, which is
         # the easiest and cleanest solution
