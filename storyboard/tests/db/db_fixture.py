@@ -67,6 +67,9 @@ class Database(fixtures.Fixture):
     def setUp(self):
         super(Database, self).setUp()
 
-        conn = self.engine.connect()
+        session.get_session()
+        engine = session.get_engine()
+        conn = engine.connect()
+
         conn.connection.executescript(self._DB)
-        self.addCleanup(self.engine.dispose)
+        self.addCleanup(session.cleanup)

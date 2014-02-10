@@ -101,7 +101,23 @@ class TestCase(testtools.TestCase):
 PATH_PREFIX = '/v1'
 
 
-class FunctionalTest(TestCase):
+class DbTestCase(TestCase):
+
+    def setUp(self):
+        super(DbTestCase, self).setUp()
+
+        CONF.set_override("connection", "sqlite://", "database")
+        self.init_db_cache()
+
+    @lockutils.synchronized("storyboard", "db_init", True)
+    def init_db_cache(self):
+        global _DB_CACHE
+        if not _DB_CACHE:
+            _DB_CACHE = Database()
+        self.useFixture(_DB_CACHE)
+
+
+class FunctionalTest(DbTestCase):
     """Used for functional tests of Pecan controllers where you need to
     test your literal application and its integration with the
     framework.
@@ -110,17 +126,8 @@ class FunctionalTest(TestCase):
     def setUp(self):
         super(FunctionalTest, self).setUp()
 
-        CONF.set_override("connection", "sqlite://", "database")
-        self.init_db_cache()
         self.app = self._make_app()
         self.addCleanup(self._reset_pecan)
-
-    @lockutils.synchronized("storyboard", "db_init", True)
-    def init_db_cache(self):
-        global _DB_CACHE
-        if not _DB_CACHE:
-            _DB_CACHE = Database()
-        self.useFixture(_DB_CACHE)
 
     def _make_app(self):
         config = {
@@ -152,7 +159,6 @@ class FunctionalTest(TestCase):
         :param path_prefix: prefix of the url path
         """
         full_path = path_prefix + path
-        print('%s: %s %s' % (method.upper(), full_path, params))
         response = getattr(self.app, "%s_json" % method)(
             str(full_path),
             params=params,
@@ -161,7 +167,6 @@ class FunctionalTest(TestCase):
             extra_environ=extra_environ,
             expect_errors=expect_errors
         )
-        print('GOT:%s' % response)
         return response
 
     def put_json(self, path, params, expect_errors=False, headers=None,
@@ -232,13 +237,11 @@ class FunctionalTest(TestCase):
         :param path_prefix: prefix of the url path
         """
         full_path = path_prefix + path
-        print('DELETE: %s' % (full_path))
         response = self.app.delete(str(full_path),
                                    headers=headers,
                                    status=status,
                                    extra_environ=extra_environ,
                                    expect_errors=expect_errors)
-        print('GOT:%s' % response)
         return response
 
     def get_json(self, path, expect_errors=False, headers=None,
@@ -268,7 +271,6 @@ class FunctionalTest(TestCase):
         all_params.update(params)
         if q:
             all_params.update(query_params)
-        print('GET: %s %r' % (full_path, all_params))
         response = self.app.get(full_path,
                                 params=all_params,
                                 headers=headers,
@@ -276,7 +278,6 @@ class FunctionalTest(TestCase):
                                 expect_errors=expect_errors)
         if not expect_errors:
             response = response.json
-        print('GOT:%s' % response)
         return response
 
     def validate_link(self, link):
