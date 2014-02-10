@@ -190,31 +190,6 @@ def update_db_model(cls, db_entry, wsme_entry):
     return db_entry
 
 
-class Project(_Base):
-    """The Storyboard Registry describes the open source world as ProjectGroups
-    and Products. Each ProjectGroup may be responsible for several Projects.
-    For example, the OpenStack Infrastructure Project has Zuul, Nodepool,
-    Storyboard as Projects, among others.
-    """
-
-    name = wtypes.text
-    """At least one lowercase letter or number, followed by letters, numbers,
-    dots, hyphens or pluses. Keep this name short; it is used in URLs.
-    """
-
-    description = wtypes.text
-    """Details about the project's work, highlights, goals, and how to
-    contribute. Use plain text, paragraphs are preserved and URLs are
-    linked in pages.
-    """
-
-    @classmethod
-    def sample(cls):
-        return cls(
-            name="Storyboard",
-            description="Awesome project")
-
-
 class ProjectGroup(_Base):
     """Represents a group of projects."""
 
@@ -278,54 +253,6 @@ class Comment(_Base):
             content="comment content goes here",
             story_id=42,
             author_id=67)
-
-
-class Story(_Base):
-    """Represents a user-story."""
-
-    title = wtypes.text
-    """A descriptive label for this tracker to show in listings."""
-
-    description = wtypes.text
-    """A brief introduction or overview of this bug tracker instance."""
-
-    is_bug = bool
-    """Is this a bug or a feature :)"""
-
-    #todo(nkonovalov): replace with a enum
-    priority = wtypes.text
-    """Priority.
-    Allowed values: ['Undefined', 'Low', 'Medium', 'High', 'Critical'].
-    """
-
-    tasks = wtypes.ArrayType(Task)
-    """List of linked tasks."""
-
-    comments = wtypes.ArrayType(Comment)
-    """List of linked comments."""
-
-    tags = wtypes.ArrayType(StoryTag)
-    """List of linked tags."""
-
-    @classmethod
-    def add_task(cls, story_id, task):
-        return cls.create_and_add_item("id", story_id, Task, task, "tasks")
-
-    @classmethod
-    def add_comment(cls, story_id, comment):
-        return cls.create_and_add_item("id", story_id, Comment, comment,
-                                       "comments")
-
-    @classmethod
-    def sample(cls):
-        return cls(
-            title="Use Storyboard to manage Storyboard",
-            description="We should use Storyboard to manage Storyboard",
-            is_bug=False,
-            priority='Critical',
-            tasks=[],
-            comments=[],
-            tags=[])
 
 
 class User(_Base):
@@ -398,9 +325,7 @@ SQLALCHEMY_TO_WSME = {
     sqlalchemy_models.Team: Team,
     sqlalchemy_models.User: User,
     sqlalchemy_models.ProjectGroup: ProjectGroup,
-    sqlalchemy_models.Project: Project,
     sqlalchemy_models.Permission: Permission,
-    sqlalchemy_models.Story: Story,
     sqlalchemy_models.Task: Task,
     sqlalchemy_models.Comment: Comment,
     sqlalchemy_models.StoryTag: StoryTag

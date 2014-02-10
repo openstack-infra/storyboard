@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
-
+# Copyright (c) 2013 Mirantis Inc.
+#
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
 # a copy of the License at
@@ -12,57 +12,56 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""
-test_storyboard
-----------------------------------
-
-Tests for `storyboard` module.
-"""
-import copy
 import json
 
 from storyboard.tests import base
 
-SAMPLE_STORY = {
-    "title": "test_story",
-    "description": "some description"
-}
-
-SAMPLE_STORY_REQUEST = {
-    "story": SAMPLE_STORY
-}
-
 
 class TestStories(base.FunctionalTest):
 
+    def setUp(self):
+        super(TestStories, self).setUp()
+        self.resource = '/stories'
+
+        self.story_01 = {
+            'title': 'StoryBoard',
+            'description': 'Awesome Task Tracker',
+            'priority': 'High'
+        }
+
     def test_stories_endpoint(self):
-        response = self.get_json(path="/stories")
+        response = self.get_json(self.resource)
         self.assertEqual([], response)
 
     def test_create(self):
-        response = self.post_json("/stories", SAMPLE_STORY_REQUEST)
+        response = self.post_json(self.resource, self.story_01)
         story = json.loads(response.body)
 
-        self.assertIn("id", story)
-        self.assertIn("created_at", story)
-        self.assertEqual(story["title"], SAMPLE_STORY["title"])
-        self.assertEqual(story["description"], SAMPLE_STORY["description"])
+        url = "%s/%d" % (self.resource, story['id'])
+        story = self.get_json(url)
+
+        self.assertIn('id', story)
+        self.assertIn('created_at', story)
+        self.assertEqual(story['title'], self.story_01['title'])
+        self.assertEqual(story['description'], self.story_01['description'])
 
     def test_update(self):
-        response = self.post_json("/stories", SAMPLE_STORY_REQUEST)
-        old_story = json.loads(response.body)
+        response = self.post_json(self.resource, self.story_01)
+        original = json.loads(response.body)
 
-        update_request = copy.deepcopy(SAMPLE_STORY_REQUEST)
-        update_request["story_id"] = old_story["id"]
-        update_request["story"]["title"] = "updated_title"
-        update_request["story"]["description"] = "updated_description"
+        delta = {
+            'id': original['id'],
+            'title': 'new title',
+            'description': 'new description'
+        }
 
-        response = self.put_json("/stories", update_request)
-        updated_story = json.loads(response.body)
+        url = "/stories/%d" % original['id']
+        response = self.put_json(url, delta)
+        updated = json.loads(response.body)
 
-        self.assertEqual(updated_story["id"], old_story["id"])
-        self.assertEqual(updated_story["created_at"], old_story["created_at"])
+        self.assertEqual(updated['id'], original['id'])
+        self.assertEqual(updated['created_at'], original['created_at'])
 
-        self.assertNotEqual(updated_story["title"], old_story["title"])
-        self.assertNotEqual(updated_story["description"],
-                            old_story["description"])
+        self.assertNotEqual(updated['title'], original['title'])
+        self.assertNotEqual(updated['description'],
+                            original['description'])

@@ -53,7 +53,7 @@ Permission
 
 Project
 =======
-.. autotype:: storyboard.api.v1.wsme_models.Project
+.. autotype:: storyboard.api.v1.projects.Project
    :members:
 
 ProjectGroup
@@ -63,7 +63,7 @@ ProjectGroup
 
 Story
 =====
-.. autotype:: storyboard.api.v1.wsme_models.Story
+.. autotype:: storyboard.api.v1.stories.Story
    :members:
 
 StoryTag
