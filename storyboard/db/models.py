@@ -17,10 +17,10 @@
 SQLAlchemy Models for storing storyboard
 """
 
-import urlparse
 import warnings
 
 from oslo.config import cfg
+import six.moves.urllib.parse as urlparse
 from sqlalchemy.ext import declarative
 from sqlalchemy.orm import relationship
 from sqlalchemy import schema
