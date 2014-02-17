@@ -14,10 +14,36 @@
 # limitations under the License.
 
 from pecan import rest
-from wsme.exc import ClientSideError
+from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
-import storyboard.api.v1.wsme_models as wsme_models
+from storyboard.api.v1 import base
+from storyboard.db import api as dbapi
+
+
+class Project(base.APIBase):
+    """The Storyboard Registry describes the open source world as ProjectGroups
+    and Products. Each ProjectGroup may be responsible for several Projects.
+    For example, the OpenStack Infrastructure Project has Zuul, Nodepool,
+    Storyboard as Projects, among others.
+    """
+
+    name = wtypes.text
+    """At least one lowercase letter or number, followed by letters, numbers,
+    dots, hyphens or pluses. Keep this name short; it is used in URLs.
+    """
+
+    description = wtypes.text
+    """Details about the project's work, highlights, goals, and how to
+    contribute. Use plain text, paragraphs are preserved and URLs are
+    linked in pages.
+    """
+
+    @classmethod
+    def sample(cls):
+        return cls(
+            name="Storyboard",
+            description="Awesome project")
 
 
 class ProjectsController(rest.RestController):
@@ -26,21 +52,39 @@ class ProjectsController(rest.RestController):
     At this moment it provides read-only operations.
     """
 
-    @wsme_pecan.wsexpose(wsme_models.Project, unicode)
-    def get_one(self, name):
+    @wsme_pecan.wsexpose(Project, unicode)
+    def get_one(self, project_id):
         """Retrieve information about the given project.
 
-        :param name: project name.
+        :param project_id: project ID.
         """
-        project = wsme_models.Project.get(name=name)
-        if not project:
-            raise ClientSideError("Project %s not found" % name,
-                                  status_code=404)
-        return project
 
-    @wsme_pecan.wsexpose([wsme_models.Project])
-    def get(self):
+        project = dbapi.project_get(project_id)
+        return Project.from_db_model(project)
+
+    @wsme_pecan.wsexpose([Project])
+    def get_all(self):
         """Retrieve a list of projects.
         """
-        projects = wsme_models.Project.get_all()
-        return projects
+        projects = dbapi.project_get_all()
+        return [Project.from_db_model(p) for p in projects]
+
+    @wsme_pecan.wsexpose(Project, body=Project)
+    def post(self, project):
+        """Create a new project
+
+        :param project: a project within the request body
+        """
+        result = dbapi.project_create(project.as_dict())
+        return Project.from_db_model(result)
+
+    @wsme_pecan.wsexpose(Project, int, body=Project)
+    def put(self, project_id, project):
+        """Modify this project.
+
+        :param project_id: An ID of the project.
+        :param project: a project within the request body.
+        """
+        result = dbapi.project_update(project_id,
+                                      project.as_dict(omit_unset=True))
+        return Project.from_db_model(result)

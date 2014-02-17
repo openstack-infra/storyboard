@@ -98,9 +98,6 @@ class TestCase(testtools.TestCase):
             CONF.set_override(k, v, group)
 
 
-PATH_PREFIX = '/v1'
-
-
 class DbTestCase(TestCase):
 
     def setUp(self):
@@ -115,6 +112,9 @@ class DbTestCase(TestCase):
         if not _DB_CACHE:
             _DB_CACHE = Database()
         self.useFixture(_DB_CACHE)
+
+
+PATH_PREFIX = '/v1'
 
 
 class FunctionalTest(DbTestCase):
