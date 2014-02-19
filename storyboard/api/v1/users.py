@@ -13,53 +13,101 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime
 from pecan import rest
+from pecan.secure import secure
 from wsme.exc import ClientSideError
+from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
-import storyboard.api.v1.wsme_models as wsme_models
+from storyboard.api.auth import authorization_checks as checks
+from storyboard.api.v1 import base
+from storyboard.db import api as dbapi
+
+
+class User(base.APIBase):
+    """Represents a user."""
+
+    username = wtypes.text
+    """A short unique name, beginning with a lower-case letter or number, and
+    containing only letters, numbers, dots, hyphens, or plus signs"""
+
+    first_name = wtypes.text
+    """First name."""
+
+    last_name = wtypes.text
+    """Last name."""
+
+    openid = wtypes.text
+    """The unique identifier, returned by an OpneId provider"""
+
+    email = wtypes.text
+    """Email Address."""
+
+    # Todo(nkonovalov): use teams to define superusers
+    is_superuser = bool
+
+    last_login = datetime
+    """Date of the last login."""
+
+    @classmethod
+    def sample(cls):
+        return cls(
+            username="elbarto",
+            first_name="Bart",
+            last_name="Simpson",
+            openid="https://login.launchpad.net/+id/Abacaba",
+            email="skinnerstinks@springfield.net",
+            is_staff=False,
+            is_active=True,
+            is_superuser=True,
+            last_login=datetime(2014, 1, 1, 16, 42))
 
 
 class UsersController(rest.RestController):
     """Manages users."""
 
-    @wsme_pecan.wsexpose([wsme_models.User])
+    @secure(checks.guest)
+    @wsme_pecan.wsexpose([User])
     def get(self):
         """Retrieve definitions of all of the users."""
-        users = wsme_models.User.get_all()
-        return users
 
-    @wsme_pecan.wsexpose(wsme_models.User, int)
+        users = dbapi.user_get_all()
+        return [User.from_db_model(user) for user in users]
+
+    @secure(checks.authenticated)
+    @wsme_pecan.wsexpose(User, unicode)
     def get_one(self, user_id):
         """Retrieve details about one user.
 
         :param user_id: The unique id of this user
         """
-        user = wsme_models.User.get(id=user_id)
+
+        user = dbapi.user_get(user_id)
         if not user:
             raise ClientSideError("User %s not found" % user_id,
                                   status_code=404)
         return user
 
-    @wsme_pecan.wsexpose(wsme_models.User, wsme_models.User)
+    @secure(checks.authenticated)
+    @wsme_pecan.wsexpose(User, body=User)
     def post(self, user):
         """Create a new user.
 
         :param user: a user within the request body.
         """
-        created_user = wsme_models.User.create(wsme_entry=user)
-        if not created_user:
-            raise ClientSideError("Could not create User")
-        return created_user
 
-    @wsme_pecan.wsexpose(wsme_models.User, int, wsme_models.User)
+        created_user = dbapi.user_create(user.as_dict())
+        return User.from_db_model(created_user)
+
+    @secure(checks.authenticated)
+    @wsme_pecan.wsexpose(User, int, body=User)
     def put(self, user_id, user):
         """Modify this user.
 
         :param user_id: unique id to identify the user.
         :param user: a user within the request body.
         """
-        updated_user = wsme_models.User.update("id", user_id, user)
-        if not updated_user:
-            raise ClientSideError("Could not update user %s" % user_id)
-        return updated_user
+
+        updated_user = dbapi.user_update(user_id, user.as_dict())
+        return User.from_db_model(updated_user)

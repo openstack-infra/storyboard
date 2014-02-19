@@ -250,79 +250,11 @@ class Comment(_Base):
             author_id=67)
 
 
-class User(_Base):
-    """Represents a user."""
-
-    username = wtypes.text
-    """A short unique name, beginning with a lower-case letter or number, and
-    containing only letters, numbers, dots, hyphens, or plus signs"""
-
-    first_name = wtypes.text
-    """First name."""
-
-    last_name = wtypes.text
-    """Last name."""
-
-    openid = wtypes.text
-    """The unique identifier, returned by an OpneId provider"""
-
-    email = wtypes.text
-    """Email Address."""
-
-    # TODO(ruhe): clarify and document what are these fields for
-    is_staff = bool
-    is_active = bool
-    is_superuser = bool
-
-    last_login = datetime
-    """Date of the last login."""
-
-    #teams = wtypes.ArrayType(Team)
-
-    permissions = wtypes.ArrayType(Permission)
-    """List of associated permissions"""
-
-    #tasks = wtypes.ArrayType(Task)
-
-    @classmethod
-    def sample(cls):
-        return cls(
-            username="elbarto",
-            first_name="Bart",
-            last_name="Simpson",
-            openid="https://login.launchpad.net/+id/Abacaba",
-            email="skinnerstinks@springfield.net",
-            is_staff=False,
-            is_active=True,
-            is_superuser=True,
-            last_login=datetime(2014, 1, 1, 16, 42),
-            permissions=[])
-
-
 class Team(_Base):
-    """A group of people and other teams."""
-
-    name = wtypes.text
-    """A short unique name, beginning with a lower-case letter or number,
-    and containing only letters, numbers, dots, hyphens, or plus signs.
-    """
-
-    users = wtypes.ArrayType(User)
-    """List of direct members."""
-
-    permissions = wtypes.ArrayType(Permission)
-    """Collection of associated permissions."""
-
-    @classmethod
-    def add_user(cls, team_name, username):
-        return cls.add_item("name", team_name,
-                            User, "username", username,
-                            "users")
+    pass
 
 
 SQLALCHEMY_TO_WSME = {
-    sqlalchemy_models.Team: Team,
-    sqlalchemy_models.User: User,
     sqlalchemy_models.ProjectGroup: ProjectGroup,
     sqlalchemy_models.Permission: Permission,
     sqlalchemy_models.Comment: Comment,

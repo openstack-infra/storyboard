@@ -14,9 +14,11 @@
 # limitations under the License.
 
 from pecan import rest
+from pecan.secure import secure
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
+from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
 from storyboard.db import api as dbapi
 
@@ -52,6 +54,7 @@ class ProjectsController(rest.RestController):
     At this moment it provides read-only operations.
     """
 
+    @secure(checks.guest)
     @wsme_pecan.wsexpose(Project, unicode)
     def get_one(self, project_id):
         """Retrieve information about the given project.
@@ -60,15 +63,17 @@ class ProjectsController(rest.RestController):
         """
 
         project = dbapi.project_get(project_id)
-        return Project.from_db_model(project)
+        return project
 
+    @secure(checks.guest)
     @wsme_pecan.wsexpose([Project])
-    def get_all(self):
+    def get(self):
         """Retrieve a list of projects.
         """
         projects = dbapi.project_get_all()
         return [Project.from_db_model(p) for p in projects]
 
+    @secure(checks.authenticated)
     @wsme_pecan.wsexpose(Project, body=Project)
     def post(self, project):
         """Create a new project.
@@ -78,6 +83,7 @@ class ProjectsController(rest.RestController):
         result = dbapi.project_create(project.as_dict())
         return Project.from_db_model(result)
 
+    @secure(checks.authenticated)
     @wsme_pecan.wsexpose(Project, int, body=Project)
     def put(self, project_id, project):
         """Modify this project.

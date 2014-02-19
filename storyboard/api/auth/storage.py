@@ -19,14 +19,6 @@ import abc
 class StorageBase(object):
 
     @abc.abstractmethod
-    def save_state(self, state):
-        pass
-
-    @abc.abstractmethod
-    def check_remove_state(self, state):
-        pass
-
-    @abc.abstractmethod
     def save_authorization_code(self, authorization_code, user_id):
         pass
 
@@ -44,6 +36,10 @@ class StorageBase(object):
 
     @abc.abstractmethod
     def save_token(self, access_token, expires_in, refresh_token, user_id):
+        pass
+
+    @abc.abstractmethod
+    def check_access_token(self, access_token):
         pass
 
     @abc.abstractmethod

@@ -51,6 +51,8 @@ class OpenIdClient(object):
         return_to_url = request.host_url + "/api/v1/openid/authorize_return?" \
             + utils.join_params(return_params, encode=True)
 
+        response.status_code = 303
+
         openid_params = {
             "openid.ns": "http://specs.openid.net/auth/2.0",
             "openid.mode": "checkid_setup",

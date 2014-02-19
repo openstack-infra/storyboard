@@ -14,9 +14,11 @@
 # limitations under the License.
 
 from pecan import rest
+from pecan.secure import secure
 from wsme.exc import ClientSideError
 import wsmeext.pecan as wsme_pecan
 
+import storyboard.api.auth.authorization_checks as checks
 import storyboard.api.v1.wsme_models as wsme_models
 
 
@@ -26,6 +28,7 @@ class ProjectGroupsController(rest.RestController):
     At this moment it provides read-only operations.
     """
 
+    @secure(checks.guest)
     @wsme_pecan.wsexpose(wsme_models.ProjectGroup, int)
     def get_one(self, id):
         """Retrieve information about the given project group.
@@ -38,12 +41,14 @@ class ProjectGroupsController(rest.RestController):
                                   status_code=404)
         return group
 
+    @secure(checks.guest)
     @wsme_pecan.wsexpose([wsme_models.ProjectGroup])
     def get(self):
         """Retrieve a list of projects groups."""
         groups = wsme_models.ProjectGroup.get_all()
         return groups
 
+    @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wsme_models.ProjectGroup,
                          body=wsme_models.ProjectGroup)
     def post(self, group):
@@ -56,6 +61,7 @@ class ProjectGroupsController(rest.RestController):
             raise ClientSideError("Could not create ProjectGroup")
         return created_group
 
+    @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wsme_models.ProjectGroup, int,
                          body=wsme_models.ProjectGroup)
     def put(self, id, group):

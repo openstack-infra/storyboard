@@ -88,6 +88,10 @@ def user_get(user_id):
     return _entity_get(models.User, user_id)
 
 
+def user_get_all():
+    return _entity_get_all(models.User)
+
+
 def user_get_by_openid(openid):
     query = model_query(models.User, get_session())
     return query.filter_by(openid=openid).first()

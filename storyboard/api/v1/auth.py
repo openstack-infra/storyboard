@@ -15,7 +15,6 @@
 
 import json
 import logging
-import six
 
 from oslo.config import cfg
 import pecan
@@ -23,10 +22,9 @@ from pecan import request
 from pecan import response
 from pecan import rest
 
-from storyboard.api.auth.auth_controller import SERVER
-from storyboard.api.auth.auth_controller import TOKEN_STORAGE
+from storyboard.api.auth.oauth_validator import SERVER
+from storyboard.api.auth.oauth_validator import TOKEN_STORAGE
 from storyboard.api.auth.openid_client import client as openid_client
-from storyboard.api.auth import utils
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
@@ -75,21 +73,6 @@ class AuthController(rest.RestController):
                                 for k, v in headers.iteritems())
         response.status_code = code
         response.body = body or ''
-
-        return response
-
-    @pecan.expose()
-    def client_redirect(self):
-        """This method is required to perform a hash-bang url redirect."""
-
-        response.status_code = 303
-
-        params = dict((str(k), str(v))
-                      for k, v in six.iteritems(request.params))
-        joined_params = utils.join_params(params)
-        response.headers["Location"] = "".join([request.host_url, "/",
-                                                CONF.auth_token_url, "?",
-                                                joined_params])
 
         return response
 
