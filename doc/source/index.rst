@@ -29,11 +29,24 @@ contribute to the project.
 Table of contents
 =================
 
-.. toctree::
-   :maxdepth: 2
 
-   install/index
-   contributing
+Installation guides
+-------------------
+.. toctree::
+   :maxdepth: 1
+
+   install/manual
+   install/development
+
+
+Developer docs
+--------------
+
+.. toctree::
+    :maxdepth: 1
+
+    contributing
+    webclient
 
 
 Client API Reference
