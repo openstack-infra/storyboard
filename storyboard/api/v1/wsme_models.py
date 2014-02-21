@@ -215,11 +215,6 @@ class Permission(_Base):
     pass
 
 
-class Task(_Base):
-    """Represents a task within a story."""
-    pass
-
-
 class StoryTag(_Base):
     """Tags are used classifying user-stories."""
     pass
@@ -326,7 +321,6 @@ SQLALCHEMY_TO_WSME = {
     sqlalchemy_models.User: User,
     sqlalchemy_models.ProjectGroup: ProjectGroup,
     sqlalchemy_models.Permission: Permission,
-    sqlalchemy_models.Task: Task,
     sqlalchemy_models.Comment: Comment,
     sqlalchemy_models.StoryTag: StoryTag
 }

@@ -39,6 +39,9 @@ class Story(base.APIBase):
     Allowed values: ['Undefined', 'Low', 'Medium', 'High', 'Critical'].
     """
 
+    project_id = int
+    """Optional parameter"""
+
     @classmethod
     def sample(cls):
         return cls(
@@ -51,7 +54,7 @@ class Story(base.APIBase):
 class StoriesController(rest.RestController):
     """Manages operations on stories."""
 
-    @wsme_pecan.wsexpose(Story, unicode)
+    @wsme_pecan.wsexpose(Story, int)
     def get_one(self, story_id):
         """Retrieve details about one story.
 
@@ -60,10 +63,16 @@ class StoriesController(rest.RestController):
         story = dbapi.story_get(story_id)
         return Story.from_db_model(story)
 
-    @wsme_pecan.wsexpose([Story])
-    def get(self):
-        """Retrieve definitions of all of the stories."""
-        stories = dbapi.story_get_all()
+    @wsme_pecan.wsexpose([Story], int)
+    def get_all(self, project_id=None):
+        """Retrieve definitions of all of the stories.
+
+        :param project_id: filter stories by project ID
+        """
+        if project_id:
+            stories = dbapi.story_get_all_in_project(project_id)
+        else:
+            stories = dbapi.story_get_all()
         return [Story.from_db_model(s) for s in stories]
 
     @wsme_pecan.wsexpose(Story, body=Story)
@@ -72,7 +81,18 @@ class StoriesController(rest.RestController):
 
         :param story: a story within the request body.
         """
-        created_story = dbapi.story_create(story.as_dict())
+        args = story.as_dict()
+        project_id = args.pop('project_id', None)
+        created_story = dbapi.story_create(args)
+        # Create default task for this story
+        task = {
+            'title': created_story['title'],
+            'status': 'Todo',
+            'story_id': created_story['id'],
+            'project_id': project_id
+        }
+        dbapi.task_create(task)
+
         return Story.from_db_model(created_story)
 
     @wsme_pecan.wsexpose(Story, int, body=Story)

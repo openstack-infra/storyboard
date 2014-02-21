@@ -17,7 +17,29 @@ from storyboard.db import api as dbapi
 from storyboard.tests import base
 
 
-class ProjectsTest(base.DbTestCase):
+class BaseDbTestCase(base.DbTestCase):
+    def setUp(self):
+        super(BaseDbTestCase, self).setUp()
+
+    def _assert_saved_fields(self, expected, actual):
+        for k in expected.keys():
+            self.assertEqual(expected[k], actual[k])
+
+    def _test_create(self, ref, save_method):
+        saved = save_method(ref)
+
+        self.assertIsNotNone(saved.id)
+        self._assert_saved_fields(ref, saved)
+
+    def _test_update(self, ref, delta, create, update):
+        saved = create(ref)
+        updated = update(saved.id, delta)
+
+        self.assertEqual(saved.id, updated.id)
+        self._assert_saved_fields(delta, updated)
+
+
+class ProjectsTest(BaseDbTestCase):
 
     def setUp(self):
         super(ProjectsTest, self).setUp()
@@ -28,27 +50,18 @@ class ProjectsTest(base.DbTestCase):
         }
 
     def test_save_project(self):
-        ref = self.project_01
-        saved = dbapi.project_create(ref)
-
-        self.assertIsNotNone(saved.id)
-        self.assertEqual(ref['name'], saved.name)
-        self.assertEqual(ref['description'], saved.description)
+        self._test_create(self.project_01, dbapi.project_create)
 
     def test_update_project(self):
-        saved = dbapi.project_create(self.project_01)
         delta = {
             'name': u'New Name',
             'description': u'New Description'
         }
-        updated = dbapi.project_update(saved.id, delta)
-
-        self.assertEqual(saved.id, updated.id)
-        self.assertEqual(delta['name'], updated.name)
-        self.assertEqual(delta['description'], updated.description)
+        self._test_update(self.project_01, delta,
+                          dbapi.project_create, dbapi.project_update)
 
 
-class StoriesTest(base.DbTestCase):
+class StoriesTest(BaseDbTestCase):
 
     def setUp(self):
         super(StoriesTest, self).setUp()
@@ -59,22 +72,36 @@ class StoriesTest(base.DbTestCase):
         }
 
     def test_create_story(self):
-        ref = self.story_01
-        saved = dbapi.story_create(self.story_01)
-
-        self.assertIsNotNone(saved.id)
-        self.assertEqual(ref['title'], saved.title)
-        self.assertEqual(ref['description'], saved.description)
+        self._test_create(self.story_01, dbapi.story_create)
 
     def test_update_story(self):
-        saved = dbapi.story_create(self.story_01)
         delta = {
             'title': u'New Title',
             'description': u'New Description'
         }
+        self._test_update(self.story_01, delta,
+                          dbapi.story_create, dbapi.story_update)
 
-        updated = dbapi.story_update(saved.id, delta)
 
-        self.assertEqual(saved.id, updated.id)
-        self.assertEqual(delta['title'], updated.title)
-        self.assertEqual(delta['description'], updated.description)
+class TasksTest(BaseDbTestCase):
+
+    def setUp(self):
+        super(TasksTest, self).setUp()
+
+        self.task_01 = {
+            'title': u'Invent time machine',
+            'status': 'Todo',
+            'story_id': 1
+        }
+
+    def test_create_task(self):
+        self._test_create(self.task_01, dbapi.task_create)
+
+    def test_update_task(self):
+        delta = {
+            'status': 'In review',
+            'assignee_id': 1
+        }
+
+        self._test_update(self.task_01, delta,
+                          dbapi.task_create, dbapi.task_update)

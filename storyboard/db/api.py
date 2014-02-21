@@ -37,89 +37,110 @@ def model_query(model, session=None):
     return query
 
 
-## BEGIN Projects
-
-def _project_get(project_id, session):
-    query = model_query(models.Project, session)
-    return query.filter_by(id=project_id).first()
+def __entity_get(kls, entity_id, session):
+    query = model_query(kls, session)
+    return query.filter_by(id=entity_id).first()
 
 
-def project_get(project_id):
-    return _project_get(project_id, get_session())
+def _entity_get(kls, entity_id):
+    return __entity_get(kls, entity_id, get_session())
 
 
-def project_get_all(**kwargs):
-    query = model_query(models.Project)
+def _entity_get_all(kls, **kwargs):
+    kwargs = dict((k, v) for k, v in kwargs.iteritems() if v)
+
+    query = model_query(kls)
     return query.filter_by(**kwargs).all()
 
 
-def project_create(values):
-    project = models.Project()
-    project.update(values.copy())
+def _entity_create(kls, values):
+    entity = kls()
+    entity.update(values.copy())
 
     session = get_session()
     with session.begin():
         try:
-            project.save(session=session)
+            entity.save(session=session)
         except db_exc.DBDuplicateEntry as e:
-            raise exc.DuplicateEntry("Duplicate entry for Project: %s"
-                                     % e.columns)
+            raise exc.DuplicateEntry("Duplicate etnry for : %s"
+                                     % (kls.__name__, e.colums))
 
-    return project
+    return entity
 
 
-def project_update(project_id, values):
+def entity_update(kls, entity_id, values):
     session = get_session()
 
     with session.begin():
-        project = _project_get(project_id, session)
-        if project is None:
-            raise exc.NotFound("Project %s not found" % project_id)
+        entity = __entity_get(kls, entity_id, session)
+        if entity is None:
+            raise exc.NotFound("%s %s not found" % (kls.__name__, entity_id))
 
-        project.update(values.copy())
+        entity.update(values.copy())
 
-    return project
+    return entity
+
+
+## BEGIN Projects
+
+def project_get(project_id):
+    return _entity_get(models.Project, project_id)
+
+
+def project_get_all(**kwargs):
+    return _entity_get_all(models.Project, **kwargs)
+
+
+def project_create(values):
+    return _entity_create(models.Project, values)
+
+
+def project_update(project_id, values):
+    return entity_update(models.Project, project_id, values)
 
 
 ## BEGIN Stories
 
-def _story_get(story_id, session):
-    query = model_query(models.Story, session)
-    return query.filter_by(id=story_id).first()
-
-
-def story_get_all(**kwargs):
-    query = model_query(models.Story)
-    return query.filter_by(**kwargs).all()
-
 
 def story_get(story_id):
-    return _story_get(story_id, get_session())
+    return _entity_get(models.Story, story_id)
+
+
+def story_get_all(project_id=None):
+    if project_id:
+        return story_get_all_in_project(project_id)
+    else:
+        return _entity_get_all(models.Story)
+
+
+def story_get_all_in_project(project_id):
+    session = get_session()
+
+    query = model_query(models.Story, session).join(models.Task)
+    return query.filter_by(project_id=project_id)
 
 
 def story_create(values):
-    story = models.Story()
-    story.update(values.copy())
-
-    session = get_session()
-    with session.begin():
-        try:
-            story.save(session)
-        except db_exc.DBDuplicateEntry as e:
-            raise exc.DuplicateEntry("Duplicate etnry for Story: %s"
-                                     % e.colums)
-
-    return story
+    return _entity_create(models.Story, values)
 
 
 def story_update(story_id, values):
-    session = get_session()
+    return entity_update(models.Story, story_id, values)
 
-    with session.begin():
-        story = _story_get(story_id, session)
-        if story is None:
-            raise exc.NotFound("Story %s not found" % story_id)
 
-        story.update(values.copy())
+# BEGIN Tasks
 
-    return story
+def task_get(task_id):
+    return _entity_get(models.Task, task_id)
+
+
+def task_get_all(story_id=None):
+    return _entity_get_all(models.Task, story_id=story_id)
+
+
+def task_create(values):
+    return _entity_create(models.Task, values)
+
+
+def task_update(task_id, values):
+    return entity_update(models.Task, task_id, values)

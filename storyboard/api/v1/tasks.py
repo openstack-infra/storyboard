@@ -14,41 +14,69 @@
 # limitations under the License.
 
 from pecan import rest
-from wsme.exc import ClientSideError
+from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
-import storyboard.api.v1.wsme_models as wsme_models
+from storyboard.api.v1 import base
+from storyboard.db import api as dbapi
+
+
+class Task(base.APIBase):
+    """Represents a task within a story."""
+
+    title = wtypes.text
+    """A descriptive label for this tracker to show in listings."""
+
+    # TODO(ruhe): replace with enum
+    status = wtypes.text
+    """Status.
+    Allowed values: ['Todo', 'In review', 'Landed'].
+    """
+
+    story_id = int
+    """An ID of corresponding user story"""
+
+    project_id = int
+    """An ID of project this task is assigned to"""
 
 
 class TasksController(rest.RestController):
     """Manages tasks."""
 
-    @wsme_pecan.wsexpose(wsme_models.Task, unicode)
-    def get_one(self, id):
+    @wsme_pecan.wsexpose(Task, int)
+    def get_one(self, task_id):
         """Retrieve details about one task.
 
-        :param id: An ID of the task.
+        :param task_id: An ID of the task.
         """
-        task = wsme_models.Task.get(id=id)
-        if not task:
-            raise ClientSideError("Task %s not found" % id,
-                                  status_code=404)
-        return task
+        task = dbapi.task_get(task_id)
+        return Task.from_db_model(task)
 
-    @wsme_pecan.wsexpose([wsme_models.Task])
-    def get(self):
-        """Retrieve definitions of all of the tasks."""
-        tasks = wsme_models.Task.get_all()
-        return tasks
+    @wsme_pecan.wsexpose([Task], int)
+    def get_all(self, story_id=None):
+        """Retrieve definitions of all of the tasks.
 
-    @wsme_pecan.wsexpose(wsme_models.Task, unicode, wsme_models.Task)
+        :param story_id: filter tasks by story ID
+        """
+        tasks = dbapi.task_get_all(story_id=story_id)
+        return [Task.from_db_model(s) for s in tasks]
+
+    @wsme_pecan.wsexpose(Task, body=Task)
+    def post(self, task):
+        """Create a new task.
+
+        :param task: a task within the request body.
+        """
+        created_task = dbapi.task_create(task.as_dict())
+        return Task.from_db_model(created_task)
+
+    @wsme_pecan.wsexpose(Task, int, body=Task)
     def put(self, task_id, task):
         """Modify this task.
 
         :param task_id: An ID of the task.
         :param task: a task within the request body.
         """
-        updated_task = wsme_models.Task.update("id", task_id, task)
-        if not updated_task:
-            raise ClientSideError("Could not update story %s" % task_id)
-        return updated_task
+        updated_task = dbapi.task_update(task_id,
+                                         task.as_dict(omit_unset=True))
+        return Task.from_db_model(updated_task)
