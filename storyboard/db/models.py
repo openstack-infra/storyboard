@@ -104,7 +104,7 @@ class User(Base):
     first_name = Column(Unicode(30), nullable=True)
     last_name = Column(Unicode(30), nullable=True)
     email = Column(String(255))
-    password = Column(UnicodeText)
+    openid = Column(String(255))
     is_staff = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
     is_superuser = Column(Boolean, default=False)

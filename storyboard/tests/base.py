@@ -25,6 +25,7 @@ from storyboard.openstack.common import lockutils
 from storyboard.openstack.common import log as logging
 import testtools
 
+from storyboard.common import migration_patch
 from storyboard.tests.db.db_fixture import Database
 
 cfg.set_defaults(lockutils.util_opts, lock_path='/tmp')
@@ -110,6 +111,7 @@ class DbTestCase(TestCase):
     def init_db_cache(self):
         global _DB_CACHE
         if not _DB_CACHE:
+            migration_patch.patch(CONF)
             _DB_CACHE = Database()
         self.useFixture(_DB_CACHE)
 

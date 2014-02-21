@@ -263,6 +263,9 @@ class User(_Base):
     last_name = wtypes.text
     """Last name."""
 
+    openid = wtypes.text
+    """The unique identifier, returned by an OpneId provider"""
+
     email = wtypes.text
     """Email Address."""
 
@@ -287,6 +290,7 @@ class User(_Base):
             username="elbarto",
             first_name="Bart",
             last_name="Simpson",
+            openid="https://login.launchpad.net/+id/Abacaba",
             email="skinnerstinks@springfield.net",
             is_staff=False,
             is_active=True,

@@ -17,11 +17,12 @@ import os
 
 from oslo.config import cfg
 import pecan
-from storyboard.openstack.common.gettextutils import _  # noqa
-from storyboard.openstack.common import log
 from wsgiref import simple_server
 
 from storyboard.api import config as api_config
+from storyboard.common import migration_patch
+from storyboard.openstack.common.gettextutils import _  # noqa
+from storyboard.openstack.common import log
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
@@ -67,6 +68,8 @@ def setup_app(pecan_config=None):
 def start():
     root = setup_app()
     CONF(project='storyboard')
+
+    migration_patch.patch(CONF)
 
     # Create the WSGI server and start it
     host = cfg.CONF.bind_host

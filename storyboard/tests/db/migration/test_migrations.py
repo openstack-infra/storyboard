@@ -93,3 +93,7 @@ class TestMigrations(base.BaseWalkMigrationTestCase, base.CommonTestsMixIn):
 
         self.assertColumnExists(engine, 'teams', 'updated_at')
         self.assertColumnExists(engine, 'teams', 'name')
+
+    def _check_399f57edc6b6(self, engine, data):
+        self.assertColumnExists(engine, 'users', 'openid')
+        self.assertColumnNotExists(engine, 'users', 'password')
