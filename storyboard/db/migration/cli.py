@@ -23,16 +23,12 @@ from alembic import config as alembic_config
 from alembic import util as alembic_util
 from oslo.config import cfg
 
+import storyboard.db.projects_loader as loader
+
+
 gettext.install('storyboard', unicode=1)
 
-_db_opts = [
-    cfg.StrOpt('connection',
-               default='',
-               help=_('URL to database')),
-]
-
-CONF = cfg.ConfigOpts()
-CONF.register_opts(_db_opts, 'database')
+CONF = cfg.CONF
 
 
 def do_alembic_command(config, cmd, *args, **kwargs):
@@ -74,6 +70,10 @@ def do_revision(config, cmd):
                        sql=CONF.command.sql)
 
 
+def do_load_projects(config, cmd):
+    loader.do_load_models(CONF.command.file)
+
+
 def add_command_parsers(subparsers):
     for name in ['current', 'history', 'branches']:
         parser = subparsers.add_parser(name)
@@ -99,6 +99,10 @@ def add_command_parsers(subparsers):
     parser.add_argument('--autogenerate', action='store_true')
     parser.add_argument('--sql', action='store_true')
     parser.set_defaults(func=do_revision)
+
+    parser = subparsers.add_parser('load_projects')
+    parser.add_argument('file', type=str)
+    parser.set_defaults(func=do_load_projects)
 
 
 command_opt = cfg.SubCommandOpt('command',
