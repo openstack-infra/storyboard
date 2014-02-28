@@ -22,10 +22,14 @@ from storyboard.db import api as dbapi
 
 
 class Task(base.APIBase):
-    """Represents a task within a story."""
+    """A Task represents an actionable work item, targeting a specific Project
+    and a specific branch. It is part of a Story. There may be multiple tasks
+    in a story, pointing to different projects or different branches. Each task
+    is generally linked to a code change proposed in Gerrit.
+    """
 
     title = wtypes.text
-    """A descriptive label for this tracker to show in listings."""
+    """An optional short label for the task, to show in listings."""
 
     # TODO(ruhe): replace with enum
     status = wtypes.text
@@ -34,10 +38,10 @@ class Task(base.APIBase):
     """
 
     story_id = int
-    """An ID of corresponding user story"""
+    """The ID of the corresponding Story."""
 
     project_id = int
-    """An ID of project this task is assigned to"""
+    """The ID of the corresponding Project."""
 
 
 class TasksController(rest.RestController):
@@ -56,7 +60,7 @@ class TasksController(rest.RestController):
     def get_all(self, story_id=None):
         """Retrieve definitions of all of the tasks.
 
-        :param story_id: filter tasks by story ID
+        :param story_id: filter tasks by story ID.
         """
         tasks = dbapi.task_get_all(story_id=story_id)
         return [Task.from_db_model(s) for s in tasks]
