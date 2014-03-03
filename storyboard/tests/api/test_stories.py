@@ -65,26 +65,3 @@ class TestStories(base.FunctionalTest):
         self.assertNotEqual(updated['title'], original['title'])
         self.assertNotEqual(updated['description'],
                             original['description'])
-
-    def test_complete_workflow(self):
-        ref = self.story_01
-        ref['project_id'] = 2
-        resp = self.post_json('/stories', ref)
-        saved_story = json.loads(resp.body)
-
-        saved_task = self.get_json('/tasks', story_id=saved_story['id'])[0]
-        self.assertEqual(saved_story['id'], saved_task['story_id'])
-        self.assertEqual(ref['title'], saved_task['title'])
-
-        stories = self.get_json('/stories', project_id=ref['project_id'])
-        self.assertEqual(1, len(stories))
-
-        new_task = {
-            'title': 'StoryBoard',
-            'status': 'Todo',
-            'story_id': saved_story['id']
-        }
-        self.post_json('/tasks', new_task)
-
-        tasks = self.get_json('/tasks', story_id=saved_story['id'])
-        self.assertEqual(2, len(tasks))

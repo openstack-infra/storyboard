@@ -82,16 +82,7 @@ class StoriesController(rest.RestController):
         :param story: a story within the request body.
         """
         args = story.as_dict()
-        project_id = args.pop('project_id', None)
         created_story = dbapi.story_create(args)
-        # Create default task for this story
-        task = {
-            'title': created_story['title'],
-            'status': 'Todo',
-            'story_id': created_story['id'],
-            'project_id': project_id
-        }
-        dbapi.task_create(task)
 
         return Story.from_db_model(created_story)
 
