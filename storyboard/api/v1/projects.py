@@ -13,9 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pecan import response
 from pecan import rest
+
 from pecan.secure import secure
+from wsme.exc import ClientSideError
 from wsme import types as wtypes
+
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
@@ -41,11 +45,15 @@ class Project(base.APIBase):
     linked in pages.
     """
 
+    is_active = bool
+    """Is this an active project, or has it been deleted?"""
+
     @classmethod
     def sample(cls):
         return cls(
             name="StoryBoard",
-            description="This is an awesome project.")
+            description="This is an awesome project.",
+            is_active=True)
 
 
 class ProjectsController(rest.RestController):
@@ -63,7 +71,12 @@ class ProjectsController(rest.RestController):
         """
 
         project = dbapi.project_get(project_id)
-        return project
+
+        if project:
+            return Project.from_db_model(project)
+        else:
+            raise ClientSideError("Project %s not found" % id,
+                                  status_code=404)
 
     @secure(checks.guest)
     @wsme_pecan.wsexpose([Project])
@@ -93,4 +106,19 @@ class ProjectsController(rest.RestController):
         """
         result = dbapi.project_update(project_id,
                                       project.as_dict(omit_unset=True))
-        return Project.from_db_model(result)
+
+        if result:
+            return Project.from_db_model(result)
+        else:
+            raise ClientSideError("Project %s not found" % id,
+                                  status_code=404)
+
+    @wsme_pecan.wsexpose(Project, int)
+    def delete(self, project_id):
+        """Delete this project.
+
+        :param project_id: An ID of the project.
+        """
+        dbapi.project_delete(project_id)
+
+        response.status_code = 204

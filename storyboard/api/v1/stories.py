@@ -13,8 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pecan import response
 from pecan import rest
+from wsme.exc import ClientSideError
 from wsme import types as wtypes
+
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.v1 import base
@@ -37,6 +40,9 @@ class Story(base.APIBase):
     is_bug = bool
     """Is this a bug or a feature :)"""
 
+    is_active = bool
+    """Is this an active story, or has it been deleted?"""
+
     #todo(nkonovalov): replace with a enum
     priority = wtypes.text
     """Priority.
@@ -52,6 +58,7 @@ class Story(base.APIBase):
             title="Use Storyboard to manage Storyboard",
             description="We should use Storyboard to manage Storyboard.",
             is_bug=False,
+            is_active=True,
             priority='Critical')
 
 
@@ -65,7 +72,12 @@ class StoriesController(rest.RestController):
         :param story_id: An ID of the story.
         """
         story = dbapi.story_get(story_id)
-        return Story.from_db_model(story)
+
+        if story:
+            return Story.from_db_model(story)
+        else:
+            raise ClientSideError("Story %s not found" % id,
+                                  status_code=404)
 
     @wsme_pecan.wsexpose([Story], int)
     def get_all(self, project_id=None):
@@ -99,4 +111,19 @@ class StoriesController(rest.RestController):
         """
         updated_story = dbapi.story_update(story_id,
                                            story.as_dict(omit_unset=True))
-        return Story.from_db_model(updated_story)
+
+        if updated_story:
+            return Story.from_db_model(updated_story)
+        else:
+            raise ClientSideError("Story %s not found" % id,
+                                  status_code=404)
+
+    @wsme_pecan.wsexpose(Story, int)
+    def delete(self, story_id):
+        """Delete this story.
+
+        :param story_id: An ID of the story.
+        """
+        dbapi.story_delete(story_id)
+
+        response.status_code = 204

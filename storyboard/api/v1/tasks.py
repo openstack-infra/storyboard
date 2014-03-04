@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pecan import response
 from pecan import rest
+from wsme.exc import ClientSideError
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
@@ -37,6 +39,9 @@ class Task(base.APIBase):
     Allowed values: ['Todo', 'In review', 'Landed'].
     """
 
+    is_active = bool
+    """Is this an active task, or has it been deleted?"""
+
     story_id = int
     """The ID of the corresponding Story."""
 
@@ -54,7 +59,12 @@ class TasksController(rest.RestController):
         :param task_id: An ID of the task.
         """
         task = dbapi.task_get(task_id)
-        return Task.from_db_model(task)
+
+        if task:
+            return Task.from_db_model(task)
+        else:
+            raise ClientSideError("Task %s not found" % id,
+                                  status_code=404)
 
     @wsme_pecan.wsexpose([Task], int)
     def get_all(self, story_id=None):
@@ -83,4 +93,19 @@ class TasksController(rest.RestController):
         """
         updated_task = dbapi.task_update(task_id,
                                          task.as_dict(omit_unset=True))
-        return Task.from_db_model(updated_task)
+
+        if updated_task:
+            return Task.from_db_model(updated_task)
+        else:
+            raise ClientSideError("Task %s not found" % id,
+                                  status_code=404)
+
+    @wsme_pecan.wsexpose(Task, int)
+    def delete(self, task_id):
+        """Delete this task.
+
+        :param task_id: An ID of the task.
+        """
+        dbapi.task_delete(task_id)
+
+        response.status_code = 204

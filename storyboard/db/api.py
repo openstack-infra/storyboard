@@ -78,7 +78,7 @@ def model_query(model, session=None):
 
 def __entity_get(kls, entity_id, session):
     query = model_query(kls, session)
-    return query.filter_by(id=entity_id).first()
+    return query.filter_by(id=entity_id, is_active=True).first()
 
 
 def _entity_get(kls, entity_id):
@@ -100,9 +100,9 @@ def _entity_create(kls, values):
     with session.begin():
         try:
             session.add(entity)
-        except db_exc.DBDuplicateEntry as e:
-            raise exc.DuplicateEntry("Duplicate etnry for : %s"
-                                     % (kls.__name__, e.colums))
+        except db_exc.DBDuplicateEntry:
+            raise exc.DuplicateEntry("Duplicate entry for : %s"
+                                     % (kls.__name__))
 
     return entity
 
@@ -171,7 +171,7 @@ def project_get(project_id):
 
 
 def project_get_all(**kwargs):
-    return _entity_get_all(models.Project, **kwargs)
+    return _entity_get_all(models.Project, is_active=True)
 
 
 def project_create(values):
@@ -180,6 +180,14 @@ def project_create(values):
 
 def project_update(project_id, values):
     return _entity_update(models.Project, project_id, values)
+
+
+def project_delete(project_id):
+    project = project_get(project_id)
+
+    if project:
+        project.is_active = False
+        _entity_update(models.Project, project_id, project.as_dict())
 
 
 # BEGIN Stories
@@ -192,14 +200,15 @@ def story_get_all(project_id=None):
     if project_id:
         return story_get_all_in_project(project_id)
     else:
-        return _entity_get_all(models.Story)
+        return _entity_get_all(models.Story, is_active=True)
 
 
 def story_get_all_in_project(project_id):
     session = get_session()
 
     query = model_query(models.Story, session).join(models.Task)
-    return query.filter_by(project_id=project_id)
+    return query.filter(models.Task.project_id == project_id,
+                        models.Story.is_active)
 
 
 def story_create(values):
@@ -210,6 +219,14 @@ def story_update(story_id, values):
     return _entity_update(models.Story, story_id, values)
 
 
+def story_delete(story_id):
+    story = story_get(story_id)
+
+    if story:
+        story.is_active = False
+        _entity_update(models.Story, story_id, story.as_dict())
+
+
 # BEGIN Tasks
 
 def task_get(task_id):
@@ -217,7 +234,7 @@ def task_get(task_id):
 
 
 def task_get_all(story_id=None):
-    return _entity_get_all(models.Task, story_id=story_id)
+    return _entity_get_all(models.Task, story_id=story_id, is_active=True)
 
 
 def task_create(values):
@@ -226,3 +243,11 @@ def task_create(values):
 
 def task_update(task_id, values):
     return _entity_update(models.Task, task_id, values)
+
+
+def task_delete(task_id):
+    task = task_get(task_id)
+
+    if task:
+        task.is_active = False
+        _entity_update(models.Task, task_id, task.as_dict())

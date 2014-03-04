@@ -145,6 +145,7 @@ class Project(Base):
     team_id = Column(Integer, ForeignKey('teams.id'))
     team = relationship(Team, primaryjoin=team_id == Team.id)
     tasks = relationship('Task', backref='project')
+    is_active = Column(Boolean, default=True)
 
 
 class ProjectGroup(Base):
@@ -198,6 +199,7 @@ class Story(Base):
     tasks = relationship('Task', backref='story')
     comments = relationship('Comment', backref='story')
     tags = relationship('StoryTag', backref='story')
+    is_active = Column(Boolean, default=True)
 
 
 class Task(Base):
@@ -209,6 +211,7 @@ class Task(Base):
     project_id = Column(Integer, ForeignKey('projects.id'))
     assignee_id = Column(Integer, ForeignKey('users.id'), nullable=True)
     milestone_id = Column(Integer, ForeignKey('milestones.id'), nullable=True)
+    is_active = Column(Boolean, default=True)
 
 
 class Comment(Base):
