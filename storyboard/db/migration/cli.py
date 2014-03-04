@@ -23,7 +23,8 @@ from alembic import config as alembic_config
 from alembic import util as alembic_util
 from oslo.config import cfg
 
-import storyboard.db.projects_loader as loader
+from storyboard.db import projects_loader
+from storyboard.db import superusers_loader
 
 
 gettext.install('storyboard', unicode=1)
@@ -71,7 +72,11 @@ def do_revision(config, cmd):
 
 
 def do_load_projects(config, cmd):
-    loader.do_load_models(CONF.command.file)
+    projects_loader.do_load_models(CONF.command.file)
+
+
+def do_load_superusers(config, cmd):
+    superusers_loader.do_load_models(CONF.command.file)
 
 
 def add_command_parsers(subparsers):
@@ -103,6 +108,10 @@ def add_command_parsers(subparsers):
     parser = subparsers.add_parser('load_projects')
     parser.add_argument('file', type=str)
     parser.set_defaults(func=do_load_projects)
+
+    parser = subparsers.add_parser('load_superusers')
+    parser.add_argument('file', type=str)
+    parser.set_defaults(func=do_load_superusers)
 
 
 command_opt = cfg.SubCommandOpt('command',
