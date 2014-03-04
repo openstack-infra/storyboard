@@ -60,7 +60,7 @@ def _entity_create(kls, values):
     session = get_session()
     with session.begin():
         try:
-            entity.save(session=session)
+            session.add(entity)
         except db_exc.DBDuplicateEntry as e:
             raise exc.DuplicateEntry("Duplicate etnry for : %s"
                                      % (kls.__name__, e.colums))
@@ -77,6 +77,7 @@ def entity_update(kls, entity_id, values):
             raise exc.NotFound("%s %s not found" % (kls.__name__, entity_id))
 
         entity.update(values.copy())
+        session.add(entity)
 
     return entity
 
