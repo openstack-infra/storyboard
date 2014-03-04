@@ -27,7 +27,7 @@ class APIBase(wtypes.Base):
 
     @classmethod
     def from_db_model(cls, db_model, skip_fields=None):
-        """Returns the database representation of the given transfer object."""
+        """Returns the object from a given database representation."""
         skip_fields = skip_fields or []
         data = dict((k, v) for k, v in db_model.as_dict().items()
                     if k not in skip_fields)

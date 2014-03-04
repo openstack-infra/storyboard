@@ -68,7 +68,7 @@ def _entity_create(kls, values):
     return entity
 
 
-def entity_update(kls, entity_id, values):
+def _entity_update(kls, entity_id, values):
     session = get_session()
 
     with session.begin():
@@ -82,7 +82,7 @@ def entity_update(kls, entity_id, values):
     return entity
 
 
-## BEGIN Projects
+# BEGIN Projects
 
 def project_get(project_id):
     return _entity_get(models.Project, project_id)
@@ -97,11 +97,10 @@ def project_create(values):
 
 
 def project_update(project_id, values):
-    return entity_update(models.Project, project_id, values)
+    return _entity_update(models.Project, project_id, values)
 
 
-## BEGIN Stories
-
+# BEGIN Stories
 
 def story_get(story_id):
     return _entity_get(models.Story, story_id)
@@ -126,7 +125,7 @@ def story_create(values):
 
 
 def story_update(story_id, values):
-    return entity_update(models.Story, story_id, values)
+    return _entity_update(models.Story, story_id, values)
 
 
 # BEGIN Tasks
@@ -144,4 +143,4 @@ def task_create(values):
 
 
 def task_update(task_id, values):
-    return entity_update(models.Task, task_id, values)
+    return _entity_update(models.Task, task_id, values)

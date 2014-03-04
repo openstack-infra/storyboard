@@ -22,13 +22,17 @@ from storyboard.db import api as dbapi
 
 
 class Story(base.APIBase):
-    """Represents a user-story."""
+    """The Story is the main element of StoryBoard. It represents a user story
+    (generally a bugfix or a feature) that needs to be implemented. It will be
+    broken down into a series of Tasks, which will each target a specific
+    Project and branch.
+    """
 
     title = wtypes.text
-    """A descriptive label for this tracker to show in listings."""
+    """A descriptive label for the story, to show in listings."""
 
     description = wtypes.text
-    """A brief introduction or overview of this bug tracker instance."""
+    """A complete description of the goal this story wants to cover."""
 
     is_bug = bool
     """Is this a bug or a feature :)"""
@@ -46,7 +50,7 @@ class Story(base.APIBase):
     def sample(cls):
         return cls(
             title="Use Storyboard to manage Storyboard",
-            description="We should use Storyboard to manage Storyboard",
+            description="We should use Storyboard to manage Storyboard.",
             is_bug=False,
             priority='Critical')
 
@@ -67,7 +71,7 @@ class StoriesController(rest.RestController):
     def get_all(self, project_id=None):
         """Retrieve definitions of all of the stories.
 
-        :param project_id: filter stories by project ID
+        :param project_id: filter stories by project ID.
         """
         if project_id:
             stories = dbapi.story_get_all_in_project(project_id)

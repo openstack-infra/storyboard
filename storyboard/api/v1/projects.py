@@ -23,8 +23,8 @@ from storyboard.db import api as dbapi
 
 class Project(base.APIBase):
     """The Storyboard Registry describes the open source world as ProjectGroups
-    and Products. Each ProjectGroup may be responsible for several Projects.
-    For example, the OpenStack Infrastructure Project has Zuul, Nodepool,
+    and Projects. Each ProjectGroup may be responsible for several Projects.
+    For example, the OpenStack Infrastructure ProjectGroup has Zuul, Nodepool,
     Storyboard as Projects, among others.
     """
 
@@ -42,8 +42,8 @@ class Project(base.APIBase):
     @classmethod
     def sample(cls):
         return cls(
-            name="Storyboard",
-            description="Awesome project")
+            name="StoryBoard",
+            description="This is an awesome project.")
 
 
 class ProjectsController(rest.RestController):
@@ -71,9 +71,9 @@ class ProjectsController(rest.RestController):
 
     @wsme_pecan.wsexpose(Project, body=Project)
     def post(self, project):
-        """Create a new project
+        """Create a new project.
 
-        :param project: a project within the request body
+        :param project: a project within the request body.
         """
         result = dbapi.project_create(project.as_dict())
         return Project.from_db_model(result)
