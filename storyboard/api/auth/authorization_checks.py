@@ -16,9 +16,7 @@
 from pecan import request
 
 from storyboard.api.auth.token_storage import storage
-
-
-TOKEN_STORAGE = storage.STORAGE
+from storyboard.db import api as dbapi
 
 
 def guest():
@@ -26,11 +24,25 @@ def guest():
 
 
 def authenticated():
+    token_storage = storage.get_storage()
 
     result = False
     if request.authorization and len(request.authorization) == 2:
         token = request.authorization[1]
-        if token and TOKEN_STORAGE.check_access_token(token):
+        if token and token_storage.check_access_token(token):
             result = True
 
     return result
+
+
+def superuser():
+    token_storage = storage.get_storage()
+
+    if not authenticated():
+        return False
+
+    token = request.authorization[1]
+    token_info = token_storage.get_access_token_info(token)
+    user = dbapi.user_get(token_info.user_id)
+
+    return user.is_superuser
