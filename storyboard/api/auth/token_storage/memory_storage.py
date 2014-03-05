@@ -15,7 +15,7 @@
 
 import datetime
 
-from storyboard.api.auth import storage
+from storyboard.api.auth.token_storage import storage
 
 
 class Token(object):

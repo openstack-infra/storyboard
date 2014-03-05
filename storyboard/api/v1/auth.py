@@ -22,8 +22,8 @@ from pecan import response
 from pecan import rest
 
 from storyboard.api.auth.oauth_validator import SERVER
-from storyboard.api.auth.oauth_validator import TOKEN_STORAGE
 from storyboard.api.auth.openid_client import client as openid_client
+from storyboard.api.auth.token_storage import storage
 
 LOG = logging.getLogger(__name__)
 
@@ -75,7 +75,8 @@ class AuthController(rest.RestController):
         """Access token endpoint."""
 
         auth_code = request.params.get("code")
-        code_info = TOKEN_STORAGE.get_authorization_code_info(auth_code)
+        code_info = storage.get_storage()\
+            .get_authorization_code_info(auth_code)
 
         headers, body, code = SERVER.create_token_response(
             uri=request.url,

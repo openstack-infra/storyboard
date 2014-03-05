@@ -19,6 +19,8 @@ from oslo.config import cfg
 import pecan
 from wsgiref import simple_server
 
+from storyboard.api.auth.token_storage import impls as storage_impls
+from storyboard.api.auth.token_storage import storage
 from storyboard.api import config as api_config
 from storyboard.api.middleware import token_middleware
 from storyboard.common import migration_patch
@@ -48,6 +50,11 @@ def get_pecan_config():
 def setup_app(pecan_config=None):
     if not pecan_config:
         pecan_config = get_pecan_config()
+
+    # Setup token storage
+    token_storage_type = CONF.token_storage_type
+    storage_cls = storage_impls.STORAGE_IMPLS[token_storage_type]
+    storage.set_storage(storage_cls())
 
     app = pecan.make_app(
         pecan_config.app.root,

@@ -14,12 +14,12 @@
 # limitations under the License.
 
 import logging
+
 from oauthlib.oauth2 import RequestValidator
 from oauthlib.oauth2 import WebApplicationServer
 from oslo.config import cfg
 
-#Todo(nkonovalov): make storage configurable
-from storyboard.api.auth.memory_storage import MemoryTokenStorage
+from storyboard.api.auth.token_storage import storage
 from storyboard.db import api as db_api
 
 CONF = cfg.CONF
@@ -37,6 +37,9 @@ class SkeletonValidator(RequestValidator):
     protocol.
 
     """
+    def __init__(self):
+        super(SkeletonValidator, self).__init__()
+        self.token_storage = storage.get_storage()
 
     def validate_client_id(self, client_id, request, *args, **kwargs):
         """Check that a valid client is connecting
@@ -114,7 +117,7 @@ class SkeletonValidator(RequestValidator):
                                                 "last_name": last_name,
                                                 "email": email})
 
-        TOKEN_STORAGE.save_authorization_code(code, user_id=user.id)
+        self.token_storage.save_authorization_code(code, user_id=user.id)
 
     # Token request
 
@@ -131,7 +134,7 @@ class SkeletonValidator(RequestValidator):
     def validate_code(self, client_id, code, client, request, *args, **kwargs):
         """Validate the code belongs to the client."""
 
-        return TOKEN_STORAGE.check_authorization_code(code)
+        return self.token_storage.check_authorization_code(code)
 
     def confirm_redirect_uri(self, client_id, code, redirect_uri, client,
                              *args, **kwargs):
@@ -157,13 +160,13 @@ class SkeletonValidator(RequestValidator):
         """Save all token information to the storage."""
 
         code = request._params["code"]
-        code_info = TOKEN_STORAGE.get_authorization_code_info(code)
+        code_info = self.token_storage.get_authorization_code_info(code)
         user_id = code_info.user_id
 
-        TOKEN_STORAGE.save_token(access_token=token["access_token"],
-                                 expires_in=token["expires_in"],
-                                 refresh_token=token["refresh_token"],
-                                 user_id=user_id)
+        self.token_storage.save_token(access_token=token["access_token"],
+                                      expires_in=token["expires_in"],
+                                      refresh_token=token["refresh_token"],
+                                      user_id=user_id)
 
     def invalidate_authorization_code(self, client_id, code, request, *args,
                                       **kwargs):
@@ -172,7 +175,7 @@ class SkeletonValidator(RequestValidator):
 
         """
 
-        TOKEN_STORAGE.invalidate_authorization_code(code)
+        self.token_storage.invalidate_authorization_code(code)
 
     # Protected resource request
 
@@ -193,5 +196,3 @@ class SkeletonValidator(RequestValidator):
 
 validator = SkeletonValidator()
 SERVER = WebApplicationServer(validator)
-
-TOKEN_STORAGE = MemoryTokenStorage()

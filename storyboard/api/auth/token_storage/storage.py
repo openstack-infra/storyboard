@@ -15,6 +15,20 @@
 
 import abc
 
+from oslo.config import cfg
+
+CONF = cfg.CONF
+
+STORAGE_OPTS = [
+    cfg.StrOpt('token_storage_type',
+               default='mem',
+               help='Authorization token storage type.'
+                    ' The only supported type is "mem".'
+                    ' tbd: db storage')
+]
+
+CONF.register_opts(STORAGE_OPTS)
+
 
 class StorageBase(object):
 
@@ -45,3 +59,16 @@ class StorageBase(object):
     @abc.abstractmethod
     def remove_token(self, token):
         pass
+
+
+STORAGE = None
+
+
+def get_storage():
+    global STORAGE
+    return STORAGE
+
+
+def set_storage(impl):
+    global STORAGE
+    STORAGE = impl

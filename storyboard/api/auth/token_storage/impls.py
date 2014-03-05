@@ -13,24 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pecan import request
+from storyboard.api.auth.token_storage import memory_storage
 
-from storyboard.api.auth.token_storage import storage
-
-
-TOKEN_STORAGE = storage.STORAGE
-
-
-def guest():
-    return True
-
-
-def authenticated():
-
-    result = False
-    if request.authorization and len(request.authorization) == 2:
-        token = request.authorization[1]
-        if token and TOKEN_STORAGE.check_access_token(token):
-            result = True
-
-    return result
+STORAGE_IMPLS = {
+    "mem": memory_storage.MemoryTokenStorage,
+    "db": None
+}
