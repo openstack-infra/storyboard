@@ -29,15 +29,15 @@ class UsersController(rest.RestController):
         users = wsme_models.User.get_all()
         return users
 
-    @wsme_pecan.wsexpose(wsme_models.User, unicode)
-    def get_one(self, username):
+    @wsme_pecan.wsexpose(wsme_models.User, int)
+    def get_one(self, user_id):
         """Retrieve details about one user.
 
-        :param username: unique name to identify the user.
+        :param user_id: The unique id of this user
         """
-        user = wsme_models.User.get(username=username)
+        user = wsme_models.User.get(id=user_id)
         if not user:
-            raise ClientSideError("User %s not found" % username,
+            raise ClientSideError("User %s not found" % user_id,
                                   status_code=404)
         return user
 
@@ -52,14 +52,14 @@ class UsersController(rest.RestController):
             raise ClientSideError("Could not create User")
         return created_user
 
-    @wsme_pecan.wsexpose(wsme_models.User, unicode, wsme_models.User)
-    def put(self, username, user):
+    @wsme_pecan.wsexpose(wsme_models.User, int, wsme_models.User)
+    def put(self, user_id, user):
         """Modify this user.
 
-        :param username: unique name to identify the user.
+        :param user_id: unique id to identify the user.
         :param user: a user within the request body.
         """
-        updated_user = wsme_models.User.update("username", username, user)
+        updated_user = wsme_models.User.update("id", user_id, user)
         if not updated_user:
-            raise ClientSideError("Could not update user %s" % username)
+            raise ClientSideError("Could not update user %s" % user_id)
         return updated_user
