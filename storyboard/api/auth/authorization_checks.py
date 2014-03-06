@@ -25,8 +25,9 @@ def guest():
 def authenticated():
 
     result = False
-    token = request.authorization[1]
-    if token and TOKEN_STORAGE.check_access_token(token):
-        result = True
+    if request.authorization and len(request.authorization) == 2:
+        token = request.authorization[1]
+        if token and TOKEN_STORAGE.check_access_token(token):
+            result = True
 
     return result
