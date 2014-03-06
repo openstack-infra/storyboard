@@ -20,6 +20,7 @@ import pecan
 from wsgiref import simple_server
 
 from storyboard.api import config as api_config
+from storyboard.api.middleware import token_middleware
 from storyboard.common import migration_patch
 from storyboard.openstack.common.gettextutils import _  # noqa
 from storyboard.openstack.common import log
@@ -66,7 +67,8 @@ def setup_app(pecan_config=None):
 
 
 def start():
-    root = setup_app()
+    api_root = setup_app()
+
     CONF(project='storyboard')
 
     migration_patch.patch(CONF)
@@ -74,7 +76,9 @@ def start():
     # Create the WSGI server and start it
     host = cfg.CONF.bind_host
     port = cfg.CONF.bind_port
-    srv = simple_server.make_server(host, port, root)
+
+    api_root = token_middleware.AuthTokenMiddleware(api_root)
+    srv = simple_server.make_server(host, port, api_root)
 
     LOG.info(_('Starting server in PID %s') % os.getpid())
     LOG.info(_("Configuration:"))

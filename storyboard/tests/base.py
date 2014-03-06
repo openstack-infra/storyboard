@@ -21,11 +21,12 @@ import fixtures
 from oslo.config import cfg
 import pecan
 import pecan.testing
-from storyboard.openstack.common import lockutils
-from storyboard.openstack.common import log as logging
 import testtools
 
+from storyboard.api.auth import authorization_checks
 from storyboard.common import migration_patch
+from storyboard.openstack.common import lockutils
+from storyboard.openstack.common import log as logging
 from storyboard.tests.db.db_fixture import Database
 
 cfg.set_defaults(lockutils.util_opts, lock_path='/tmp')
@@ -128,6 +129,10 @@ class FunctionalTest(DbTestCase):
     def setUp(self):
         super(FunctionalTest, self).setUp()
 
+        self.auth_check = authorization_checks.authenticated
+        authorization_checks.authenticated = lambda: True
+        self.addCleanup(self._reset_check)
+
         self.app = self._make_app()
         self.addCleanup(self._reset_pecan)
 
@@ -142,6 +147,9 @@ class FunctionalTest(DbTestCase):
 
     def _reset_pecan(self):
         pecan.set_config({}, overwrite=True)
+
+    def _reset_check(self):
+        authorization_checks.authenticated = self.auth_check
 
     def _request_json(self, path, params, expect_errors=False, headers=None,
                       method="post", extra_environ=None, status=None,

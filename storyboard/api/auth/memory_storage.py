@@ -19,13 +19,15 @@ from storyboard.api.auth import storage
 
 
 class Token(object):
-    def __init__(self, access_token, refresh_token, expires_in, user_id):
+    def __init__(self, access_token, refresh_token, expires_in, user_id,
+                 is_valid=True):
         self.access_token = access_token
         self.refresh_token = refresh_token
         self.expires_in = expires_in
         self.expires_at = datetime.datetime.now() + \
             datetime.timedelta(seconds=expires_in)
         self.user_id = user_id
+        self.is_valid = is_valid
 
 
 class AuthorizationCode(object):
@@ -39,7 +41,6 @@ class MemoryTokenStorage(storage.StorageBase):
     def __init__(self):
         self.token_set = set([])
         self.auth_code_set = set([])
-        self.state_set = set([])
 
     def save_token(self, access_token, expires_in, refresh_token, user_id):
         token_info = Token(access_token=access_token,
@@ -48,6 +49,25 @@ class MemoryTokenStorage(storage.StorageBase):
                            user_id=user_id)
 
         self.token_set.add(token_info)
+
+    def check_access_token(self, access_token):
+        token_entry = None
+        for token_info in self.token_set:
+            if token_info.access_token == access_token:
+                token_entry = token_info
+
+        if not token_entry:
+            return False
+
+        now = datetime.datetime.now()
+        if now > token_entry.expires_at:
+            token_entry.is_valid = False
+            return False
+
+        return True
+
+    def remove_token(self, token):
+        pass
 
     def save_authorization_code(self, authorization_code, user_id):
         self.auth_code_set.add(AuthorizationCode(authorization_code, user_id))
@@ -79,13 +99,3 @@ class MemoryTokenStorage(storage.StorageBase):
                 break
 
         self.auth_code_set.remove(code_entry)
-
-    def save_state(self, state):
-        self.state_set.add(state)
-
-    def check_remove_state(self, state):
-        if state in self.state_set:
-            self.state_set.remove(state)
-            return True
-
-        return False

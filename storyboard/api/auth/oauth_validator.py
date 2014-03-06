@@ -99,14 +99,19 @@ class SkeletonValidator(RequestValidator):
         email = request._params["openid.sreg.email"]
         fullname = request._params["openid.sreg.fullname"]
 
+        first_name = fullname.split()[0]
+        last_name = fullname.split()[1]
+
         user = db_api.user_get_by_openid(openid)
 
         if not user:
             user = db_api.user_create({"openid": openid,
-                                       "fullname": fullname,
+                                       "first_name": first_name,
+                                       "last_name": last_name,
                                        "email": email})
         else:
-            user = db_api.user_update(user.id, {"fullname": fullname,
+            user = db_api.user_update(user.id, {"first_name": first_name,
+                                                "last_name": last_name,
                                                 "email": email})
 
         TOKEN_STORAGE.save_authorization_code(code, user_id=user.id)

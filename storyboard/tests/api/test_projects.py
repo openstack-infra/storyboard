@@ -34,6 +34,7 @@ class TestProjects(base.FunctionalTest):
         self.assertEqual([], response)
 
     def test_create(self):
+
         response = self.post_json(self.resource, self.project_01)
         project = json.loads(response.body)
 
