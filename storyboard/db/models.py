@@ -108,6 +108,8 @@ class User(Base):
     permissions = relationship("Permission", secondary="user_permissions")
     tasks = relationship('Task', backref='assignee')
 
+    _public_fields = ["id", "openid", "first_name", "last_name"]
+
 
 class Team(Base):
     __table_args__ = (
@@ -146,6 +148,8 @@ class Project(Base):
     team = relationship(Team, primaryjoin=team_id == Team.id)
     tasks = relationship('Task', backref='project')
     is_active = Column(Boolean, default=True)
+
+    _public_fields = ["id", "name", "description", "tasks"]
 
 
 class ProjectGroup(Base):
@@ -201,6 +205,9 @@ class Story(Base):
     tags = relationship('StoryTag', backref='story')
     is_active = Column(Boolean, default=True)
 
+    _public_fields = ["id", "creator_id", "title", "description", "is_bug",
+                      "priority", "tasks", "comments", "tags"]
+
 
 class Task(Base):
     _TASK_STATUSES = ('Todo', 'In review', 'Landed')
@@ -213,6 +220,9 @@ class Task(Base):
     milestone_id = Column(Integer, ForeignKey('milestones.id'), nullable=True)
     is_active = Column(Boolean, default=True)
 
+    _public_fields = ["id", "title", "status", "story_id", "project_id",
+                      "assignee_id"]
+
 
 class Comment(Base):
 
@@ -223,6 +233,9 @@ class Comment(Base):
     story_id = Column(Integer, ForeignKey('stories.id'))
     author_id = Column(Integer, ForeignKey('users.id'), nullable=True)
     author = relationship('User', primaryjoin=author_id == User.id)
+
+    _public_fields = ["id", "action", "comment_type", "content", "story_id",
+                      "author_id"]
 
 
 class StoryTag(Base):

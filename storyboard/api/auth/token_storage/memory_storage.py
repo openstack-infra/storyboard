@@ -66,6 +66,12 @@ class MemoryTokenStorage(storage.StorageBase):
 
         return True
 
+    def get_access_token_info(self, access_token):
+        for token_info in self.token_set:
+            if token_info.access_token == access_token:
+                return token_info
+        return None
+
     def remove_token(self, token):
         pass
 

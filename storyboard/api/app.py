@@ -23,6 +23,7 @@ from storyboard.api.auth.token_storage import impls as storage_impls
 from storyboard.api.auth.token_storage import storage
 from storyboard.api import config as api_config
 from storyboard.api.middleware import token_middleware
+from storyboard.api.middleware import user_id_hook
 from storyboard.common import migration_patch
 from storyboard.openstack.common.gettextutils import _  # noqa
 from storyboard.openstack.common import log
@@ -59,6 +60,7 @@ def setup_app(pecan_config=None):
     app = pecan.make_app(
         pecan_config.app.root,
         debug=CONF.debug,
+        hooks=[user_id_hook.UserIdHook()],
         force_canonical=getattr(pecan_config.app, 'force_canonical', True),
         guess_content_type_from_ext=False
     )

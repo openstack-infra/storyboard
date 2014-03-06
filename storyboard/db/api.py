@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 from oslo.config import cfg
+import six
 
 from storyboard.common import exception as exc
 from storyboard.db import models
@@ -81,15 +83,40 @@ def __entity_get(kls, entity_id, session):
     return query.filter_by(id=entity_id, is_active=True).first()
 
 
-def _entity_get(kls, entity_id):
-    return __entity_get(kls, entity_id, get_session())
+def _entity_get(kls, entity_id, filter_non_public=False):
+    entity = __entity_get(kls, entity_id, get_session())
+
+    if filter_non_public:
+        entity = _filter_non_public_fields(entity, entity._public_fields)
+
+    return entity
 
 
-def _entity_get_all(kls, **kwargs):
+def _entity_get_all(kls, filter_non_public=False, **kwargs):
     kwargs = dict((k, v) for k, v in kwargs.iteritems() if v)
 
     query = model_query(kls)
-    return query.filter_by(**kwargs).all()
+    entities = query.filter_by(**kwargs).all()
+    if filter_non_public:
+        sample_entity = entities[0] if len(entities) > 0 else None
+        public_fields = getattr(sample_entity, "_public_fields", [])
+
+        entities = [_filter_non_public_fields(entity, public_fields)
+                    for entity in entities]
+
+    return entities
+
+
+def _filter_non_public_fields(entity, public_list=list()):
+    ent_copy = copy.copy(entity)
+    for attr_name, val in six.iteritems(entity.__dict__):
+        if attr_name.startswith("_"):
+            continue
+
+        if attr_name not in public_list:
+            delattr(ent_copy, attr_name)
+
+    return ent_copy
 
 
 def _entity_create(kls, values):
@@ -123,12 +150,16 @@ def _entity_update(kls, entity_id, values):
 
 ## BEGIN Users
 
-def user_get(user_id):
-    return _entity_get(models.User, user_id)
+
+def user_get(user_id, filter_non_public=False):
+    entity = _entity_get(models.User, user_id,
+                         filter_non_public=filter_non_public)
+
+    return entity
 
 
-def user_get_all():
-    return _entity_get_all(models.User)
+def user_get_all(filter_non_public=False):
+    return _entity_get_all(models.User, filter_non_public=filter_non_public)
 
 
 def user_get_by_openid(openid):

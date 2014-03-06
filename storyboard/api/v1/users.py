@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from datetime import datetime
+from pecan import request
 from pecan import rest
 from pecan.secure import secure
 from wsme.exc import ClientSideError
@@ -75,15 +76,19 @@ class UsersController(rest.RestController):
         users = dbapi.user_get_all()
         return [User.from_db_model(user) for user in users]
 
-    @secure(checks.authenticated)
-    @wsme_pecan.wsexpose(User, unicode)
+    @secure(checks.guest)
+    @wsme_pecan.wsexpose(User, int)
     def get_one(self, user_id):
         """Retrieve details about one user.
 
         :param user_id: The unique id of this user
         """
 
-        user = dbapi.user_get(user_id)
+        filter_non_public = True
+        if user_id == request.current_user_id:
+            filter_non_public = False
+
+        user = dbapi.user_get(user_id, filter_non_public)
         if not user:
             raise ClientSideError("User %s not found" % user_id,
                                   status_code=404)

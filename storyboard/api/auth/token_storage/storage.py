@@ -57,6 +57,10 @@ class StorageBase(object):
         pass
 
     @abc.abstractmethod
+    def get_access_token_info(self, access_token):
+        pass
+
+    @abc.abstractmethod
     def remove_token(self, token):
         pass
 
