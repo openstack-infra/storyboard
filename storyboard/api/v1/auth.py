@@ -16,7 +16,6 @@
 import json
 import logging
 
-from oslo.config import cfg
 import pecan
 from pecan import request
 from pecan import response
@@ -27,11 +26,6 @@ from storyboard.api.auth.oauth_validator import TOKEN_STORAGE
 from storyboard.api.auth.openid_client import client as openid_client
 
 LOG = logging.getLogger(__name__)
-CONF = cfg.CONF
-
-AUTH_OPTS = [
-]
-CONF.register_opts(AUTH_OPTS)
 
 
 class AuthController(rest.RestController):
