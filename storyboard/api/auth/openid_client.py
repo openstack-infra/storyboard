@@ -66,7 +66,7 @@ class OpenIdClient(object):
             "openid.return_to": return_to_url,
 
             "openid.ns.sreg": "http://openid.net/sreg/1.0",
-            "openid.sreg.required": "fullname,email",
+            "openid.sreg.required": "fullname,email,nickname",
 
             "openid.ns.ext2": "http://openid.net/srv/ax/1.0",
             "openid.ext2.mode": "fetch_request",
