@@ -141,7 +141,7 @@ class Project(Base):
     )
 
     name = Column(String(50))
-    description = Column(Unicode(100))
+    description = Column(UnicodeText())
     team_id = Column(Integer, ForeignKey('teams.id'))
     team = relationship(Team, primaryjoin=team_id == Team.id)
     tasks = relationship('Task', backref='project')
