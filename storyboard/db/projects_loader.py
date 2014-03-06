@@ -64,9 +64,13 @@ def do_load_models(filename):
                 if not db_project:
                     db_project = Project()
                     db_project.name = project["name"]
-                    db_project.description = unicode(project["description"])
-                    session.add(db_project)
 
-                    db_project_group.projects.append(db_project)
+                if project['description']:
+                    project['description'] = unicode(project["description"])
+
+                db_project.description = project["description"]
+                session.add(db_project)
+
+                db_project_group.projects.append(db_project)
 
             session.add(db_project_group)
