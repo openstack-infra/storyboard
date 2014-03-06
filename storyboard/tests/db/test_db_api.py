@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from storyboard.db import api as dbapi
+from storyboard.db import api as db_api
 from storyboard.tests import base
 
 
@@ -50,7 +50,7 @@ class ProjectsTest(BaseDbTestCase):
         }
 
     def test_save_project(self):
-        self._test_create(self.project_01, dbapi.project_create)
+        self._test_create(self.project_01, db_api.project_create)
 
     def test_update_project(self):
         delta = {
@@ -58,7 +58,7 @@ class ProjectsTest(BaseDbTestCase):
             'description': u'New Description'
         }
         self._test_update(self.project_01, delta,
-                          dbapi.project_create, dbapi.project_update)
+                          db_api.project_create, db_api.project_update)
 
 
 class StoriesTest(BaseDbTestCase):
@@ -72,7 +72,7 @@ class StoriesTest(BaseDbTestCase):
         }
 
     def test_create_story(self):
-        self._test_create(self.story_01, dbapi.story_create)
+        self._test_create(self.story_01, db_api.story_create)
 
     def test_update_story(self):
         delta = {
@@ -80,7 +80,7 @@ class StoriesTest(BaseDbTestCase):
             'description': u'New Description'
         }
         self._test_update(self.story_01, delta,
-                          dbapi.story_create, dbapi.story_update)
+                          db_api.story_create, db_api.story_update)
 
 
 class TasksTest(BaseDbTestCase):
@@ -95,7 +95,7 @@ class TasksTest(BaseDbTestCase):
         }
 
     def test_create_task(self):
-        self._test_create(self.task_01, dbapi.task_create)
+        self._test_create(self.task_01, db_api.task_create)
 
     def test_update_task(self):
         delta = {
@@ -104,4 +104,4 @@ class TasksTest(BaseDbTestCase):
         }
 
         self._test_update(self.task_01, delta,
-                          dbapi.task_create, dbapi.task_update)
+                          db_api.task_create, db_api.task_update)

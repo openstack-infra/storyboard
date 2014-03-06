@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import eventlet
-eventlet.monkey_patch(os=False)
 
+eventlet.monkey_patch(os=False)
 
 import os
 import warnings
@@ -24,7 +24,7 @@ from alembic import config as alembic_config
 import fixtures
 from oslo.config import cfg
 from sqlalchemy.exc import SADeprecationWarning
-from storyboard.openstack.common.db.sqlalchemy import session
+from storyboard.db import api as db_api
 
 CONF = cfg.CONF
 
@@ -32,7 +32,6 @@ warnings.simplefilter("ignore", SADeprecationWarning)
 
 
 class Database(fixtures.Fixture):
-
     def __init__(self):
         config = alembic_config.Config(os.path.join(
             os.path.dirname(__file__),
@@ -42,7 +41,7 @@ class Database(fixtures.Fixture):
             'storyboard.db.migration:alembic_migrations')
         config.storyboard_config = CONF
 
-        self.engine = session.get_engine()
+        self.engine = db_api.get_engine()
         conn = self.engine.connect()
         self._sync_db(config, conn)
 
@@ -56,9 +55,9 @@ class Database(fixtures.Fixture):
             return _script._upgrade_revs('head', rev)
 
         with environment.EnvironmentContext(
-            config,
-            _script,
-            fn=upgrade,
+                config,
+                _script,
+                fn=upgrade,
         ):
             context.configure(connection=conn)
             with context.begin_transaction():
@@ -67,9 +66,9 @@ class Database(fixtures.Fixture):
     def setUp(self):
         super(Database, self).setUp()
 
-        session.get_session()
-        engine = session.get_engine()
+        db_api.get_session()
+        engine = db_api.get_engine()
         conn = engine.connect()
 
         conn.connection.executescript(self._DB)
-        self.addCleanup(session.cleanup)
+        self.addCleanup(db_api.cleanup)

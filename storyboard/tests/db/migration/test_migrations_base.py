@@ -31,11 +31,9 @@ from alembic import config as alembic_config
 from alembic import migration
 from oslo.config import cfg
 import six.moves.urllib.parse as urlparse
-import sqlalchemy
-import sqlalchemy.exc
 
+from storyboard.db import api as db_api
 import storyboard.db.migration
-from storyboard.openstack.common.db.sqlalchemy import session
 from storyboard.openstack.common import lockutils
 from storyboard.openstack.common import log as logging
 from storyboard.openstack.common import processutils
@@ -52,6 +50,7 @@ def _get_connect_string(backend, user, passwd, database):
     """Try to get a connection with a very specific set of values, if we get
     these then we'll run the tests, otherwise they are skipped
     """
+
     if backend == "postgres":
         backend = "postgresql+psycopg2"
     elif backend == "mysql":
@@ -65,7 +64,8 @@ def _get_connect_string(backend, user, passwd, database):
 def _is_backend_avail(backend, user, passwd, database):
     try:
         connect_uri = _get_connect_string(backend, user, passwd, database)
-        engine = sqlalchemy.create_engine(connect_uri)
+        CONF.database.connection = connect_uri
+        engine = db_api.get_engine()
         connection = engine.connect()
     except Exception:
         # intentionally catch all to handle exceptions even if we don't
@@ -228,7 +228,7 @@ class BaseMigrationTestCase(base.TestCase):
 
         self.engines = {}
         for key, value in self.test_databases.items():
-            self.engines[key] = sqlalchemy.create_engine(value)
+            self.engines[key] = db_api.get_engine()
 
         # NOTE(jhesketh): We only need to make sure the databases are created
         # not necessarily clean of tables.
@@ -382,7 +382,7 @@ class BaseWalkMigrationTestCase(BaseMigrationTestCase):
 
         self.engines = {}
         for key, value in self.test_databases.items():
-            self.engines[key] = sqlalchemy.create_engine(value)
+            self.engines[key] = db_api.get_engine()
 
         self._create_databases()
 
@@ -394,7 +394,7 @@ class BaseWalkMigrationTestCase(BaseMigrationTestCase):
         database functionality (reset default settings and session cleanup).
         """
         CONF.set_override('connection', str(engine.url), group='database')
-        session.cleanup()
+        db_api.cleanup()
 
     def _test_mysql_opportunistically(self):
         # Test that table creation on mysql only builds InnoDB tables
@@ -406,7 +406,7 @@ class BaseWalkMigrationTestCase(BaseMigrationTestCase):
                 self.DATABASE)
         (user, password, database, host) = \
             get_mysql_connection_info(urlparse.urlparse(connect_string))
-        engine = sqlalchemy.create_engine(connect_string)
+        engine = db_api.get_engine()
         self.engines[database] = engine
         self.test_databases[database] = connect_string
 
@@ -435,7 +435,7 @@ class BaseWalkMigrationTestCase(BaseMigrationTestCase):
         # automatically in tearDown so no need to clean it up here.
         connect_string = _get_connect_string("postgres", self.USER,
                 self.PASSWD, self.DATABASE)
-        engine = sqlalchemy.create_engine(connect_string)
+        engine = db_api.get_engine()
         (user, password, database, host) = \
             get_mysql_connection_info(urlparse.urlparse(connect_string))
         self.engines[database] = engine
@@ -453,11 +453,11 @@ class BaseWalkMigrationTestCase(BaseMigrationTestCase):
         """
         self.ALEMBIC_CONFIG.stdout = buf = io.StringIO()
         CONF.set_override('connection', str(engine.url), group='database')
-        session.cleanup()
+        db_api.cleanup()
         getattr(command, alembic_command)(*args, **kwargs)
         res = buf.getvalue().strip()
         LOG.debug('Alembic command `%s` returns: %s' % (alembic_command, res))
-        session.cleanup()
+        db_api.cleanup()
         return res
 
     def _get_alembic_versions(self, engine):

@@ -16,7 +16,7 @@
 import sys
 
 import mock
-from storyboard.openstack.common.db.sqlalchemy import session as db_session
+from storyboard.db import api
 import testscenarios
 
 from storyboard.db.migration import cli
@@ -36,7 +36,7 @@ class TestLoadProjects(base.FunctionalTest):
     def test_cli(self):
         with mock.patch.object(sys, 'argv', self.argv):
             cli.main()
-            session = db_session.get_session(sqlite_fk=True)
+            session = api.get_session()
             project_groups = session.query(models.ProjectGroup).all()
             projects = session.query(models.Project).all()
 
@@ -53,7 +53,7 @@ class TestLoadProjects(base.FunctionalTest):
             # call again and nothing should change
             cli.main()
 
-            session = db_session.get_session(sqlite_fk=True)
+            session = api.get_session()
             projects = session.query(models.Project).all()
 
             self.assertIsNotNone(projects)

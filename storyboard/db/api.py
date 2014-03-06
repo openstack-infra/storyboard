@@ -22,9 +22,48 @@ from storyboard.openstack.common.db.sqlalchemy import session as db_session
 from storyboard.openstack.common import log
 
 CONF = cfg.CONF
+CONF.import_group("database", "storyboard.openstack.common.db.options")
 LOG = log.getLogger(__name__)
+_FACADE = None
 
-get_session = db_session.get_session
+
+def _get_facade_instance():
+    """Generate an instance of the DB Facade.
+    """
+    global _FACADE
+    if _FACADE is None:
+        _FACADE = db_session.EngineFacade(
+            CONF.database.connection,
+            **dict(CONF.database.iteritems()))
+    return _FACADE
+
+
+def _destroy_facade_instance():
+    """Destroys the db facade instance currently in use.
+    """
+    global _FACADE
+    _FACADE = None
+
+
+def get_engine():
+    """Returns the global instance of our database engine.
+    """
+    facade = _get_facade_instance()
+    return facade.get_engine()
+
+
+def get_session(autocommit=True, expire_on_commit=False):
+    """Returns a database session from our facade.
+    """
+    facade = _get_facade_instance()
+    return facade.get_session(autocommit=autocommit,
+                              expire_on_commit=expire_on_commit)
+
+
+def cleanup():
+    """Manually clean up our database engine.
+    """
+    _destroy_facade_instance()
 
 
 def model_query(model, session=None):

@@ -20,15 +20,14 @@ from wsme import types as wtypes
 
 from oslo.config import cfg
 from sqlalchemy.exc import SADeprecationWarning
+from storyboard.db.api import get_session
 import storyboard.db.models as sqlalchemy_models
-from storyboard.openstack.common.db.sqlalchemy import session as db_session
 
 
 CONF = cfg.CONF
 
 
 class _Base(wtypes.Base):
-
     id = int
     created_at = datetime
     updated_at = datetime
@@ -55,7 +54,7 @@ class _Base(wtypes.Base):
     @classmethod
     def create(cls, session=None, wsme_entry=None):
         if not session:
-            session = db_session.get_session(sqlite_fk=True)
+            session = get_session()
         with session.begin():
             db_entry = convert_to_db_model(cls, wsme_entry, session)
             session.add(db_entry)
@@ -65,12 +64,12 @@ class _Base(wtypes.Base):
     @classmethod
     def update(cls, key_property_name="id", key_property_value=None,
                wsme_entry=None):
-        db_entry = cls.from_db(**{key_property_name: key_property_value})\
+        db_entry = cls.from_db(**{key_property_name: key_property_value}) \
             .first()
         if not db_entry:
             return None
 
-        session = db_session.get_session(sqlite_fk=True)
+        session = get_session()
         with session.begin():
             updated_db_model = update_db_model(cls, db_entry, wsme_entry)
             session.add(updated_db_model)
@@ -80,17 +79,17 @@ class _Base(wtypes.Base):
     @classmethod
     def add_item(cls, cont_key_name, cont_key_value, item_cls, item_key_name,
                  item_key_value, container_name):
-        session = db_session.get_session(sqlite_fk=True)
+        session = get_session()
         with session.begin():
-            db_container_enty = cls.from_db(session=session,
-                                            **{cont_key_name: cont_key_value})\
+            db_container_enty = cls \
+                .from_db(session=session, **{cont_key_name: cont_key_value}) \
                 .first()
             if not db_container_enty:
                 return None
 
-            db_add_item = item_cls.from_db(session=session,
-                                           **{item_key_name: item_key_value}).\
-                first()
+            db_add_item = item_cls \
+                .from_db(session=session, **{item_key_name: item_key_value}) \
+                .first()
             if not db_add_item:
                 return None
 
@@ -114,7 +113,7 @@ class _Base(wtypes.Base):
     def from_db(cls, session=None, **kwargs):
         model_cls = WSME_TO_SQLALCHEMY[cls]
         if not session:
-            session = db_session.get_session(sqlite_fk=True)
+            session = get_session()
         query = session.query(model_cls)
 
         return query.filter_by(**kwargs)
@@ -140,7 +139,7 @@ def convert_to_wsme(cls, entry):
 
         if isinstance(attr._get_datatype(), wtypes.ArrayType):
             value = [convert_to_wsme(SQLALCHEMY_TO_WSME[type(item)], item)
-                for item in value]
+                     for item in value]
         setattr(wsme_object, attr_name, value)
 
     return wsme_object
@@ -168,7 +167,7 @@ def convert_to_db_model(cls, entry, session):
             value = [convert_to_db_model(attr._get_datatype().item_type,
                                          item,
                                          session)
-                for item in value]
+                     for item in value]
         setattr(model_object, attr_name, value)
 
     return model_object

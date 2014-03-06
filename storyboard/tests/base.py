@@ -36,19 +36,6 @@ _TRUE_VALUES = ('true', '1', 'yes')
 
 _DB_CACHE = None
 
-test_opts = [
-    cfg.StrOpt('sqlite_clean_db',
-               default='clean.sqlite',
-               help='File name of clean sqlite db')]
-
-CONF.register_opts(test_opts)
-CONF.import_opt('connection',
-                'storyboard.openstack.common.db.sqlalchemy.session',
-                group='database')
-CONF.import_opt('sqlite_db',
-                'storyboard.openstack.common.db.sqlalchemy.session')
-
-
 logging.setup('storyboard')
 
 
