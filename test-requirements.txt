@@ -9,7 +9,7 @@ oslo.sphinx
 testrepository>=0.0.18
 testscenarios>=0.4,<0.5
 testtools>=0.9.34
-posix_ipc
+posix_ipc>=0.9.8
 
 
 # Some of the tests use real MySQL and Postgres databases
