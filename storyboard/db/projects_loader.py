@@ -19,7 +19,7 @@ import yaml
 
 from oslo.config import cfg
 from sqlalchemy.exc import SADeprecationWarning
-from storyboard.openstack.common.db.sqlalchemy import session as db_session
+from storyboard.db import api as db_api
 
 from storyboard.db.models import Project
 from storyboard.db.models import ProjectGroup
@@ -47,7 +47,7 @@ def do_load_models(filename):
         project_groups[group_name].append({"name": project_name,
                                            "description": project_description})
 
-    session = db_session.get_session(sqlite_fk=True)
+    session = db_api.get_session()
 
     with session.begin():
         for project_group_name, projects in six.iteritems(project_groups):

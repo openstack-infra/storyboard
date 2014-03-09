@@ -17,8 +17,6 @@
 SQLAlchemy Models for storing storyboard
 """
 
-import warnings
-
 from oslo.config import cfg
 import six.moves.urllib.parse as urlparse
 from sqlalchemy.ext import declarative
@@ -37,9 +35,6 @@ from sqlalchemy import Unicode
 from sqlalchemy import UnicodeText
 
 from storyboard.openstack.common.db.sqlalchemy import models
-
-# Turn SQLAlchemy warnings into errors
-warnings.simplefilter('error')
 
 CONF = cfg.CONF
 

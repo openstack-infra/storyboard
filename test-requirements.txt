@@ -6,9 +6,11 @@ fixtures>=0.3.14
 mock>=1.0
 python-subunit
 oslo.sphinx
-testrepository>=0.0.17
+testrepository>=0.0.18
 testscenarios>=0.4,<0.5
-testtools>=0.9.32
+testtools>=0.9.34
+posix_ipc
+
 
 # Some of the tests use real MySQL and Postgres databases
 MySQL-python
