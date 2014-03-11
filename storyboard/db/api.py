@@ -183,16 +183,7 @@ def user_create(values):
 
 
 def user_update(user_id, values):
-    session = get_session()
-
-    with session.begin():
-        user = _entity_get(models.User, user_id)
-        if user is None:
-            raise exc.NotFound("User %s not found" % user_id)
-
-        user.update(values.copy())
-
-    return user
+    return _entity_update(models.User, user_id, values)
 
 
 ## BEGIN Projects
