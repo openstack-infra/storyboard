@@ -97,3 +97,21 @@ class TestMigrations(base.BaseWalkMigrationTestCase, base.CommonTestsMixIn):
     def _check_002(self, engine, data):
         self.assertColumnExists(engine, 'users', 'openid')
         self.assertColumnNotExists(engine, 'users', 'password')
+
+    def _check_003(self, engine, data):
+        self.assertColumnExists(engine, 'projects', 'is_active')
+        self.assertColumnExists(engine, 'stories', 'is_active')
+        self.assertColumnExists(engine, 'tasks', 'is_active')
+
+    def _check_004(self, engine, data):
+        self.assertColumnExists(engine, 'projects', 'description')
+
+    def _check_005(self, engine, data):
+        self.assertColumnExists(engine, 'projects', 'is_active')
+        self.assertColumnExists(engine, 'stories', 'is_active')
+        self.assertColumnExists(engine, 'tasks', 'is_active')
+
+    def _check_006(self, engine, data):
+        self.assertColumnNotExists(engine, 'users', 'first_name')
+        self.assertColumnNotExists(engine, 'users', 'last_name')
+        self.assertColumnExists(engine, 'users', 'full_name')

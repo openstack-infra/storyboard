@@ -96,8 +96,7 @@ class User(Base):
         schema.UniqueConstraint('email', name='uniq_user_email'),
     )
     username = Column(Unicode(30))
-    first_name = Column(Unicode(30), nullable=True)
-    last_name = Column(Unicode(30), nullable=True)
+    full_name = Column(Unicode(255), nullable=True)
     email = Column(String(255))
     openid = Column(String(255))
     is_staff = Column(Boolean, default=False)
@@ -108,7 +107,7 @@ class User(Base):
     permissions = relationship("Permission", secondary="user_permissions")
     tasks = relationship('Task', backref='assignee')
 
-    _public_fields = ["id", "openid", "first_name", "last_name", "last_login"]
+    _public_fields = ["id", "openid", "full_name", "username", "last_login"]
 
 
 class Team(Base):

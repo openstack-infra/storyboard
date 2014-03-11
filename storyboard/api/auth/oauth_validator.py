@@ -102,24 +102,12 @@ class SkeletonValidator(RequestValidator):
 
         openid = request._params["openid.claimed_id"]
         email = request._params["openid.sreg.email"]
-        fullname = request._params["openid.sreg.fullname"]
+        full_name = request._params["openid.sreg.fullname"]
         username = request._params["openid.sreg.nickname"]
         last_login = datetime.now()
 
-        name_split = fullname.split()
-        if len(name_split) > 0:
-            first_name = name_split.pop(0)
-        else:
-            first_name = fullname
-
-        if len(name_split) > 0:
-            last_name = " ".join(name_split)
-        else:
-            last_name = ""
-
         user = db_api.user_get_by_openid(openid)
-        user_dict = {"first_name": first_name,
-                     "last_name": last_name,
+        user_dict = {"full_name": full_name,
                      "username": username,
                      "email": email,
                      "last_login": last_login}

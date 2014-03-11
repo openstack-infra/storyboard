@@ -34,11 +34,8 @@ class User(base.APIBase):
     """A short unique name, beginning with a lower-case letter or number, and
     containing only letters, numbers, dots, hyphens, or plus signs"""
 
-    first_name = wtypes.text
-    """First name."""
-
-    last_name = wtypes.text
-    """Last name."""
+    full_name = wtypes.text
+    """Full (Display) name."""
 
     openid = wtypes.text
     """The unique identifier, returned by an OpneId provider"""
@@ -56,8 +53,7 @@ class User(base.APIBase):
     def sample(cls):
         return cls(
             username="elbarto",
-            first_name="Bart",
-            last_name="Simpson",
+            full_name="Bart Simpson",
             openid="https://login.launchpad.net/+id/Abacaba",
             email="skinnerstinks@springfield.net",
             is_staff=False,
