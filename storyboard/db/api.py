@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import copy
+
 from oslo.config import cfg
 import six
 
@@ -21,6 +22,7 @@ from storyboard.common import exception as exc
 from storyboard.db import models
 from storyboard.openstack.common.db import exception as db_exc
 from storyboard.openstack.common.db.sqlalchemy import session as db_session
+from storyboard.openstack.common.db.sqlalchemy.utils import paginate_query
 from storyboard.openstack.common import log
 
 CONF = cfg.CONF
@@ -113,12 +115,24 @@ def _entity_get(kls, entity_id, filter_non_public=False):
     return entity
 
 
-def _entity_get_all(kls, filter_non_public=False, **kwargs):
+def _entity_get_all(kls, filter_non_public=False, marker=None, limit=None,
+                    **kwargs):
+
+    # Sanity check on input parameters
     kwargs = dict((k, v) for k, v in kwargs.iteritems() if v)
 
-    query = model_query(kls)
-    entities = query.filter_by(**kwargs).all()
-    if filter_non_public:
+    # Construct the query
+    query = model_query(kls).filter_by(**kwargs)
+    query = paginate_query(query=query,
+                           model=kls,
+                           limit=limit,
+                           sort_keys=['id'],
+                           marker=marker,
+                           sort_dir='asc')
+
+    # Execute the query
+    entities = query.all()
+    if len(entities) > 0 and filter_non_public:
         sample_entity = entities[0] if len(entities) > 0 else None
         public_fields = getattr(sample_entity, "_public_fields", [])
 
@@ -126,6 +140,14 @@ def _entity_get_all(kls, filter_non_public=False, **kwargs):
                     for entity in entities]
 
     return entities
+
+
+def _entity_get_count(kls, **kwargs):
+    kwargs = dict((k, v) for k, v in kwargs.iteritems() if v)
+
+    count = model_query(kls).filter_by(**kwargs).count()
+
+    return count
 
 
 def _filter_non_public_fields(entity, public_list=list()):
@@ -150,7 +172,7 @@ def _entity_create(kls, values):
             session.add(entity)
         except db_exc.DBDuplicateEntry:
             raise exc.DuplicateEntry("Duplicate entry for : %s"
-                                     % (kls.__name__))
+                                     % kls.__name__)
 
     return entity
 
@@ -179,8 +201,15 @@ def user_get(user_id, filter_non_public=False):
     return entity
 
 
-def user_get_all(filter_non_public=False):
-    return _entity_get_all(models.User, filter_non_public=filter_non_public)
+def user_get_all(marker=None, limit=None, filter_non_public=False):
+    return _entity_get_all(models.User,
+                           marker=marker,
+                           limit=limit,
+                           filter_non_public=filter_non_public)
+
+
+def user_get_count():
+    return _entity_get_count(models.User)
 
 
 def user_get_by_openid(openid):
@@ -213,8 +242,16 @@ def project_get(project_id):
     return _entity_get(models.Project, project_id)
 
 
-def project_get_all(**kwargs):
-    return _entity_get_all(models.Project, is_active=True)
+def project_get_all(marker=None, limit=None, **kwargs):
+    return _entity_get_all(models.Project,
+                           is_active=True,
+                           marker=marker,
+                           limit=limit,
+                           **kwargs)
+
+
+def project_get_count(**kwargs):
+    return _entity_get_count(models.Project, is_active=True, **kwargs)
 
 
 def project_create(values):
@@ -239,19 +276,58 @@ def story_get(story_id):
     return _entity_get(models.Story, story_id)
 
 
-def story_get_all(project_id=None):
+def story_get_all(marker=None, limit=None, project_id=None):
     if project_id:
-        return story_get_all_in_project(project_id)
+        return _story_get_all_in_project(marker=marker,
+                                         limit=limit,
+                                         project_id=project_id)
     else:
-        return _entity_get_all(models.Story, is_active=True)
+        return _entity_get_all(models.Story, is_active=True,
+                               marker=marker, limit=limit)
 
 
-def story_get_all_in_project(project_id):
+def story_get_count(project_id=None):
+    if project_id:
+        return _story_get_count_in_project(project_id)
+    else:
+        return _entity_get_count(models.Story, is_active=True)
+
+
+def _story_get_all_in_project(project_id, marker=None, limit=None):
     session = get_session()
 
-    query = model_query(models.Story, session).join(models.Task)
-    return query.filter(models.Task.project_id == project_id,
-                        models.Story.is_active)
+    sub_query = model_query(models.Task.story_id, session) \
+        .filter_by(project_id=project_id, is_active=True) \
+        .distinct(True) \
+        .subquery()
+
+    query = model_query(models.Story, session) \
+        .filter_by(is_active=True) \
+        .join(sub_query, models.Story.tasks)
+
+    query = paginate_query(query=query,
+                           model=models.Story,
+                           limit=limit,
+                           sort_keys=['id'],
+                           marker=marker,
+                           sort_dir='asc')
+
+    return query.all()
+
+
+def _story_get_count_in_project(project_id):
+    session = get_session()
+
+    sub_query = model_query(models.Task.story_id, session) \
+        .filter_by(project_id=project_id, is_active=True) \
+        .distinct(True) \
+        .subquery()
+
+    query = model_query(models.Story, session) \
+        .filter_by(is_active=True) \
+        .join(sub_query, models.Story.tasks)
+
+    return query.count()
 
 
 def story_create(values):
@@ -302,8 +378,16 @@ def task_get(task_id):
     return _entity_get(models.Task, task_id)
 
 
-def task_get_all(story_id=None):
-    return _entity_get_all(models.Task, story_id=story_id, is_active=True)
+def task_get_all(marker=None, limit=None, story_id=None):
+    return _entity_get_all(models.Task,
+                           marker=marker,
+                           limit=limit,
+                           story_id=story_id,
+                           is_active=True)
+
+
+def task_get_count(story_id=None):
+    return _entity_get_count(models.Task, story_id=story_id, is_active=True)
 
 
 def task_create(values):

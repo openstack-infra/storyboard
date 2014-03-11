@@ -13,8 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo.config import cfg
+
 app = {
     'root': 'storyboard.api.root_controller.RootController',
     'modules': ['storyboard.api'],
     'debug': False
 }
+
+cfg.CONF.register_opts([
+    cfg.IntOpt('page_size_maximum',
+               default=500,
+               help='The maximum number of results to allow a user to request '
+                    'from the API'),
+    cfg.IntOpt('page_size_default',
+               default=20,
+               help='The maximum number of results to allow a user to request '
+                    'from the API')
+])

@@ -13,18 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo.config import cfg
 from pecan import response
 from pecan import rest
-
 from pecan.secure import secure
 from wsme.exc import ClientSideError
 from wsme import types as wtypes
-
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
 from storyboard.db import api as dbapi
+
+CONF = cfg.CONF
 
 
 class Project(base.APIBase):
@@ -79,11 +80,31 @@ class ProjectsController(rest.RestController):
                                   status_code=404)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([Project])
-    def get(self):
+    @wsme_pecan.wsexpose([Project], int, int)
+    def get(self, marker=None, limit=None):
         """Retrieve a list of projects.
+
+        :param marker The marker at which the page set should begin. At the
+        moment, this is the unique resource id.
+        :param limit The number of projects to retrieve.
         """
-        projects = dbapi.project_get_all()
+        # Boundary check on limit.
+        if limit is None:
+            limit = CONF.page_size_default
+        limit = min(CONF.page_size_maximum, max(1, limit))
+
+        # Resolve the marker record.
+        marker_project = dbapi.project_get(marker)
+
+        projects = dbapi.project_get_all(marker=marker_project, limit=limit)
+        project_count = dbapi.project_get_count()
+
+        # Apply the query response headers.
+        response.headers['X-Limit'] = str(limit)
+        response.headers['X-Total'] = str(project_count)
+        if marker_project:
+            response.headers['X-Marker'] = str(marker_project.id)
+
         return [Project.from_db_model(p) for p in projects]
 
     @secure(checks.superuser)

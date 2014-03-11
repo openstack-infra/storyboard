@@ -14,6 +14,8 @@
 # limitations under the License.
 
 from datetime import datetime
+
+from oslo.config import cfg
 from pecan import request
 from pecan import response
 from pecan import rest
@@ -25,6 +27,8 @@ import wsmeext.pecan as wsme_pecan
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
 from storyboard.db import api as dbapi
+
+CONF = cfg.CONF
 
 
 class User(base.APIBase):
@@ -66,12 +70,33 @@ class UsersController(rest.RestController):
     """Manages users."""
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([User])
-    def get(self):
-        """Retrieve definitions of all of the users."""
+    @wsme_pecan.wsexpose([User], int, int)
+    def get(self, marker=None, limit=None):
+        """Retrieve definitions of all of the users.
 
-        users = dbapi.user_get_all()
-        return [User.from_db_model(user) for user in users]
+        :param marker The marker at which the page set should begin. At the
+        moment, this is the unique resource id..
+        :param limit The number of users to retrieve.
+        """
+
+        # Boundary check on limit.
+        if limit is None:
+            limit = CONF.page_size_default
+        limit = min(CONF.page_size_maximum, max(1, limit))
+
+        # Resolve the marker record.
+        marker_user = dbapi.user_get(marker)
+
+        users = dbapi.user_get_all(marker=marker_user, limit=limit)
+        user_count = dbapi.user_get_count()
+
+        # Apply the query response headers.
+        response.headers['X-Limit'] = str(limit)
+        response.headers['X-Total'] = str(user_count)
+        if marker_user:
+            response.headers['X-Marker'] = str(marker_user.id)
+
+        return [User.from_db_model(u) for u in users]
 
     @secure(checks.guest)
     @wsme_pecan.wsexpose(User, int)

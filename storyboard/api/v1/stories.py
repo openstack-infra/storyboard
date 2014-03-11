@@ -13,19 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo.config import cfg
 from pecan import request
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
-from storyboard.api.v1.comments import CommentsController
 from wsme.exc import ClientSideError
 from wsme import types as wtypes
-
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
+from storyboard.api.v1.comments import CommentsController
 from storyboard.db import api as dbapi
+
+CONF = cfg.CONF
 
 
 class Story(base.APIBase):
@@ -82,16 +84,38 @@ class StoriesController(rest.RestController):
                                   status_code=404)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([Story], int)
-    def get_all(self, project_id=None):
+    @wsme_pecan.wsexpose([Story], int, int, int)
+    def get_all(self, project_id=None, marker=None, limit=None):
         """Retrieve definitions of all of the stories.
 
         :param project_id: filter stories by project ID.
+        :param marker The marker at which the page set should begin. At the
+        moment, this is the unique resource id.
+        :param limit The number of stories to retrieve.
         """
-        if project_id:
-            stories = dbapi.story_get_all_in_project(project_id)
-        else:
-            stories = dbapi.story_get_all()
+
+        # Boundary check on limit.
+        if limit is None:
+            limit = CONF.page_size_default
+        limit = min(CONF.page_size_maximum, max(1, limit))
+
+        # Resolve the marker record.
+        marker_story = dbapi.story_get(marker)
+
+        if marker_story is None or marker_story.project_id != project_id:
+            marker_story = None
+
+        stories = dbapi.story_get_all(marker=marker_story,
+                                      limit=limit,
+                                      project_id=project_id)
+        story_count = dbapi.story_get_count(project_id=project_id)
+
+        # Apply the query response headers.
+        response.headers['X-Limit'] = str(limit)
+        response.headers['X-Total'] = str(story_count)
+        if marker_story:
+            response.headers['X-Marker'] = str(marker_story.id)
+
         return [Story.from_db_model(s) for s in stories]
 
     @secure(checks.authenticated)

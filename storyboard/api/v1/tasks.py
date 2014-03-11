@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo.config import cfg
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
@@ -23,6 +24,8 @@ import wsmeext.pecan as wsme_pecan
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
 from storyboard.db import api as dbapi
+
+CONF = cfg.CONF
 
 
 class Task(base.APIBase):
@@ -70,13 +73,37 @@ class TasksController(rest.RestController):
                                   status_code=404)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([Task], int)
-    def get_all(self, story_id=None):
+    @wsme_pecan.wsexpose([Task], int, int, int)
+    def get_all(self, story_id=None, marker=None, limit=None):
         """Retrieve definitions of all of the tasks.
 
         :param story_id: filter tasks by story ID.
+        :param offset The offset within the result set to fetch.
+        :param limit The number of tasks to retrieve.
         """
-        tasks = dbapi.task_get_all(story_id=story_id)
+
+        # Boundary check on limit.
+        if limit is None:
+            limit = CONF.page_size_default
+        limit = min(CONF.page_size_maximum, max(1, limit))
+
+        # Resolve the marker record.
+        marker_task = dbapi.task_get(marker)
+
+        if marker_task is None or marker_task.story_id != story_id:
+            marker_task = None
+
+        tasks = dbapi.task_get_all(marker=marker_task,
+                                   limit=limit,
+                                   story_id=story_id)
+        task_count = dbapi.task_get_count(story_id=story_id)
+
+        # Apply the query response headers.
+        response.headers['X-Limit'] = str(limit)
+        response.headers['X-Total'] = str(task_count)
+        if marker_task:
+            response.headers['X-Marker'] = str(marker_task.id)
+
         return [Task.from_db_model(s) for s in tasks]
 
     @secure(checks.authenticated)

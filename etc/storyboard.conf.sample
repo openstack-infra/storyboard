@@ -36,6 +36,10 @@ lock_path = $state_path/lock
 # OpenId Authentication endpoint
 # openid_url = https://login.launchpad.net/+openid
 
+# List paging configuration options.
+# page_size_maximum = 500
+# page_size_default = 20
+
 [database]
 # This line MUST be changed to actually run storyboard
 # Example:
