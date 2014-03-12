@@ -116,12 +116,17 @@ class FunctionalTest(DbTestCase):
     def setUp(self):
         super(FunctionalTest, self).setUp()
 
-        self.auth_check = authorization_checks.authenticated
-        authorization_checks.authenticated = lambda: True
-        self.addCleanup(self._reset_check)
+        self.disable_auth_checks()
+        self.addCleanup(self._reset_checks)
 
         self.app = self._make_app()
         self.addCleanup(self._reset_pecan)
+
+    def disable_auth_checks(self):
+        self.auth_check = authorization_checks.authenticated
+        self.superuser_check = authorization_checks.superuser
+        authorization_checks.authenticated = lambda: True
+        authorization_checks.superuser = lambda: True
 
     def _make_app(self):
         config = {
@@ -135,8 +140,9 @@ class FunctionalTest(DbTestCase):
     def _reset_pecan(self):
         pecan.set_config({}, overwrite=True)
 
-    def _reset_check(self):
+    def _reset_checks(self):
         authorization_checks.authenticated = self.auth_check
+        authorization_checks.superuser = self.superuser_check
 
     def _request_json(self, path, params, expect_errors=False, headers=None,
                       method="post", extra_environ=None, status=None,

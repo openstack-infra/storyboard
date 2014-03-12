@@ -86,7 +86,7 @@ class ProjectsController(rest.RestController):
         projects = dbapi.project_get_all()
         return [Project.from_db_model(p) for p in projects]
 
-    @secure(checks.authenticated)
+    @secure(checks.superuser)
     @wsme_pecan.wsexpose(Project, body=Project)
     def post(self, project):
         """Create a new project.
@@ -96,7 +96,7 @@ class ProjectsController(rest.RestController):
         result = dbapi.project_create(project.as_dict())
         return Project.from_db_model(result)
 
-    @secure(checks.authenticated)
+    @secure(checks.superuser)
     @wsme_pecan.wsexpose(Project, int, body=Project)
     def put(self, project_id, project):
         """Modify this project.
@@ -113,6 +113,7 @@ class ProjectsController(rest.RestController):
             raise ClientSideError("Project %s not found" % id,
                                   status_code=404)
 
+    @secure(checks.superuser)
     @wsme_pecan.wsexpose(Project, int)
     def delete(self, project_id):
         """Delete this project.

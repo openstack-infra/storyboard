@@ -15,9 +15,11 @@
 
 
 from pecan import rest
+from pecan.secure import secure
 from wsme.exc import ClientSideError
 import wsmeext.pecan as wsme_pecan
 
+from storyboard.api.auth import authorization_checks as checks
 import storyboard.api.v1.wsme_models as wsme_models
 
 
@@ -28,6 +30,7 @@ class TeamsController(rest.RestController):
         "add_user": ["POST"]
     }
 
+    @secure(checks.guest)
     @wsme_pecan.wsexpose(wsme_models.Team, unicode)
     def get_one(self, name):
         """Retrieve details about one team.
@@ -40,12 +43,14 @@ class TeamsController(rest.RestController):
                                   status_code=404)
         return team
 
+    @secure(checks.guest)
     @wsme_pecan.wsexpose([wsme_models.Team])
     def get(self):
         """Retrieve definitions of all of the teams."""
         teams = wsme_models.Team.get_all()
         return teams
 
+    @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wsme_models.Team, wsme_models.Team)
     def post(self, team):
         """Create a new team.
@@ -57,6 +62,8 @@ class TeamsController(rest.RestController):
             raise ClientSideError("Could not create a team")
         return created_team
 
+    # Note : Not a trivial check required here
+    @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wsme_models.Team, unicode, unicode)
     def add_user(self, team_name, username):
         """Associate a user with the team.

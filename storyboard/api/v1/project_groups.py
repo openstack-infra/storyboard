@@ -48,7 +48,7 @@ class ProjectGroupsController(rest.RestController):
         groups = wsme_models.ProjectGroup.get_all()
         return groups
 
-    @secure(checks.authenticated)
+    @secure(checks.superuser)
     @wsme_pecan.wsexpose(wsme_models.ProjectGroup,
                          body=wsme_models.ProjectGroup)
     def post(self, group):
@@ -61,7 +61,7 @@ class ProjectGroupsController(rest.RestController):
             raise ClientSideError("Could not create ProjectGroup")
         return created_group
 
-    @secure(checks.authenticated)
+    @secure(checks.superuser)
     @wsme_pecan.wsexpose(wsme_models.ProjectGroup, int,
                          body=wsme_models.ProjectGroup)
     def put(self, id, group):

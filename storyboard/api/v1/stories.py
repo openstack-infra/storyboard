@@ -15,11 +15,13 @@
 
 from pecan import response
 from pecan import rest
+from pecan.secure import secure
 from wsme.exc import ClientSideError
 from wsme import types as wtypes
 
 import wsmeext.pecan as wsme_pecan
 
+from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
 from storyboard.db import api as dbapi
 
@@ -65,6 +67,7 @@ class Story(base.APIBase):
 class StoriesController(rest.RestController):
     """Manages operations on stories."""
 
+    @secure(checks.guest)
     @wsme_pecan.wsexpose(Story, int)
     def get_one(self, story_id):
         """Retrieve details about one story.
@@ -79,6 +82,7 @@ class StoriesController(rest.RestController):
             raise ClientSideError("Story %s not found" % id,
                                   status_code=404)
 
+    @secure(checks.guest)
     @wsme_pecan.wsexpose([Story], int)
     def get_all(self, project_id=None):
         """Retrieve definitions of all of the stories.
@@ -91,6 +95,7 @@ class StoriesController(rest.RestController):
             stories = dbapi.story_get_all()
         return [Story.from_db_model(s) for s in stories]
 
+    @secure(checks.authenticated)
     @wsme_pecan.wsexpose(Story, body=Story)
     def post(self, story):
         """Create a new story.
@@ -102,6 +107,7 @@ class StoriesController(rest.RestController):
 
         return Story.from_db_model(created_story)
 
+    @secure(checks.authenticated)
     @wsme_pecan.wsexpose(Story, int, body=Story)
     def put(self, story_id, story):
         """Modify this story.
@@ -118,6 +124,7 @@ class StoriesController(rest.RestController):
             raise ClientSideError("Story %s not found" % id,
                                   status_code=404)
 
+    @secure(checks.authenticated)
     @wsme_pecan.wsexpose(Story, int)
     def delete(self, story_id):
         """Delete this story.
