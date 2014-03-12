@@ -108,7 +108,7 @@ class User(Base):
     permissions = relationship("Permission", secondary="user_permissions")
     tasks = relationship('Task', backref='assignee')
 
-    _public_fields = ["id", "openid", "first_name", "last_name"]
+    _public_fields = ["id", "openid", "first_name", "last_name", "last_login"]
 
 
 class Team(Base):

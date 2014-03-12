@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime
 import logging
 
 from oauthlib.oauth2 import RequestValidator
@@ -37,6 +38,7 @@ class SkeletonValidator(RequestValidator):
     protocol.
 
     """
+
     def __init__(self):
         super(SkeletonValidator, self).__init__()
         self.token_storage = storage.get_storage()
@@ -102,6 +104,7 @@ class SkeletonValidator(RequestValidator):
         email = request._params["openid.sreg.email"]
         fullname = request._params["openid.sreg.fullname"]
         username = request._params["openid.sreg.nickname"]
+        last_login = datetime.now()
 
         name_split = fullname.split()
         if len(name_split) > 0:
@@ -115,18 +118,17 @@ class SkeletonValidator(RequestValidator):
             last_name = ""
 
         user = db_api.user_get_by_openid(openid)
+        user_dict = {"first_name": first_name,
+                     "last_name": last_name,
+                     "username": username,
+                     "email": email,
+                     "last_login": last_login}
 
         if not user:
-            user = db_api.user_create({"openid": openid,
-                                       "first_name": first_name,
-                                       "last_name": last_name,
-                                       "username": username,
-                                       "email": email})
+            user_dict.update({"openid": openid})
+            user = db_api.user_create(user_dict)
         else:
-            user = db_api.user_update(user.id, {"first_name": first_name,
-                                                "last_name": last_name,
-                                                "username": username,
-                                                "email": email})
+            user = db_api.user_update(user.id, user_dict)
 
         self.token_storage.save_authorization_code(code, user_id=user.id)
 
