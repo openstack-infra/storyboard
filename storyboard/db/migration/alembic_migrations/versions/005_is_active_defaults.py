@@ -13,15 +13,15 @@
 
 """empty message
 
-Revision ID: 128470dcd02f
-Revises: 133675d14af0
+Revision ID: 005
+Revises: 004
 Create Date: 2014-03-10 14:24:09.622503
 
 """
 
 # revision identifiers, used by Alembic.
-revision = '128470dcd02f'
-down_revision = '34125307b182'
+revision = '005'
+down_revision = '004'
 
 from alembic import op
 from sqlalchemy import Boolean

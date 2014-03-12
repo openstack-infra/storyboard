@@ -13,15 +13,15 @@
 
 """deletion states
 
-Revision ID: 21645ef1040f
-Revises: 399f57edc6b6
+Revision ID: 003
+Revises: 002
 Create Date: 2014-03-03 16:08:12.584302
 
 """
 
 # revision identifiers, used by Alembic.
-revision = '21645ef1040f'
-down_revision = '399f57edc6b6'
+revision = '003'
+down_revision = '002'
 
 from alembic import op
 from sqlalchemy import Boolean

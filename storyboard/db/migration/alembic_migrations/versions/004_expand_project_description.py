@@ -13,15 +13,15 @@
 
 """Expand project description
 
-Revision ID: 34125307b182
-Revises: 21645ef1040f
+Revision ID: 004
+Revises: 003
 Create Date: 2014-03-05 17:03:12.978207
 
 """
 
 # revision identifiers, used by Alembic.
-revision = '34125307b182'
-down_revision = '21645ef1040f'
+revision = '004'
+down_revision = '003'
 
 from alembic import op
 import sqlalchemy as sa

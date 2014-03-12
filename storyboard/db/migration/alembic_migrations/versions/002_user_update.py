@@ -13,15 +13,15 @@
 
 """user update
 
-Revision ID: 399f57edc6b6
-Revises: 18708bcdc0fe
+Revision ID: 002
+Revises: 001
 Create Date: 2014-02-21 13:21:59.917098
 
 """
 
 # revision identifiers, used by Alembic.
-revision = '399f57edc6b6'
-down_revision = '18708bcdc0fe'
+revision = '002'
+down_revision = '001'
 
 
 from alembic import op

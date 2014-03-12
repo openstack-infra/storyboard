@@ -13,14 +13,14 @@
 
 """initial version
 
-Revision ID: 18708bcdc0fe
+Revision ID: 001
 Revises: None
 Create Date: 2013-12-10 00:35:55.327593
 
 """
 
 # revision identifiers, used by Alembic.
-revision = '18708bcdc0fe'
+revision = '001'
 down_revision = None
 
 
