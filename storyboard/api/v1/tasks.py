@@ -15,10 +15,12 @@
 
 from pecan import response
 from pecan import rest
+from pecan.secure import secure
 from wsme.exc import ClientSideError
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
+from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
 from storyboard.db import api as dbapi
 
@@ -52,6 +54,7 @@ class Task(base.APIBase):
 class TasksController(rest.RestController):
     """Manages tasks."""
 
+    @secure(checks.guest)
     @wsme_pecan.wsexpose(Task, int)
     def get_one(self, task_id):
         """Retrieve details about one task.
@@ -66,6 +69,7 @@ class TasksController(rest.RestController):
             raise ClientSideError("Task %s not found" % id,
                                   status_code=404)
 
+    @secure(checks.guest)
     @wsme_pecan.wsexpose([Task], int)
     def get_all(self, story_id=None):
         """Retrieve definitions of all of the tasks.
@@ -75,6 +79,7 @@ class TasksController(rest.RestController):
         tasks = dbapi.task_get_all(story_id=story_id)
         return [Task.from_db_model(s) for s in tasks]
 
+    @secure(checks.authenticated)
     @wsme_pecan.wsexpose(Task, body=Task)
     def post(self, task):
         """Create a new task.
@@ -84,6 +89,7 @@ class TasksController(rest.RestController):
         created_task = dbapi.task_create(task.as_dict())
         return Task.from_db_model(created_task)
 
+    @secure(checks.authenticated)
     @wsme_pecan.wsexpose(Task, int, body=Task)
     def put(self, task_id, task):
         """Modify this task.
@@ -100,6 +106,7 @@ class TasksController(rest.RestController):
             raise ClientSideError("Task %s not found" % id,
                                   status_code=404)
 
+    @secure(checks.authenticated)
     @wsme_pecan.wsexpose(Task, int)
     def delete(self, task_id):
         """Delete this task.

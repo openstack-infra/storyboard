@@ -15,6 +15,7 @@
 
 from datetime import datetime
 from pecan import request
+from pecan import response
 from pecan import rest
 from pecan.secure import secure
 from wsme.exc import ClientSideError
@@ -94,7 +95,7 @@ class UsersController(rest.RestController):
                                   status_code=404)
         return user
 
-    @secure(checks.authenticated)
+    @secure(checks.superuser)
     @wsme_pecan.wsexpose(User, body=User)
     def post(self, user):
         """Create a new user.
@@ -114,5 +115,16 @@ class UsersController(rest.RestController):
         :param user: a user within the request body.
         """
 
-        updated_user = dbapi.user_update(user_id, user.as_dict())
+        if request.user_id != user_id:
+            response.status_code = 400
+            response.body = "You are not allowed to update another user."
+
+        user_dict = user.as_dict()
+        if "openid" in user_dict or "is_superuser" in user_dict:
+            response.status_code = 400
+            response.body = "You are not allowed to update " \
+                            "your identity fields."
+            return response
+
+        updated_user = dbapi.user_update(user_id, user_dict)
         return User.from_db_model(updated_user)
