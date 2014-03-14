@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pecan import request
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
@@ -54,6 +55,9 @@ class Story(base.APIBase):
     project_id = int
     """Optional parameter"""
 
+    creator_id = int
+    """User ID of the Story creator"""
+
     @classmethod
     def sample(cls):
         return cls(
@@ -61,7 +65,8 @@ class Story(base.APIBase):
             description="We should use Storyboard to manage Storyboard.",
             is_bug=False,
             is_active=True,
-            priority='Critical')
+            priority='Critical',
+            creator_id=1)
 
 
 class StoriesController(rest.RestController):
@@ -102,8 +107,11 @@ class StoriesController(rest.RestController):
 
         :param story: a story within the request body.
         """
-        args = story.as_dict()
-        created_story = dbapi.story_create(args)
+        story_dict = story.as_dict()
+
+        user_id = request.current_user_id
+        story_dict.update({"creator_id": user_id})
+        created_story = dbapi.story_create(story_dict)
 
         return Story.from_db_model(created_story)
 

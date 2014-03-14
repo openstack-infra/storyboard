@@ -115,7 +115,7 @@ class UsersController(rest.RestController):
         :param user: a user within the request body.
         """
 
-        if request.user_id != user_id:
+        if request.current_user_id != user_id:
             response.status_code = 400
             response.body = "You are not allowed to update another user."
 
