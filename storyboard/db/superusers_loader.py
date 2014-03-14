@@ -18,8 +18,8 @@ import yaml
 
 from sqlalchemy.exc import SADeprecationWarning
 
+from storyboard.db import api as db_api
 from storyboard.db.models import User
-from storyboard.openstack.common.db.sqlalchemy import session as db_session
 
 warnings.simplefilter("ignore", SADeprecationWarning)
 
@@ -29,7 +29,7 @@ def do_load_models(filename):
     config_file = open(filename)
     superusers_list = yaml.load(config_file)
 
-    session = db_session.get_session(sqlite_fk=True)
+    session = db_api.get_session()
 
     with session.begin():
         for user in superusers_list:
@@ -44,8 +44,7 @@ def do_load_models(filename):
                 db_user = User()
                 db_user.openid = openid
                 db_user.email = email
-                db_user.is_superuser = True
-            else:
-                continue
+
+            db_user.is_superuser = True
 
             session.add(db_user)
