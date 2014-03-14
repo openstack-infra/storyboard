@@ -82,18 +82,18 @@ class TestMigrations(base.BaseWalkMigrationTestCase, base.CommonTestsMixIn):
 
         self.assertEqual(sorted(members), sorted(index_columns))
 
-    def _pre_upgrade_18708bcdc0fe(self, engine):
+    def _pre_upgrade_001(self, engine):
         # Anything returned from this method will be
         # passed to corresponding _check_xxx method as 'data'.
         pass
 
-    def _check_18708bcdc0fe(self, engine, data):
+    def _check_001(self, engine, data):
         self.assertColumnExists(engine, 'users', 'created_at')
         self.assertColumnExists(engine, 'users', 'last_login')
 
         self.assertColumnExists(engine, 'teams', 'updated_at')
         self.assertColumnExists(engine, 'teams', 'name')
 
-    def _check_399f57edc6b6(self, engine, data):
+    def _check_002(self, engine, data):
         self.assertColumnExists(engine, 'users', 'openid')
         self.assertColumnNotExists(engine, 'users', 'password')
