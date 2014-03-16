@@ -24,7 +24,6 @@ from storyboard.api.auth.token_storage import storage
 from storyboard.api import config as api_config
 from storyboard.api.middleware import token_middleware
 from storyboard.api.middleware import user_id_hook
-from storyboard.common import migration_patch
 from storyboard.openstack.common.gettextutils import _  # noqa
 from storyboard.openstack.common import log
 
@@ -79,8 +78,6 @@ def start():
     api_root = setup_app()
 
     CONF(project='storyboard')
-
-    migration_patch.patch(CONF)
 
     # Create the WSGI server and start it
     host = cfg.CONF.bind_host

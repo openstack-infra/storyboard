@@ -30,24 +30,15 @@ MYSQL_ENGINE = 'InnoDB'
 MYSQL_CHARSET = 'utf8'
 
 
-def change_type(type):
-    column_old = 'description'
-    column_new = column_old + '_new'
-    bind = op.get_bind()
-    meta = sa.MetaData(bind.engine)
-    projects = sa.Table('projects', meta, autoload=True)
-    new_column = sa.Column(column_new, type)
-    new_column.create(projects)
-    projects.update().values(description_new=projects.c[column_old]).execute()
-    projects.c[column_old].drop()
-    projects.c[column_new].alter(name=column_old)
-
-
 def upgrade(active_plugins=None, options=None):
 
-    change_type(sa.UnicodeText)
+    op.alter_column(
+        'projects', 'description',
+        type_=sa.UnicodeText)
 
 
 def downgrade(active_plugins=None, options=None):
 
-    change_type(sa.Unicode(100))
+    op.alter_column(
+        'projects', 'description',
+        type_=sa.Unicode(100))

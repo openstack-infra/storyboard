@@ -28,6 +28,27 @@ CONF.import_group("database", "storyboard.openstack.common.db.options")
 LOG = log.getLogger(__name__)
 _FACADE = None
 
+BASE = models.Base
+
+
+def setup_db():
+    try:
+        engine = get_engine()
+        BASE.metadata.create_all(engine)
+    except Exception as e:
+        LOG.exception("Database registration exception: %s", e)
+        return False
+    return True
+
+
+def drop_db():
+    try:
+        BASE.metadata.drop_all(get_engine())
+    except Exception as e:
+        LOG.exception("Database shutdown exception: %s", e)
+        return False
+    return True
+
 
 def _get_facade_instance():
     """Generate an instance of the DB Facade.

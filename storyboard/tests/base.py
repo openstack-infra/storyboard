@@ -24,10 +24,10 @@ import pecan.testing
 import testtools
 
 from storyboard.api.auth import authorization_checks
-from storyboard.common import migration_patch
+from storyboard.db import api as db_api
 from storyboard.openstack.common import lockutils
 from storyboard.openstack.common import log as logging
-from storyboard.tests.db.db_fixture import Database
+
 
 cfg.set_defaults(lockutils.util_opts, lock_path='/tmp')
 
@@ -91,17 +91,16 @@ class DbTestCase(TestCase):
 
     def setUp(self):
         super(DbTestCase, self).setUp()
+        self.setup_db()
 
-        CONF.set_override("connection", "sqlite://", "database")
-        self.init_db_cache()
+    def setup_db(self):
+        CONF.set_default('connection', "sqlite://", group='database')
+        db_api.setup_db()
+        self.addCleanup(self._drop_db)
 
-    @lockutils.synchronized("storyboard", "db_init", True)
-    def init_db_cache(self):
-        global _DB_CACHE
-        if not _DB_CACHE:
-            migration_patch.patch(CONF)
-            _DB_CACHE = Database()
-        self.useFixture(_DB_CACHE)
+    def _drop_db(self):
+        db_api.drop_db()
+        db_api.cleanup()
 
 
 PATH_PREFIX = '/v1'
