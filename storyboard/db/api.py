@@ -270,6 +270,32 @@ def story_delete(story_id):
         _entity_update(models.Story, story_id, story.as_dict())
 
 
+# BEGIN Comments
+
+def comment_get(comment_id):
+    return _entity_get(models.Comment, comment_id)
+
+
+def comment_get_all(story_id=None):
+    return _entity_get_all(models.Comment, story_id=story_id, is_active=True)
+
+
+def comment_create(values):
+    return _entity_create(models.Comment, values)
+
+
+def comment_update(comment_id, values):
+    return _entity_update(models.Comment, comment_id, values)
+
+
+def comment_delete(comment_id):
+    comment = comment_get(comment_id)
+
+    if comment:
+        comment.is_active = False
+        _entity_update(models.Task, comment_id, comment.as_dict())
+
+
 # BEGIN Tasks
 
 def task_get(task_id):

@@ -232,6 +232,7 @@ class Comment(Base):
     story_id = Column(Integer, ForeignKey('stories.id'))
     author_id = Column(Integer, ForeignKey('users.id'), nullable=True)
     author = relationship('User', primaryjoin=author_id == User.id)
+    is_active = Column(Boolean, default=True)
 
     _public_fields = ["id", "action", "comment_type", "content", "story_id",
                       "author_id"]

@@ -115,3 +115,9 @@ class TestMigrations(base.BaseWalkMigrationTestCase, base.CommonTestsMixIn):
         self.assertColumnNotExists(engine, 'users', 'first_name')
         self.assertColumnNotExists(engine, 'users', 'last_name')
         self.assertColumnExists(engine, 'users', 'full_name')
+
+    def _pre_upgrade_007(self, engine):
+        self.assertColumnNotExists(engine, 'comments', 'is_active')
+
+    def _check_007(self, engine, data):
+        self.assertColumnExists(engine, 'comments', 'is_active')

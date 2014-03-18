@@ -105,3 +105,25 @@ class TasksTest(BaseDbTestCase):
 
         self._test_update(self.task_01, delta,
                           db_api.task_create, db_api.task_update)
+
+
+class CommentsTest(BaseDbTestCase):
+
+    def setUp(self):
+        super(CommentsTest, self).setUp()
+
+        self.comment_01 = {
+            'content': u'A comment',
+            'story_id': 1
+        }
+
+    def test_create_comment(self):
+        self._test_create(self.comment_01, db_api.comment_create)
+
+    def test_update_comment(self):
+        delta = {
+            'content': u'An updated comment'
+        }
+
+        self._test_update(self.comment_01, delta,
+                          db_api.comment_create, db_api.comment_update)
