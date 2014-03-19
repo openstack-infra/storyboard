@@ -17,6 +17,7 @@ from pecan import request
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
+from storyboard.api.v1.comments import CommentsController
 from wsme.exc import ClientSideError
 from wsme import types as wtypes
 
@@ -142,3 +143,5 @@ class StoriesController(rest.RestController):
         dbapi.story_delete(story_id)
 
         response.status_code = 204
+
+    comments = CommentsController()
