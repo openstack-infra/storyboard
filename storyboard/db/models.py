@@ -162,33 +162,6 @@ class ProjectGroup(Base):
     projects = relationship("Project", secondary="project_group_mapping")
 
 
-class Branch(Base):
-    # TODO(mordred): order_by release date?
-    _BRANCH_STATUS = ('master', 'release', 'stable', 'unsupported')
-    __tablename__ = 'branches'
-    __table_args__ = (
-        schema.UniqueConstraint('name', name='uniq_branch_name'),
-    )
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String(50))
-    status = Column(Enum(*_BRANCH_STATUS, name='branch_status'))
-    release_date = Column(DateTime, nullable=True)
-
-
-class Milestone(Base):
-    __table_args__ = (
-        schema.UniqueConstraint('name', name='uniq_milestone_name'),
-    )
-
-    name = Column(String(50))
-    branch_id = Column(Integer, ForeignKey('branches.id'))
-    branch = relationship(Branch, primaryjoin=branch_id == Branch.id)
-    released = Column(Boolean, default=False)
-    undefined = Column(Boolean, default=False)
-    tasks = relationship('Task', backref='milestone')
-
-
 class Story(Base):
     __tablename__ = 'stories'
     _STORY_PRIORITIES = ('Undefined', 'Low', 'Medium', 'High', 'Critical')
@@ -216,7 +189,6 @@ class Task(Base):
     story_id = Column(Integer, ForeignKey('stories.id'))
     project_id = Column(Integer, ForeignKey('projects.id'))
     assignee_id = Column(Integer, ForeignKey('users.id'), nullable=True)
-    milestone_id = Column(Integer, ForeignKey('milestones.id'), nullable=True)
     is_active = Column(Boolean, default=True)
 
     _public_fields = ["id", "title", "status", "story_id", "project_id",
