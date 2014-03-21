@@ -1,0 +1,13 @@
+[run]
+branch = True
+source = storyboard
+omit =
+ */openstack/common/*
+ .tox/*
+ storyboard/tests/*
+
+[paths]
+source = storyboard
+
+[report]
+ignore-errors = True
