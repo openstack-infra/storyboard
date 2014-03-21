@@ -216,3 +216,25 @@ class StoryTag(Base):
     )
     name = Column(String(20))
     story_id = Column(Integer, ForeignKey('stories.id'))
+
+
+# Authorization models
+
+class AuthorizationCode(Base):
+
+    code = Column(Unicode(100), nullable=False)
+    state = Column(Unicode(100), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+
+    is_active = Column(Boolean, default=True)
+
+
+class BearerToken(Base):
+
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    access_token = Column(Unicode(100), nullable=False)
+    refresh_token = Column(Unicode(100), nullable=False)
+    expires_in = Column(Integer, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+
+    is_active = Column(Boolean, default=True, nullable=False)
