@@ -25,8 +25,7 @@ class TestStories(base.FunctionalTest):
 
         self.story_01 = {
             'title': 'StoryBoard',
-            'description': 'Awesome Task Tracker',
-            'priority': 'High'
+            'description': 'Awesome Task Tracker'
         }
 
     def test_stories_endpoint(self):

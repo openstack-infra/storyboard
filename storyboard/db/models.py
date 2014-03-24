@@ -19,16 +19,15 @@ SQLAlchemy Models for storing storyboard
 
 from oslo.config import cfg
 import six.moves.urllib.parse as urlparse
-from sqlalchemy.ext import declarative
-from sqlalchemy.orm import relationship
-from sqlalchemy import schema
-
 from sqlalchemy import Boolean
 from sqlalchemy import Column
 from sqlalchemy import DateTime
 from sqlalchemy import Enum
+from sqlalchemy.ext import declarative
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
+from sqlalchemy.orm import relationship
+from sqlalchemy import schema
 from sqlalchemy import String
 from sqlalchemy import Table
 from sqlalchemy import Unicode
@@ -164,21 +163,19 @@ class ProjectGroup(Base):
 
 class Story(Base):
     __tablename__ = 'stories'
-    _STORY_PRIORITIES = ('Undefined', 'Low', 'Medium', 'High', 'Critical')
 
     creator_id = Column(Integer, ForeignKey('users.id'))
     creator = relationship(User, primaryjoin=creator_id == User.id)
     title = Column(Unicode(100))
     description = Column(UnicodeText())
     is_bug = Column(Boolean, default=True)
-    priority = Column(Enum(*_STORY_PRIORITIES, name='priority'))
     tasks = relationship('Task', backref='story')
     comments = relationship('Comment', backref='story')
     tags = relationship('StoryTag', backref='story')
     is_active = Column(Boolean, default=True)
 
     _public_fields = ["id", "creator_id", "title", "description", "is_bug",
-                      "priority", "tasks", "comments", "tags"]
+                      "tasks", "comments", "tags"]
 
 
 class Task(Base):

@@ -46,12 +46,6 @@ class Story(base.APIBase):
     is_active = bool
     """Is this an active story, or has it been deleted?"""
 
-    #todo(nkonovalov): replace with a enum
-    priority = wtypes.text
-    """Priority.
-    Allowed values: ['Undefined', 'Low', 'Medium', 'High', 'Critical'].
-    """
-
     project_id = int
     """Optional parameter"""
 
@@ -65,7 +59,6 @@ class Story(base.APIBase):
             description="We should use Storyboard to manage Storyboard.",
             is_bug=False,
             is_active=True,
-            priority='Critical',
             creator_id=1)
 
 
