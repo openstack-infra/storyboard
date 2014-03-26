@@ -21,10 +21,10 @@ CONF = cfg.CONF
 
 STORAGE_OPTS = [
     cfg.StrOpt('token_storage_type',
-               default='mem',
+               default='db',
                help='Authorization token storage type.'
-                    ' The only supported type is "mem".'
-                    ' tbd: db storage')
+                    ' Supported types are "mem" and "db".'
+                    ' Memory storage is not persistent between api launches')
 ]
 
 CONF.register_opts(STORAGE_OPTS)

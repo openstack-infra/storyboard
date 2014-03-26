@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from storyboard.api.auth.token_storage import db_storage
 from storyboard.api.auth.token_storage import memory_storage
 
 STORAGE_IMPLS = {
     "mem": memory_storage.MemoryTokenStorage,
-    "db": None
+    "db": db_storage.DBTokenStorage
 }

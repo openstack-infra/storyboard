@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime
+
 from storyboard.db import api as db_api
 from storyboard.tests import base
 
@@ -127,3 +129,59 @@ class CommentsTest(BaseDbTestCase):
 
         self._test_update(self.comment_01, delta,
                           db_api.comment_create, db_api.comment_update)
+
+
+class AuthorizationCodeTest(BaseDbTestCase):
+
+    def setUp(self):
+        super(AuthorizationCodeTest, self).setUp()
+
+        self.code_01 = {
+            'code': u'some_random_stuff',
+            'state': u'another_random_stuff',
+            'user_id': 1
+        }
+
+    def test_create_code(self):
+        self._test_create(self.code_01, db_api.authorization_code_save)
+
+    def test_delete_code(self):
+        created_code = db_api.authorization_code_save(self.code_01)
+
+        self.assertIsNotNone(created_code,
+                             "Could not create an Authorization code")
+
+        db_api.authorization_code_delete(created_code.code)
+
+        fetched_code = db_api.authorization_code_get(created_code.code)
+        self.assertIsNone(fetched_code)
+
+
+class TokenTest(BaseDbTestCase):
+
+    def setUp(self):
+        super(TokenTest, self).setUp()
+
+        self.token_01 = {
+            "access_token": u'an_access_token',
+            "refresh_token": u'a_refresh_token',
+            "expires_in": 3600,
+            "expires_at": datetime.now(),
+            "user_id": 1
+        }
+
+    def test_create_token(self):
+        self._test_create(self.token_01, db_api.token_save)
+
+    def test_delete_token(self):
+        created_token = db_api.token_save(self.token_01)
+
+        self.assertIsNotNone(created_token, "Could not create a Token")
+
+        db_api.token_delete(created_token.access_token)
+
+        fetched_token = db_api.token_get(created_token.access_token)
+        self.assertIsNotNone(fetched_token,
+                             "Could not fetch a non-active Token")
+        self.assertFalse(fetched_token.is_active,
+                         "A deleted Token should have is_active set to False")
