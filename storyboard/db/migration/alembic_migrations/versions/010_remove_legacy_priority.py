@@ -13,15 +13,15 @@
 
 """Remove legacy priority column
 
-Revision ID: 009
-Revises: 008
+Revision ID: 010
+Revises: 009
 Create Date: 2014-03-24 14:00:19.159763
 
 """
 
 # revision identifiers, used by Alembic.
-revision = '009'
-down_revision = '008'
+revision = '010'
+down_revision = '009'
 
 
 from alembic import op
