@@ -18,7 +18,7 @@ import yaml
 
 from sqlalchemy.exc import SADeprecationWarning
 
-from storyboard.db import api as db_api
+from storyboard.db.api import base as db_api
 from storyboard.db.models import User
 
 warnings.simplefilter("ignore", SADeprecationWarning)

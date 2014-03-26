@@ -23,7 +23,7 @@ import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
-from storyboard.db import api as dbapi
+from storyboard.db.api import comments as comments_api
 
 
 class Comment(base.APIBase):
@@ -64,7 +64,7 @@ class CommentsController(rest.RestController):
         It will stay unused, as far as comments have their own unique ids
         :param comment_id: An ID of the comment.
         """
-        comment = dbapi.comment_get(comment_id)
+        comment = comments_api.comment_get(comment_id)
 
         if comment:
             return Comment.from_db_model(comment)
@@ -79,7 +79,7 @@ class CommentsController(rest.RestController):
 
         :param story_id: filter comments by story ID.
         """
-        comments = dbapi.comment_get_all(story_id=story_id)
+        comments = comments_api.comment_get_all(story_id=story_id)
         return [Comment.from_db_model(comment) for comment in comments]
 
     @secure(checks.authenticated)
@@ -92,7 +92,7 @@ class CommentsController(rest.RestController):
         """
         comment.story_id = story_id
         comment.author_id = request.current_user_id
-        created_comment = dbapi.comment_create(comment.as_dict())
+        created_comment = comments_api.comment_create(comment.as_dict())
         return Comment.from_db_model(created_comment)
 
     @secure(checks.authenticated)
@@ -104,15 +104,15 @@ class CommentsController(rest.RestController):
         :param comment_id: the id of a Comment to be updated
         :param comment_body: an updated Comment
         """
-        comment = dbapi.comment_get(comment_id)
+        comment = comments_api.comment_get(comment_id)
 
         if request.current_user_id != comment.author_id:
             response.status_code = 400
             response.body = "You are not allowed to update this comment."
             return response
 
-        updated_comment = dbapi.comment_update(comment_id,
-                                               comment_body.as_dict())
+        updated_comment = comments_api.comment_update(comment_id,
+                                                      comment_body.as_dict())
 
         return Comment.from_db_model(updated_comment)
 
@@ -124,14 +124,14 @@ class CommentsController(rest.RestController):
         :param story_id: a placeholder
         :param comment_id: the id of a Comment to be updated
         """
-        comment = dbapi.comment_get(comment_id)
+        comment = comments_api.comment_get(comment_id)
 
         if request.current_user_id != comment.author_id:
             response.status_code = 400
             response.body = "You are not allowed to delete this comment."
             return response
 
-        dbapi.comment_delete(comment_id)
+        comments_api.comment_delete(comment_id)
 
         response.status_code = 204
         return response

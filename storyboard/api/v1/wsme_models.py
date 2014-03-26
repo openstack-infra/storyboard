@@ -20,7 +20,7 @@ from wsme import types as wtypes
 
 from oslo.config import cfg
 from sqlalchemy.exc import SADeprecationWarning
-from storyboard.db.api import get_session
+from storyboard.db.api.base import get_session
 import storyboard.db.models as sqlalchemy_models
 
 

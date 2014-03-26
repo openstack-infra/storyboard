@@ -25,7 +25,7 @@ import wsmeext.pecan as wsme_pecan
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
 from storyboard.api.v1.comments import CommentsController
-from storyboard.db import api as dbapi
+from storyboard.db.api import stories as stories_api
 
 CONF = cfg.CONF
 
@@ -75,7 +75,7 @@ class StoriesController(rest.RestController):
 
         :param story_id: An ID of the story.
         """
-        story = dbapi.story_get(story_id)
+        story = stories_api.story_get(story_id)
 
         if story:
             return Story.from_db_model(story)
@@ -100,15 +100,15 @@ class StoriesController(rest.RestController):
         limit = min(CONF.page_size_maximum, max(1, limit))
 
         # Resolve the marker record.
-        marker_story = dbapi.story_get(marker)
+        marker_story = stories_api.story_get(marker)
 
         if marker_story is None or marker_story.project_id != project_id:
             marker_story = None
 
-        stories = dbapi.story_get_all(marker=marker_story,
-                                      limit=limit,
-                                      project_id=project_id)
-        story_count = dbapi.story_get_count(project_id=project_id)
+        stories = stories_api.story_get_all(marker=marker_story,
+                                            limit=limit,
+                                            project_id=project_id)
+        story_count = stories_api.story_get_count(project_id=project_id)
 
         # Apply the query response headers.
         response.headers['X-Limit'] = str(limit)
@@ -129,7 +129,7 @@ class StoriesController(rest.RestController):
 
         user_id = request.current_user_id
         story_dict.update({"creator_id": user_id})
-        created_story = dbapi.story_create(story_dict)
+        created_story = stories_api.story_create(story_dict)
 
         return Story.from_db_model(created_story)
 
@@ -141,8 +141,9 @@ class StoriesController(rest.RestController):
         :param story_id: An ID of the story.
         :param story: a story within the request body.
         """
-        updated_story = dbapi.story_update(story_id,
-                                           story.as_dict(omit_unset=True))
+        updated_story = stories_api.story_update(
+            story_id,
+            story.as_dict(omit_unset=True))
 
         if updated_story:
             return Story.from_db_model(updated_story)
@@ -157,7 +158,7 @@ class StoriesController(rest.RestController):
 
         :param story_id: An ID of the story.
         """
-        dbapi.story_delete(story_id)
+        stories_api.story_delete(story_id)
 
         response.status_code = 204
 

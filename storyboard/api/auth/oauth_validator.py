@@ -21,7 +21,7 @@ from oauthlib.oauth2 import WebApplicationServer
 from oslo.config import cfg
 
 from storyboard.api.auth.token_storage import storage
-from storyboard.db import api as db_api
+from storyboard.db.api import users as user_api
 
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
@@ -106,7 +106,7 @@ class SkeletonValidator(RequestValidator):
         username = request._params["openid.sreg.nickname"]
         last_login = datetime.now()
 
-        user = db_api.user_get_by_openid(openid)
+        user = user_api.user_get_by_openid(openid)
         user_dict = {"full_name": full_name,
                      "username": username,
                      "email": email,
@@ -114,9 +114,9 @@ class SkeletonValidator(RequestValidator):
 
         if not user:
             user_dict.update({"openid": openid})
-            user = db_api.user_create(user_dict)
+            user = user_api.user_create(user_dict)
         else:
-            user = db_api.user_update(user.id, user_dict)
+            user = user_api.user_update(user.id, user_dict)
 
         self.token_storage.save_authorization_code(code, user_id=user.id)
 

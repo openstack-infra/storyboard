@@ -23,7 +23,7 @@ import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
-from storyboard.db import api as dbapi
+from storyboard.db.api import projects as projects_api
 
 CONF = cfg.CONF
 
@@ -71,7 +71,7 @@ class ProjectsController(rest.RestController):
         :param project_id: project ID.
         """
 
-        project = dbapi.project_get(project_id)
+        project = projects_api.project_get(project_id)
 
         if project:
             return Project.from_db_model(project)
@@ -94,10 +94,11 @@ class ProjectsController(rest.RestController):
         limit = min(CONF.page_size_maximum, max(1, limit))
 
         # Resolve the marker record.
-        marker_project = dbapi.project_get(marker)
+        marker_project = projects_api.project_get(marker)
 
-        projects = dbapi.project_get_all(marker=marker_project, limit=limit)
-        project_count = dbapi.project_get_count()
+        projects = projects_api.project_get_all(marker=marker_project,
+                                                limit=limit)
+        project_count = projects_api.project_get_count()
 
         # Apply the query response headers.
         response.headers['X-Limit'] = str(limit)
@@ -114,7 +115,7 @@ class ProjectsController(rest.RestController):
 
         :param project: a project within the request body.
         """
-        result = dbapi.project_create(project.as_dict())
+        result = projects_api.project_create(project.as_dict())
         return Project.from_db_model(result)
 
     @secure(checks.superuser)
@@ -125,8 +126,8 @@ class ProjectsController(rest.RestController):
         :param project_id: An ID of the project.
         :param project: a project within the request body.
         """
-        result = dbapi.project_update(project_id,
-                                      project.as_dict(omit_unset=True))
+        result = projects_api.project_update(project_id,
+                                             project.as_dict(omit_unset=True))
 
         if result:
             return Project.from_db_model(result)
@@ -141,6 +142,6 @@ class ProjectsController(rest.RestController):
 
         :param project_id: An ID of the project.
         """
-        dbapi.project_delete(project_id)
+        projects_api.project_delete(project_id)
 
         response.status_code = 204

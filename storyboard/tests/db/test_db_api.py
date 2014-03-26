@@ -15,7 +15,11 @@
 
 from datetime import datetime
 
-from storyboard.db import api as db_api
+from storyboard.db.api import auth
+from storyboard.db.api import comments
+from storyboard.db.api import projects
+from storyboard.db.api import stories
+from storyboard.db.api import tasks
 from storyboard.tests import base
 
 
@@ -52,7 +56,7 @@ class ProjectsTest(BaseDbTestCase):
         }
 
     def test_save_project(self):
-        self._test_create(self.project_01, db_api.project_create)
+        self._test_create(self.project_01, projects.project_create)
 
     def test_update_project(self):
         delta = {
@@ -60,7 +64,7 @@ class ProjectsTest(BaseDbTestCase):
             'description': u'New Description'
         }
         self._test_update(self.project_01, delta,
-                          db_api.project_create, db_api.project_update)
+                          projects.project_create, projects.project_update)
 
 
 class StoriesTest(BaseDbTestCase):
@@ -74,7 +78,7 @@ class StoriesTest(BaseDbTestCase):
         }
 
     def test_create_story(self):
-        self._test_create(self.story_01, db_api.story_create)
+        self._test_create(self.story_01, stories.story_create)
 
     def test_update_story(self):
         delta = {
@@ -82,7 +86,7 @@ class StoriesTest(BaseDbTestCase):
             'description': u'New Description'
         }
         self._test_update(self.story_01, delta,
-                          db_api.story_create, db_api.story_update)
+                          stories.story_create, stories.story_update)
 
 
 class TasksTest(BaseDbTestCase):
@@ -97,7 +101,7 @@ class TasksTest(BaseDbTestCase):
         }
 
     def test_create_task(self):
-        self._test_create(self.task_01, db_api.task_create)
+        self._test_create(self.task_01, tasks.task_create)
 
     def test_update_task(self):
         delta = {
@@ -106,7 +110,7 @@ class TasksTest(BaseDbTestCase):
         }
 
         self._test_update(self.task_01, delta,
-                          db_api.task_create, db_api.task_update)
+                          tasks.task_create, tasks.task_update)
 
 
 class CommentsTest(BaseDbTestCase):
@@ -120,7 +124,7 @@ class CommentsTest(BaseDbTestCase):
         }
 
     def test_create_comment(self):
-        self._test_create(self.comment_01, db_api.comment_create)
+        self._test_create(self.comment_01, comments.comment_create)
 
     def test_update_comment(self):
         delta = {
@@ -128,7 +132,7 @@ class CommentsTest(BaseDbTestCase):
         }
 
         self._test_update(self.comment_01, delta,
-                          db_api.comment_create, db_api.comment_update)
+                          comments.comment_create, comments.comment_update)
 
 
 class AuthorizationCodeTest(BaseDbTestCase):
@@ -143,17 +147,17 @@ class AuthorizationCodeTest(BaseDbTestCase):
         }
 
     def test_create_code(self):
-        self._test_create(self.code_01, db_api.authorization_code_save)
+        self._test_create(self.code_01, auth.authorization_code_save)
 
     def test_delete_code(self):
-        created_code = db_api.authorization_code_save(self.code_01)
+        created_code = auth.authorization_code_save(self.code_01)
 
         self.assertIsNotNone(created_code,
                              "Could not create an Authorization code")
 
-        db_api.authorization_code_delete(created_code.code)
+        auth.authorization_code_delete(created_code.code)
 
-        fetched_code = db_api.authorization_code_get(created_code.code)
+        fetched_code = auth.authorization_code_get(created_code.code)
         self.assertIsNone(fetched_code)
 
 
@@ -171,16 +175,16 @@ class TokenTest(BaseDbTestCase):
         }
 
     def test_create_token(self):
-        self._test_create(self.token_01, db_api.token_save)
+        self._test_create(self.token_01, auth.token_save)
 
     def test_delete_token(self):
-        created_token = db_api.token_save(self.token_01)
+        created_token = auth.token_save(self.token_01)
 
         self.assertIsNotNone(created_token, "Could not create a Token")
 
-        db_api.token_delete(created_token.access_token)
+        auth.token_delete(created_token.access_token)
 
-        fetched_token = db_api.token_get(created_token.access_token)
+        fetched_token = auth.token_get(created_token.access_token)
         self.assertIsNotNone(fetched_token,
                              "Could not fetch a non-active Token")
         self.assertFalse(fetched_token.is_active,

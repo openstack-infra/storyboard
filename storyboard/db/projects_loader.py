@@ -19,7 +19,7 @@ import yaml
 
 from oslo.config import cfg
 from sqlalchemy.exc import SADeprecationWarning
-from storyboard.db import api as db_api
+from storyboard.db.api import base as db_api
 
 from storyboard.db.models import Project
 from storyboard.db.models import ProjectGroup

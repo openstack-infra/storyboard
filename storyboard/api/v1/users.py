@@ -26,7 +26,7 @@ import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
-from storyboard.db import api as dbapi
+from storyboard.db.api import users as users_api
 
 CONF = cfg.CONF
 
@@ -85,10 +85,10 @@ class UsersController(rest.RestController):
         limit = min(CONF.page_size_maximum, max(1, limit))
 
         # Resolve the marker record.
-        marker_user = dbapi.user_get(marker)
+        marker_user = users_api.user_get(marker)
 
-        users = dbapi.user_get_all(marker=marker_user, limit=limit)
-        user_count = dbapi.user_get_count()
+        users = users_api.user_get_all(marker=marker_user, limit=limit)
+        user_count = users_api.user_get_count()
 
         # Apply the query response headers.
         response.headers['X-Limit'] = str(limit)
@@ -110,7 +110,7 @@ class UsersController(rest.RestController):
         if user_id == request.current_user_id:
             filter_non_public = False
 
-        user = dbapi.user_get(user_id, filter_non_public)
+        user = users_api.user_get(user_id, filter_non_public)
         if not user:
             raise ClientSideError("User %s not found" % user_id,
                                   status_code=404)
@@ -124,7 +124,7 @@ class UsersController(rest.RestController):
         :param user: a user within the request body.
         """
 
-        created_user = dbapi.user_create(user.as_dict())
+        created_user = users_api.user_create(user.as_dict())
         return User.from_db_model(created_user)
 
     @secure(checks.authenticated)
@@ -147,5 +147,5 @@ class UsersController(rest.RestController):
                             "your identity fields."
             return response
 
-        updated_user = dbapi.user_update(user_id, user_dict)
+        updated_user = users_api.user_update(user_id, user_dict)
         return User.from_db_model(updated_user)

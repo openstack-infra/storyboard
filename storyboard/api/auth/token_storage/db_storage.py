@@ -16,7 +16,7 @@
 import datetime
 
 from storyboard.api.auth.token_storage import storage
-from storyboard.db import api as db_api
+from storyboard.db.api import auth as auth_api
 
 
 class DBTokenStorage(storage.StorageBase):
@@ -26,17 +26,17 @@ class DBTokenStorage(storage.StorageBase):
             "state": authorization_code["state"],
             "user_id": user_id
         }
-        db_api.authorization_code_save(values)
+        auth_api.authorization_code_save(values)
 
     def get_authorization_code_info(self, code):
-        return db_api.authorization_code_get(code)
+        return auth_api.authorization_code_get(code)
 
     def check_authorization_code(self, code):
-        db_code = db_api.authorization_code_get(code)
+        db_code = auth_api.authorization_code_get(code)
         return not db_code is None
 
     def invalidate_authorization_code(self, code):
-        db_api.authorization_code_delete(code)
+        auth_api.authorization_code_delete(code)
 
     def save_token(self, access_token, expires_in, refresh_token, user_id):
         values = {
@@ -48,22 +48,22 @@ class DBTokenStorage(storage.StorageBase):
             "user_id": user_id
         }
 
-        db_api.token_save(values)
+        auth_api.token_save(values)
 
     def get_access_token_info(self, access_token):
-        return db_api.token_get(access_token)
+        return auth_api.token_get(access_token)
 
     def check_access_token(self, access_token):
-        token_info = db_api.token_get(access_token)
+        token_info = auth_api.token_get(access_token)
 
         if not token_info:
             return False
 
         if datetime.datetime.now() > token_info.expires_at:
-            db_api.token_update(access_token, {"is_active": False})
+            auth_api.token_update(access_token, {"is_active": False})
             return False
 
         return token_info.is_active
 
     def remove_token(self, access_token):
-        db_api.token_delete(access_token)
+        auth_api.token_delete(access_token)

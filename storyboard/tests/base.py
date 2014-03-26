@@ -24,7 +24,7 @@ import pecan.testing
 import testtools
 
 from storyboard.api.auth import authorization_checks
-from storyboard.db import api as db_api
+from storyboard.db.api import base as db_api_base
 from storyboard.openstack.common import lockutils
 from storyboard.openstack.common import log as logging
 
@@ -95,12 +95,12 @@ class DbTestCase(TestCase):
 
     def setup_db(self):
         CONF.set_default('connection', "sqlite://", group='database')
-        db_api.setup_db()
+        db_api_base.setup_db()
         self.addCleanup(self._drop_db)
 
     def _drop_db(self):
-        db_api.drop_db()
-        db_api.cleanup()
+        db_api_base.drop_db()
+        db_api_base.cleanup()
 
 
 PATH_PREFIX = '/v1'

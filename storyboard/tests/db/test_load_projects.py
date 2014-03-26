@@ -16,9 +16,9 @@
 import sys
 
 import mock
-from storyboard.db import api
 import testscenarios
 
+from storyboard.db.api import base as db_api_base
 from storyboard.db.migration import cli
 from storyboard.db import models
 from storyboard.tests import base
@@ -36,7 +36,7 @@ class TestLoadProjects(base.FunctionalTest):
     def test_cli(self):
         with mock.patch.object(sys, 'argv', self.argv):
             cli.main()
-            session = api.get_session()
+            session = db_api_base.get_session()
             project_groups = session.query(models.ProjectGroup).all()
             projects = session.query(models.Project).all()
 
@@ -53,7 +53,7 @@ class TestLoadProjects(base.FunctionalTest):
             # call again and nothing should change
             cli.main()
 
-            session = api.get_session()
+            session = db_api_base.get_session()
             projects = session.query(models.Project).all()
 
             self.assertIsNotNone(projects)

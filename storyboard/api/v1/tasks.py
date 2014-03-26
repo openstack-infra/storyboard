@@ -23,7 +23,7 @@ import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
-from storyboard.db import api as dbapi
+from storyboard.db.api import tasks as tasks_api
 
 CONF = cfg.CONF
 
@@ -64,7 +64,7 @@ class TasksController(rest.RestController):
 
         :param task_id: An ID of the task.
         """
-        task = dbapi.task_get(task_id)
+        task = tasks_api.task_get(task_id)
 
         if task:
             return Task.from_db_model(task)
@@ -88,15 +88,15 @@ class TasksController(rest.RestController):
         limit = min(CONF.page_size_maximum, max(1, limit))
 
         # Resolve the marker record.
-        marker_task = dbapi.task_get(marker)
+        marker_task = tasks_api.task_get(marker)
 
         if marker_task is None or marker_task.story_id != story_id:
             marker_task = None
 
-        tasks = dbapi.task_get_all(marker=marker_task,
-                                   limit=limit,
-                                   story_id=story_id)
-        task_count = dbapi.task_get_count(story_id=story_id)
+        tasks = tasks_api.task_get_all(marker=marker_task,
+                                       limit=limit,
+                                       story_id=story_id)
+        task_count = tasks_api.task_get_count(story_id=story_id)
 
         # Apply the query response headers.
         response.headers['X-Limit'] = str(limit)
@@ -113,7 +113,7 @@ class TasksController(rest.RestController):
 
         :param task: a task within the request body.
         """
-        created_task = dbapi.task_create(task.as_dict())
+        created_task = tasks_api.task_create(task.as_dict())
         return Task.from_db_model(created_task)
 
     @secure(checks.authenticated)
@@ -124,7 +124,7 @@ class TasksController(rest.RestController):
         :param task_id: An ID of the task.
         :param task: a task within the request body.
         """
-        updated_task = dbapi.task_update(task_id,
+        updated_task = tasks_api.task_update(task_id,
                                          task.as_dict(omit_unset=True))
 
         if updated_task:
@@ -140,6 +140,6 @@ class TasksController(rest.RestController):
 
         :param task_id: An ID of the task.
         """
-        dbapi.task_delete(task_id)
+        tasks_api.task_delete(task_id)
 
         response.status_code = 204
