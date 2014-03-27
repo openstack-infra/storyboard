@@ -74,8 +74,7 @@ class UsersController(rest.RestController):
     def get(self, marker=None, limit=None):
         """Retrieve definitions of all of the users.
 
-        :param marker The marker at which the page set should begin. At the
-        moment, this is the unique resource id..
+        :param marker: The resource id where the page should begin.
         :param limit The number of users to retrieve.
         """
 

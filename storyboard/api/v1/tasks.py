@@ -78,8 +78,8 @@ class TasksController(rest.RestController):
         """Retrieve definitions of all of the tasks.
 
         :param story_id: filter tasks by story ID.
-        :param offset The offset within the result set to fetch.
-        :param limit The number of tasks to retrieve.
+        :param marker: The resource id where the page should begin.
+        :param limit: The number of tasks to retrieve.
         """
 
         # Boundary check on limit.

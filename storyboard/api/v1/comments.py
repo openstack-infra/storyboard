@@ -64,7 +64,7 @@ class CommentsController(rest.RestController):
 
         :param story_id: An ID of the story. It stays in params as a
         placeholder so that pecan knows where to match an incoming value.
-        It will stay unused, as far as comments have their own unique ids
+        It will stay unused, as far as comments have their own unique ids.
         :param comment_id: An ID of the comment.
         """
         comment = comments_api.comment_get(comment_id)
@@ -81,9 +81,8 @@ class CommentsController(rest.RestController):
         """Retrieve all comments posted under specified story.
 
         :param story_id: filter comments by story ID.
-        :param marker The marker at which the page set should begin. At the
-        moment, this is the unique resource id.
-        :param limit The number of comments to retrieve.
+        :param marker: The resource id where the page should begin.
+        :param limit: The number of comments to retrieve.
         """
 
         # Boundary check on limit.
