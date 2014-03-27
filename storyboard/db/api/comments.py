@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#    http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,9 +21,18 @@ def comment_get(comment_id):
     return api_base.entity_get(models.Comment, comment_id)
 
 
-def comment_get_all(story_id=None):
-    return api_base.entity_get_all(models.Comment, story_id=story_id,
-                                   is_active=True)
+def comment_get_all(marker=None, limit=None, **kwargs):
+    return api_base.entity_get_all(models.Comment,
+                                   is_active=True,
+                                   marker=marker,
+                                   limit=limit,
+                                   **kwargs)
+
+
+def comment_get_count(**kwargs):
+    return api_base.entity_get_count(models.Comment,
+                                     is_active=True,
+                                     **kwargs)
 
 
 def comment_create(values):

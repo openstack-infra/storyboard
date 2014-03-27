@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo.config import cfg
 from pecan import request
 from pecan import response
 from pecan import rest
@@ -24,6 +25,8 @@ import wsmeext.pecan as wsme_pecan
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
 from storyboard.db.api import comments as comments_api
+
+CONF = cfg.CONF
 
 
 class Comment(base.APIBase):
@@ -73,13 +76,35 @@ class CommentsController(rest.RestController):
                                   status_code=404)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([Comment], int)
-    def get_all(self, story_id=None):
+    @wsme_pecan.wsexpose([Comment], int, int, int)
+    def get_all(self, story_id=None, marker=None, limit=None):
         """Retrieve all comments posted under specified story.
 
         :param story_id: filter comments by story ID.
+        :param marker The marker at which the page set should begin. At the
+        moment, this is the unique resource id.
+        :param limit The number of comments to retrieve.
         """
-        comments = comments_api.comment_get_all(story_id=story_id)
+
+        # Boundary check on limit.
+        if limit is None:
+            limit = CONF.page_size_default
+        limit = min(CONF.page_size_maximum, max(1, limit))
+
+        # Resolve the marker record.
+        marker_comment = comments_api.comment_get(marker)
+
+        comment_count = comments_api.comment_get_count(story_id=story_id)
+        comments = comments_api.comment_get_all(story_id=story_id,
+                                                marker=marker_comment,
+                                                limit=limit)
+
+        # Apply the query response headers.
+        response.headers['X-Limit'] = str(limit)
+        response.headers['X-Total'] = str(comment_count)
+        if marker_comment:
+            response.headers['X-Marker'] = str(marker_comment.id)
+
         return [Comment.from_db_model(comment) for comment in comments]
 
     @secure(checks.authenticated)
