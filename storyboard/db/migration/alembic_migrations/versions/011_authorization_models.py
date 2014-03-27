@@ -13,15 +13,15 @@
 
 """Add authorization models
 
-Revision ID: 009
-Revises: 008
+Revision ID: 011
+Revises: 010
 Create Date: 2014-03-21 17:44:51.248232
 
 """
 
 # revision identifiers, used by Alembic.
-revision = '009'
-down_revision = '008'
+revision = '011'
+down_revision = '010'
 
 
 from alembic import op
