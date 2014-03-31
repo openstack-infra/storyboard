@@ -75,9 +75,9 @@ def setup_app(pecan_config=None):
 
 
 def start():
-    api_root = setup_app()
-
     CONF(project='storyboard')
+
+    api_root = setup_app()
 
     # Create the WSGI server and start it
     host = cfg.CONF.bind_host

@@ -26,6 +26,14 @@ from storyboard.db.api import users as user_api
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
+TOKEN_OPTS = [
+    cfg.IntOpt("token_ttl",
+               default=3600,
+               help="Time in seconds before an access_token expires")
+]
+
+CONF.register_opts(TOKEN_OPTS)
+
 
 class SkeletonValidator(RequestValidator):
     """This is oauth skeleton for handling all kind of validations and storage
@@ -195,5 +203,12 @@ class SkeletonValidator(RequestValidator):
         return ["user"]
 
 
+class OpenIdConnectServer(WebApplicationServer):
+
+    def __init__(self, request_validator):
+        token_ttl = CONF.token_ttl
+        super(OpenIdConnectServer, self).__init__(request_validator,
+                                                  token_expires_in=token_ttl)
+
 validator = SkeletonValidator()
-SERVER = WebApplicationServer(validator)
+SERVER = OpenIdConnectServer(validator)
