@@ -36,6 +36,9 @@ lock_path = $state_path/lock
 # OpenId Authentication endpoint
 # openid_url = https://login.launchpad.net/+openid
 
+# Time in seconds before an access_token expires
+# token_ttl = 3600
+
 # List paging configuration options.
 # page_size_maximum = 500
 # page_size_default = 20
