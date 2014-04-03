@@ -19,29 +19,39 @@ from storyboard.api.auth.token_storage import storage
 from storyboard.db.api import users as user_api
 
 
+def _get_token():
+    if request.authorization and len(request.authorization) == 2:
+        return request.authorization[1]
+    else:
+        return None
+
+
 def guest():
-    return True
+    token_storage = storage.get_storage()
+    token = _get_token()
+
+    # Public resources do not require a token.
+    if not token:
+        return True
+
+    # But if there is a token, it should be valid.
+    return token_storage.check_access_token(token)
 
 
 def authenticated():
     token_storage = storage.get_storage()
+    token = _get_token()
 
-    result = False
-    if request.authorization and len(request.authorization) == 2:
-        token = request.authorization[1]
-        if token and token_storage.check_access_token(token):
-            result = True
-
-    return result
+    return token and token_storage.check_access_token(token)
 
 
 def superuser():
     token_storage = storage.get_storage()
+    token = _get_token()
 
-    if not authenticated():
+    if not token:
         return False
 
-    token = request.authorization[1]
     token_info = token_storage.get_access_token_info(token)
     user = user_api.user_get(token_info.user_id)
 
