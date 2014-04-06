@@ -36,13 +36,17 @@ Installing the API server
 5. Edit ``./etc/storyboard.conf`` and set the ``connection`` parameter in 
    the ``[database]`` section.
 
+6. Install the correct version of tox. Latest tox has a bug. https://bugs.launchpad.net/openstack-ci/+bug/1274135::
 
-6. Upgrade DB schema to the latest version::
+  pip install --upgrade "tox>=1.6,<1.7"
+
+
+7. Upgrade DB schema to the latest version::
 
 	tox -e venv "storyboard-db-manage --config-file ./etc/storyboard.conf upgrade head"
 
 
-7. Start the API server::
+8. Start the API server::
 
 	tox -e venv "storyboard-api --config-file ./etc/storyboard.conf"
 
