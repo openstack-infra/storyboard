@@ -89,9 +89,8 @@ class StoriesController(rest.RestController):
         """Retrieve definitions of all of the stories.
 
         :param project_id: filter stories by project ID.
-        :param marker The marker at which the page set should begin. At the
-        moment, this is the unique resource id.
-        :param limit The number of stories to retrieve.
+        :param marker: The resource id where the page should begin.
+        :param limit: The number of stories to retrieve.
         """
 
         # Boundary check on limit.

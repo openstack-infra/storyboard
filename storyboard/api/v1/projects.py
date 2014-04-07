@@ -84,9 +84,8 @@ class ProjectsController(rest.RestController):
     def get(self, marker=None, limit=None):
         """Retrieve a list of projects.
 
-        :param marker The marker at which the page set should begin. At the
-        moment, this is the unique resource id.
-        :param limit The number of projects to retrieve.
+        :param marker: The resource id where the page should begin.
+        :param limit: The number of projects to retrieve.
         """
         # Boundary check on limit.
         if limit is None:

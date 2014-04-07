@@ -14,12 +14,22 @@ Projects
 Stories
 =======
 .. rest-controller:: storyboard.api.v1.stories:StoriesController
-   :webprefix: /v1/projects
+   :webprefix: /v1/stories
+
+Comments
+=======
+.. rest-controller:: storyboard.api.v1.comments:CommentsController
+   :webprefix: /v1/stories/[ID]/comments
 
 Tasks
 =====
 .. rest-controller:: storyboard.api.v1.tasks:TasksController
-   :webprefix: /v1/projects
+   :webprefix: /v1/tasks
+
+Users
+=====
+.. rest-controller:: storyboard.api.v1.users:UsersController
+   :webprefix: /v1/users
 
 
 ############
@@ -38,7 +48,19 @@ Story
    :members:
 
 
+Comment
+=====
+.. autotype:: storyboard.api.v1.comments.Comment
+   :members:
+
+
 Task
 ====
 .. autotype:: storyboard.api.v1.tasks.Task
+   :members:
+
+
+User
+====
+.. autotype:: storyboard.api.v1.tasks.User
    :members:
