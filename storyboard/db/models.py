@@ -53,7 +53,6 @@ class IdMixin(object):
 class StoriesBase(models.TimestampMixin,
                   IdMixin,
                   models.ModelBase):
-
     metadata = None
 
     @declarative.declared_attr
@@ -179,10 +178,10 @@ class Story(Base):
 
 
 class Task(Base):
-    _TASK_STATUSES = ('Todo', 'In review', 'Landed')
+    _TASK_STATUSES = ('todo', 'inprogress', 'invalid', 'review', 'merged')
 
     title = Column(Unicode(100), nullable=True)
-    status = Column(Enum(*_TASK_STATUSES), default='Todo')
+    status = Column(Enum(*_TASK_STATUSES), default='todo')
     story_id = Column(Integer, ForeignKey('stories.id'))
     project_id = Column(Integer, ForeignKey('projects.id'))
     assignee_id = Column(Integer, ForeignKey('users.id'), nullable=True)

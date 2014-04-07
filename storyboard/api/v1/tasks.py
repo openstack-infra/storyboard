@@ -41,7 +41,8 @@ class Task(base.APIBase):
     # TODO(ruhe): replace with enum
     status = wtypes.text
     """Status.
-    Allowed values: ['Todo', 'In review', 'Landed'].
+    Allowed values: ['todo', 'inprogress', 'invalid', 'review', 'merged'].
+    Human readable versions are left to the UI.
     """
 
     is_active = bool
