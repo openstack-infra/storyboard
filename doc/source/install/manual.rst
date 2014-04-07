@@ -49,5 +49,5 @@ Installing the Web Client
 =========================
 
 Web Client is an all-javascript application. It doesn't require any software to
-run. Just grab tarball from http://tarballs.openstack.org/storyboard-webclient,
+run. Just grab a tarball from http://tarballs.openstack.org/storyboard-webclient,
 unpack it and serve as static files.
