@@ -51,6 +51,14 @@ def setup_app(pecan_config=None):
     if not pecan_config:
         pecan_config = get_pecan_config()
 
+    # Setup logging
+    cfg.set_defaults(log.log_opts,
+                     default_log_levels=[
+                         'storyboard=INFO',
+                         'sqlalchemy=WARN'
+                     ])
+    log.setup('storyboard')
+
     # Setup token storage
     token_storage_type = CONF.token_storage_type
     storage_cls = storage_impls.STORAGE_IMPLS[token_storage_type]
@@ -64,12 +72,7 @@ def setup_app(pecan_config=None):
         guess_content_type_from_ext=False
     )
 
-    cfg.set_defaults(log.log_opts,
-                     default_log_levels=[
-                         'storyboard=INFO',
-                         'sqlalchemy=WARN'
-                     ])
-    log.setup('storyboard')
+    app = token_middleware.AuthTokenMiddleware(app)
 
     return app
 
@@ -83,7 +86,6 @@ def start():
     host = cfg.CONF.bind_host
     port = cfg.CONF.bind_port
 
-    api_root = token_middleware.AuthTokenMiddleware(api_root)
     srv = simple_server.make_server(host, port, api_root)
 
     LOG.info(_('Starting server in PID %s') % os.getpid())
