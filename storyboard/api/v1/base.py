@@ -20,10 +20,20 @@ from wsme import types as wtypes
 
 class APIBase(wtypes.Base):
 
-    # TODO(ruhe): add docstrings
     id = int
+    """This is a unique identifier used as a primary key in all Database
+    models.
+    """
+
     created_at = datetime
+    """The time when an object was added to the Database. This field is
+    managed by SqlAlchemy automatically.
+    """
+
     updated_at = datetime
+    """The time when the object was updated to it's actual state. This
+    field is also managed by SqlAlchemy.
+    """
 
     @classmethod
     def from_db_model(cls, db_model, skip_fields=None):
