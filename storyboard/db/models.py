@@ -28,6 +28,9 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 from sqlalchemy.orm import relationship
 from sqlalchemy import schema
+from sqlalchemy import select
+import sqlalchemy.sql.expression as expr
+import sqlalchemy.sql.functions as func
 from sqlalchemy import String
 from sqlalchemy import Table
 from sqlalchemy import Unicode
@@ -171,7 +174,6 @@ class Story(Base):
     tasks = relationship('Task', backref='story')
     comments = relationship('Comment', backref='story')
     tags = relationship('StoryTag', backref='story')
-    is_active = Column(Boolean, default=True)
 
     _public_fields = ["id", "creator_id", "title", "description", "is_bug",
                       "tasks", "comments", "tags"]
@@ -234,3 +236,42 @@ class RefreshToken(Base):
 
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     refresh_token = Column(Unicode(100), nullable=False)
+
+
+def _story_build_summary_query():
+    return select([Story,
+                   func.cast(
+                       func.sum(Task.status == 'todo'), Integer
+                   ).label('todo'),
+                   func.cast(
+                       func.sum(Task.status == 'inprogress'), Integer
+                   ).label('inprogress'),
+                   func.cast(
+                       func.sum(Task.status == 'review'), Integer
+                   ).label('review'),
+                   func.cast(
+                       func.sum(Task.status == 'merged'), Integer
+                   ).label('merged'),
+                   func.cast(
+                       func.sum(Task.status == 'invalid'), Integer
+                   ).label('invalid'),
+                   expr.case(
+                       [(func.sum(Task.status.in_(
+                           ['todo', 'inprogress', 'review'])) > 0,
+                         'active'),
+                        ((func.sum(Task.status == 'merged')) > 0, 'merged')],
+                       else_='invalid'
+                   ).label('status')],
+                  None,
+                  expr.Join(Story, Task, onclause=Story.id == Task.story_id,
+                            isouter=True)) \
+        .group_by(Task.story_id) \
+        .alias('story_summary')
+
+
+class StorySummary(Base):
+    __table__ = _story_build_summary_query()
+
+    _public_fields = ["id", "creator_id", "title", "description", "is_bug",
+                      "tasks", "comments", "tags", "todo", "inprogress",
+                      "review", "merged", "invalid", "status"]

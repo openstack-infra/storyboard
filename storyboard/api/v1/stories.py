@@ -46,14 +46,26 @@ class Story(base.APIBase):
     is_bug = bool
     """Is this a bug or a feature :)"""
 
-    is_active = bool
-    """Is this an active story, or has it been deleted?"""
-
-    project_id = int
-    """Optional parameter"""
-
     creator_id = int
     """User ID of the Story creator"""
+
+    todo = int
+    """The number of tasks remaining to be worked on."""
+
+    inprogress = int
+    """The number of in-progress tasks for this story."""
+
+    review = int
+    """The number of tasks in review for this story."""
+
+    merged = int
+    """The number of merged tasks for this story."""
+
+    invalid = int
+    """The number of invalid tasks for this story."""
+
+    status = unicode
+    """The derived status of the story, one of 'active', 'merged', 'invalid'"""
 
     @classmethod
     def sample(cls):
@@ -61,8 +73,13 @@ class Story(base.APIBase):
             title="Use Storyboard to manage Storyboard",
             description="We should use Storyboard to manage Storyboard.",
             is_bug=False,
-            is_active=True,
-            creator_id=1)
+            creator_id=1,
+            todo=0,
+            inprogress=1,
+            review=1,
+            merged=0,
+            invalid=0,
+            status="active")
 
 
 class StoriesController(rest.RestController):
@@ -150,7 +167,7 @@ class StoriesController(rest.RestController):
             raise ClientSideError("Story %s not found" % id,
                                   status_code=404)
 
-    @secure(checks.authenticated)
+    @secure(checks.superuser)
     @wsme_pecan.wsexpose(Story, int)
     def delete(self, story_id):
         """Delete this story.
