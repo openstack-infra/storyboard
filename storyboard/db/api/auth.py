@@ -20,7 +20,7 @@ from storyboard.db import models
 def authorization_code_get(code):
     query = api_base.model_query(models.AuthorizationCode,
                                  api_base.get_session())
-    return query.filter_by(code=code, is_active=True).first()
+    return query.filter_by(code=code).first()
 
 
 def authorization_code_save(values):
@@ -31,33 +31,29 @@ def authorization_code_delete(code):
     del_code = authorization_code_get(code)
 
     if del_code:
-        del_code.is_active = False
-        api_base.entity_update(models.AuthorizationCode, del_code.id,
-                               del_code.as_dict())
+        api_base.entity_hard_delete(models.AuthorizationCode, del_code.id)
 
 
-def token_get(access_token):
-    query = api_base.model_query(models.BearerToken, api_base.get_session())
-    # Note: is_active filtering for a reason, because we may still need to
-    # fetch expired token, for example to check refresh token info
+def access_token_get(access_token):
+    query = api_base.model_query(models.AccessToken, api_base.get_session())
     return query.filter_by(access_token=access_token).first()
 
 
-def token_save(values):
-    return api_base.entity_create(models.BearerToken, values)
+def access_token_save(values):
+    return api_base.entity_create(models.AccessToken, values)
 
 
-def token_update(access_token, values):
-    upd_token = token_get(access_token)
-
-    if upd_token:
-        return api_base.entity_update(models.BearerToken, upd_token.id, values)
-
-
-def token_delete(access_token):
-    del_token = token_get(access_token)
+def access_token_delete(access_token):
+    del_token = access_token_get(access_token)
 
     if del_token:
-        del_token.is_active = False
-        api_base.entity_update(models.BearerToken, del_token.id,
-                               del_token.as_dict())
+        api_base.entity_hard_delete(models.AccessToken, del_token.id)
+
+
+def refresh_token_get(refresh_token):
+    query = api_base.model_query(models.RefreshToken, api_base.get_session())
+    return query.filter_by(refresh_token=refresh_token).first()
+
+
+def refresh_token_save(values):
+    return api_base.entity_create(models.RefreshToken, values)

@@ -39,31 +39,36 @@ class DBTokenStorage(storage.StorageBase):
         auth_api.authorization_code_delete(code)
 
     def save_token(self, access_token, expires_in, refresh_token, user_id):
-        values = {
+        access_token_values = {
             "access_token": access_token,
-            "refresh_token": refresh_token,
             "expires_in": expires_in,
             "expires_at": datetime.datetime.now() + datetime.timedelta(
                 seconds=expires_in),
             "user_id": user_id
         }
 
-        auth_api.token_save(values)
+        refresh_token_values = {
+            "refresh_token": refresh_token,
+            "user_id": user_id
+        }
+
+        auth_api.access_token_save(access_token_values)
+        auth_api.refresh_token_save(refresh_token_values)
 
     def get_access_token_info(self, access_token):
-        return auth_api.token_get(access_token)
+        return auth_api.access_token_get(access_token)
 
     def check_access_token(self, access_token):
-        token_info = auth_api.token_get(access_token)
+        token_info = auth_api.access_token_get(access_token)
 
         if not token_info:
             return False
 
         if datetime.datetime.now() > token_info.expires_at:
-            auth_api.token_update(access_token, {"is_active": False})
+            auth_api.access_token_delete(access_token)
             return False
 
-        return token_info.is_active
+        return True
 
     def remove_token(self, access_token):
-        auth_api.token_delete(access_token)
+        auth_api.access_token_delete(access_token)
