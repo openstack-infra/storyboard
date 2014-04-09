@@ -23,7 +23,7 @@ class TestTasks(base.FunctionalTest):
 
         self.task_01 = {
             'title': 'StoryBoard',
-            'status': 'Todo',
+            'status': 'todo',
             'story_id': 10
         }
 

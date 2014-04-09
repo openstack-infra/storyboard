@@ -96,7 +96,7 @@ class TasksTest(BaseDbTestCase):
 
         self.task_01 = {
             'title': u'Invent time machine',
-            'status': 'Todo',
+            'status': 'todo',
             'story_id': 1
         }
 
@@ -105,7 +105,7 @@ class TasksTest(BaseDbTestCase):
 
     def test_update_task(self):
         delta = {
-            'status': 'In review',
+            'status': 'review',
             'assignee_id': 1
         }
 
