@@ -25,13 +25,11 @@ def task_get_all(marker=None, limit=None, story_id=None):
     return api_base.entity_get_all(models.Task,
                                    marker=marker,
                                    limit=limit,
-                                   story_id=story_id,
-                                   is_active=True)
+                                   story_id=story_id)
 
 
 def task_get_count(story_id=None):
-    return api_base.entity_get_count(models.Task, story_id=story_id,
-                                     is_active=True)
+    return api_base.entity_get_count(models.Task, story_id=story_id)
 
 
 def task_create(values):
@@ -46,5 +44,4 @@ def task_delete(task_id):
     task = task_get(task_id)
 
     if task:
-        task.is_active = False
-        api_base.entity_update(models.Task, task_id, task.as_dict())
+        api_base.entity_hard_delete(models.Task, task_id)

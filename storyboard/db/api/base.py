@@ -103,7 +103,7 @@ def model_query(model, session=None):
 
 def __entity_get(kls, entity_id, session):
     query = model_query(kls, session)
-    return query.filter_by(id=entity_id, is_active=True).first()
+    return query.filter_by(id=entity_id).first()
 
 
 def entity_get(kls, entity_id, filter_non_public=False):
