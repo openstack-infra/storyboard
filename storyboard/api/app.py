@@ -55,6 +55,7 @@ def setup_app(pecan_config=None):
     cfg.set_defaults(log.log_opts,
                      default_log_levels=[
                          'storyboard=INFO',
+                         'storyboard.openstack.common.db=WARN',
                          'sqlalchemy=WARN'
                      ])
     log.setup('storyboard')
