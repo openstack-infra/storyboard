@@ -175,17 +175,14 @@ class TokenTest(BaseDbTestCase):
         }
 
     def test_create_token(self):
-        self._test_create(self.token_01, auth.token_save)
+        self._test_create(self.token_01, auth.access_token_save)
 
     def test_delete_token(self):
-        created_token = auth.token_save(self.token_01)
+        created_token = auth.access_token_save(self.token_01)
 
         self.assertIsNotNone(created_token, "Could not create a Token")
 
-        auth.token_delete(created_token.access_token)
+        auth.access_token_delete(created_token.access_token)
 
-        fetched_token = auth.token_get(created_token.access_token)
-        self.assertIsNotNone(fetched_token,
-                             "Could not fetch a non-active Token")
-        self.assertFalse(fetched_token.is_active,
-                         "A deleted Token should have is_active set to False")
+        fetched_token = auth.access_token_get(created_token.access_token)
+        self.assertIsNone(fetched_token, "A deleted token was fetched.")

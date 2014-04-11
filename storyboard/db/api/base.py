@@ -189,3 +189,15 @@ def entity_update(kls, entity_id, values):
         session.add(entity)
 
     return entity
+
+
+def entity_hard_delete(kls, entity_id):
+
+    session = get_session()
+    with session.begin():
+        query = model_query(kls, session)
+        entity = query.filter_by(id=entity_id).first()
+        if entity is None:
+            raise exc.NotFound("%s %s not found" % (kls.__name__, entity_id))
+
+        session.delete(entity)
