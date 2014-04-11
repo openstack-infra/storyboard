@@ -37,6 +37,8 @@ def do_load_models(filename):
     project_groups = dict()
 
     for project in projects_list:
+        if not project.get('use-storyboard'):
+            continue
         group_name = project.get("group") or "default"
         if group_name not in project_groups:
             project_groups[group_name] = list()
