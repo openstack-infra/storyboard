@@ -101,13 +101,15 @@ class StoriesController(rest.RestController):
                                   status_code=404)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([Story], int, int, int)
-    def get_all(self, project_id=None, marker=None, limit=None):
+    @wsme_pecan.wsexpose([Story], int, int, int, unicode)
+    def get_all(self, project_id=None, marker=None, limit=None,
+                status=None):
         """Retrieve definitions of all of the stories.
 
         :param project_id: filter stories by project ID.
         :param marker: The resource id where the page should begin.
         :param limit: The number of stories to retrieve.
+        :param status: Only show stories with this particular status.
         """
 
         # Boundary check on limit.
@@ -123,8 +125,10 @@ class StoriesController(rest.RestController):
 
         stories = stories_api.story_get_all(marker=marker_story,
                                             limit=limit,
-                                            project_id=project_id)
-        story_count = stories_api.story_get_count(project_id=project_id)
+                                            project_id=project_id,
+                                            status=status)
+        story_count = stories_api.story_get_count(project_id=project_id,
+                                                  status=status)
 
         # Apply the query response headers.
         response.headers['X-Limit'] = str(limit)

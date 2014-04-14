@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#    http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,24 +22,29 @@ def story_get(story_id):
     return api_base.entity_get(models.StorySummary, story_id)
 
 
-def story_get_all(marker=None, limit=None, project_id=None):
+def story_get_all(marker=None, limit=None, project_id=None, status=None):
     if project_id:
         return _story_get_all_in_project(marker=marker,
                                          limit=limit,
-                                         project_id=project_id)
+                                         project_id=project_id,
+                                         status=status)
     else:
         return api_base.entity_get_all(models.StorySummary,
-                                       marker=marker, limit=limit)
+                                       marker=marker, limit=limit,
+                                       status=status)
 
 
-def story_get_count(project_id=None):
+def story_get_count(project_id=None, status=None):
     if project_id:
-        return _story_get_count_in_project(project_id)
+        return _story_get_count_in_project(project_id, status=status)
     else:
-        return api_base.entity_get_count(models.StorySummary)
+        return api_base.entity_get_count(models.StorySummary, status=status)
 
 
-def _story_get_all_in_project(project_id, marker=None, limit=None):
+def _story_get_all_in_project(project_id, marker=None, limit=None, **kwargs):
+    # Sanity check on input parameters
+    kwargs = dict((k, v) for k, v in kwargs.iteritems() if v)
+
     session = api_base.get_session()
 
     sub_query = api_base.model_query(models.Task.story_id, session) \
@@ -48,6 +53,7 @@ def _story_get_all_in_project(project_id, marker=None, limit=None):
         .subquery('project_tasks')
 
     query = api_base.model_query(models.StorySummary, session) \
+        .filter_by(**kwargs) \
         .join(sub_query, models.StorySummary.id == sub_query.c.story_id)
 
     query = api_base.paginate_query(query=query,
@@ -60,7 +66,10 @@ def _story_get_all_in_project(project_id, marker=None, limit=None):
     return query.all()
 
 
-def _story_get_count_in_project(project_id):
+def _story_get_count_in_project(project_id, **kwargs):
+    # Sanity check on input parameters
+    kwargs = dict((k, v) for k, v in kwargs.iteritems() if v)
+
     session = api_base.get_session()
 
     sub_query = api_base.model_query(models.Task.story_id, session) \
@@ -69,6 +78,7 @@ def _story_get_count_in_project(project_id):
         .subquery('project_tasks')
 
     query = api_base.model_query(models.StorySummary, session) \
+        .filter_by(**kwargs) \
         .join(sub_query, models.StorySummary.id == sub_query.c.story_id)
 
     return query.count()
