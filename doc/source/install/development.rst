@@ -24,8 +24,8 @@ Installing the API server
 
 3. Add MySQL user and create database::
 
-   	mysql -u $DB_USER -p $DB_PASSWORD -e 'DROP DATABASE IF EXISTS storyboard;'
-   	mysql -u $DB_USER -p $DB_PASSWORD -e 'CREATE DATABASE storyboard;'
+   	mysql -u $DB_USER -p$DB_PASSWORD -e 'DROP DATABASE IF EXISTS storyboard;'
+   	mysql -u $DB_USER -p$DB_PASSWORD -e 'CREATE DATABASE storyboard;'
 
 
 4. Copy the sample configuration file::
