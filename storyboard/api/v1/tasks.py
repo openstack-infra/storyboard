@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from oslo.config import cfg
+from pecan import request
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
@@ -47,6 +48,9 @@ class Task(base.APIBase):
 
     is_active = bool
     """Is this an active task, or has it been deleted?"""
+
+    creator_id = int
+    """Id of the User who has created this Task"""
 
     story_id = int
     """The ID of the corresponding Story."""
@@ -117,6 +121,10 @@ class TasksController(rest.RestController):
 
         :param task: a task within the request body.
         """
+
+        creator_id = request.current_user_id
+        task.creator_id = creator_id
+
         created_task = tasks_api.task_create(task.as_dict())
         return Task.from_db_model(created_task)
 
@@ -129,7 +137,7 @@ class TasksController(rest.RestController):
         :param task: a task within the request body.
         """
         updated_task = tasks_api.task_update(task_id,
-                                         task.as_dict(omit_unset=True))
+                                             task.as_dict(omit_unset=True))
 
         if updated_task:
             return Task.from_db_model(updated_task)

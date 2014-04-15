@@ -106,7 +106,6 @@ class User(Base):
     last_login = Column(DateTime)
     teams = relationship("Team", secondary="team_membership")
     permissions = relationship("Permission", secondary="user_permissions")
-    tasks = relationship('Task', backref='assignee')
 
     _public_fields = ["id", "openid", "full_name", "username", "last_login"]
 
@@ -182,14 +181,15 @@ class Story(Base):
 class Task(Base):
     _TASK_STATUSES = ('todo', 'inprogress', 'invalid', 'review', 'merged')
 
+    creator_id = Column(Integer, ForeignKey('users.id'))
     title = Column(Unicode(100), nullable=True)
     status = Column(Enum(*_TASK_STATUSES), default='todo')
     story_id = Column(Integer, ForeignKey('stories.id'))
     project_id = Column(Integer, ForeignKey('projects.id'))
     assignee_id = Column(Integer, ForeignKey('users.id'), nullable=True)
 
-    _public_fields = ["id", "title", "status", "story_id", "project_id",
-                      "assignee_id"]
+    _public_fields = ["id", "creator_id", "title", "status", "story_id",
+                      "project_id", "assignee_id"]
 
 
 class Comment(Base):
