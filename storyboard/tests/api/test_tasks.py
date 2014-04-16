@@ -12,6 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from storyboard.common import user_utils
 from storyboard.tests import base
 
 
@@ -26,6 +27,14 @@ class TestTasks(base.FunctionalTest):
             'status': 'todo',
             'story_id': 10
         }
+
+        self.original_user_utils = user_utils
+        self.addCleanup(self._restore_user_utils)
+        user_utils.username_by_id = lambda id: 'Test User'
+
+    def _restore_user_utils(self):
+        global user_utils
+        user_utils = self.original_user_utils
 
     def test_tasks_endpoint(self):
         response = self.get_json(self.resource)

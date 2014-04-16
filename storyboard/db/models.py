@@ -171,11 +171,11 @@ class Story(Base):
     description = Column(UnicodeText())
     is_bug = Column(Boolean, default=True)
     tasks = relationship('Task', backref='story')
-    comments = relationship('Comment', backref='story')
+    events = relationship('TimeLineEvent', backref='story')
     tags = relationship('StoryTag', backref='story')
 
     _public_fields = ["id", "creator_id", "title", "description", "is_bug",
-                      "tasks", "comments", "tags"]
+                      "tasks", "events", "tags"]
 
 
 class Task(Base):
@@ -190,21 +190,6 @@ class Task(Base):
 
     _public_fields = ["id", "creator_id", "title", "status", "story_id",
                       "project_id", "assignee_id"]
-
-
-class Comment(Base):
-
-    action = Column(String(150), nullable=True)
-    comment_type = Column(String(20))
-    content = Column(UnicodeText)
-
-    story_id = Column(Integer, ForeignKey('stories.id'))
-    author_id = Column(Integer, ForeignKey('users.id'), nullable=True)
-    author = relationship('User', primaryjoin=author_id == User.id)
-    is_active = Column(Boolean, default=True)
-
-    _public_fields = ["id", "action", "comment_type", "content", "story_id",
-                      "author_id"]
 
 
 class StoryTag(Base):
@@ -275,3 +260,26 @@ class StorySummary(Base):
     _public_fields = ["id", "creator_id", "title", "description", "is_bug",
                       "tasks", "comments", "tags", "todo", "inprogress",
                       "review", "merged", "invalid", "status"]
+
+
+# Time-line models
+
+class TimeLineEvent(Base):
+    __tablename__ = 'events'
+
+    story_id = Column(Integer, ForeignKey('stories.id'))
+    comment_id = Column(Integer, ForeignKey('comments.id'), nullable=True)
+    author_id = Column(Integer, ForeignKey('users.id'), nullable=True)
+
+    event_type = Column(Unicode(100), nullable=False)
+
+    # this info field should contain additional fields to describe the event
+    # ex. {'old_status': 'Todo', 'new_status': 'In progress'}
+    # or {'old_assignee_id': 1, 'new_assignee_id': 42}
+    event_info = Column(UnicodeText(), nullable=True)
+
+
+class Comment(Base):
+
+    content = Column(UnicodeText)
+    is_active = Column(Boolean, default=True)

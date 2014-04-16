@@ -21,20 +21,6 @@ def comment_get(comment_id):
     return api_base.entity_get(models.Comment, comment_id)
 
 
-def comment_get_all(marker=None, limit=None, **kwargs):
-    return api_base.entity_get_all(models.Comment,
-                                   is_active=True,
-                                   marker=marker,
-                                   limit=limit,
-                                   **kwargs)
-
-
-def comment_get_count(**kwargs):
-    return api_base.entity_get_count(models.Comment,
-                                     is_active=True,
-                                     **kwargs)
-
-
 def comment_create(values):
     return api_base.entity_create(models.Comment, values)
 

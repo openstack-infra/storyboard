@@ -24,8 +24,10 @@ import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
-from storyboard.api.v1.comments import CommentsController
+from storyboard.api.v1.timeline import CommentsController
+from storyboard.api.v1.timeline import TimeLineEventsController
 from storyboard.db.api import stories as stories_api
+from storyboard.db.api import timeline_events as events_api
 
 CONF = cfg.CONF
 
@@ -151,6 +153,8 @@ class StoriesController(rest.RestController):
         story_dict.update({"creator_id": user_id})
         created_story = stories_api.story_create(story_dict)
 
+        events_api.story_created_event(created_story.id, user_id)
+
         return Story.from_db_model(created_story)
 
     @secure(checks.authenticated)
@@ -166,6 +170,9 @@ class StoriesController(rest.RestController):
             story.as_dict(omit_unset=True))
 
         if updated_story:
+            user_id = request.current_user_id
+            events_api.story_details_changed_event(story_id, user_id)
+
             return Story.from_db_model(updated_story)
         else:
             raise ClientSideError("Story %s not found" % id,
@@ -183,3 +190,4 @@ class StoriesController(rest.RestController):
         response.status_code = 204
 
     comments = CommentsController()
+    events = TimeLineEventsController()

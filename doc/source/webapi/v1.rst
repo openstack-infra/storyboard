@@ -18,7 +18,7 @@ Stories
 
 Comments
 =======
-.. rest-controller:: storyboard.api.v1.comments:CommentsController
+.. rest-controller:: storyboard.api.v1.timeline:CommentsController
    :webprefix: /v1/stories/[ID]/comments
 
 Tasks
@@ -50,7 +50,7 @@ Story
 
 Comment
 =====
-.. autotype:: storyboard.api.v1.comments.Comment
+.. autotype:: storyboard.api.v1.timeline.Comment
    :members:
 
 
