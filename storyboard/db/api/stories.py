@@ -43,7 +43,7 @@ def _story_get_all_in_project(project_id, marker=None, limit=None):
     session = api_base.get_session()
 
     sub_query = api_base.model_query(models.Task.story_id, session) \
-        .filter_by(project_id=project_id, is_active=True) \
+        .filter_by(project_id=project_id) \
         .distinct(True) \
         .subquery()
 
@@ -65,7 +65,7 @@ def _story_get_count_in_project(project_id):
     session = api_base.get_session()
 
     sub_query = api_base.model_query(models.Task.story_id, session) \
-        .filter_by(project_id=project_id, is_active=True) \
+        .filter_by(project_id=project_id) \
         .distinct(True) \
         .subquery()
 

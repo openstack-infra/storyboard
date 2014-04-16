@@ -185,7 +185,6 @@ class Task(Base):
     story_id = Column(Integer, ForeignKey('stories.id'))
     project_id = Column(Integer, ForeignKey('projects.id'))
     assignee_id = Column(Integer, ForeignKey('users.id'), nullable=True)
-    is_active = Column(Boolean, default=True)
 
     _public_fields = ["id", "title", "status", "story_id", "project_id",
                       "assignee_id"]
