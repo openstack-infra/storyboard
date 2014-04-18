@@ -54,6 +54,9 @@ class Task(base.APIBase):
     project_id = int
     """The ID of the corresponding Project."""
 
+    assignee_id = int
+    """The ID of the invidiual to whom this task is assigned."""
+
 
 class TasksController(rest.RestController):
     """Manages tasks."""
