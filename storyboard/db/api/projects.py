@@ -39,11 +39,3 @@ def project_create(values):
 
 def project_update(project_id, values):
     return api_base.entity_update(models.Project, project_id, values)
-
-
-def project_delete(project_id):
-    project = project_get(project_id)
-
-    if project:
-        project.is_active = False
-        api_base.entity_update(models.Project, project_id, project.as_dict())
