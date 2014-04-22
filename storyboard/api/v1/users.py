@@ -86,7 +86,8 @@ class UsersController(rest.RestController):
         # Resolve the marker record.
         marker_user = users_api.user_get(marker)
 
-        users = users_api.user_get_all(marker=marker_user, limit=limit)
+        users = users_api.user_get_all(marker=marker_user, limit=limit,
+                                       filter_non_public=True)
         user_count = users_api.user_get_count()
 
         # Apply the query response headers.
