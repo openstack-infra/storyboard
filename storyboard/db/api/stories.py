@@ -19,7 +19,7 @@ from storyboard.db import models
 
 
 def story_get(story_id):
-    return api_base.entity_get(models.Story, story_id)
+    return api_base.entity_get(models.StorySummary, story_id)
 
 
 def story_get_all(marker=None, limit=None, project_id=None):
@@ -28,7 +28,7 @@ def story_get_all(marker=None, limit=None, project_id=None):
                                          limit=limit,
                                          project_id=project_id)
     else:
-        return api_base.entity_get_all(models.Story, is_active=True,
+        return api_base.entity_get_all(models.StorySummary,
                                        marker=marker, limit=limit)
 
 
@@ -36,7 +36,7 @@ def story_get_count(project_id=None):
     if project_id:
         return _story_get_count_in_project(project_id)
     else:
-        return api_base.entity_get_count(models.Story, is_active=True)
+        return api_base.entity_get_count(models.StorySummary)
 
 
 def _story_get_all_in_project(project_id, marker=None, limit=None):
@@ -45,14 +45,13 @@ def _story_get_all_in_project(project_id, marker=None, limit=None):
     sub_query = api_base.model_query(models.Task.story_id, session) \
         .filter_by(project_id=project_id) \
         .distinct(True) \
-        .subquery()
+        .subquery('project_tasks')
 
-    query = api_base.model_query(models.Story, session) \
-        .filter_by(is_active=True) \
-        .join(sub_query, models.Story.tasks)
+    query = api_base.model_query(models.StorySummary, session) \
+        .join(sub_query, models.StorySummary.id == sub_query.c.story_id)
 
     query = api_base.paginate_query(query=query,
-                                    model=models.Story,
+                                    model=models.StorySummary,
                                     limit=limit,
                                     sort_keys=['id'],
                                     marker=marker,
@@ -67,11 +66,10 @@ def _story_get_count_in_project(project_id):
     sub_query = api_base.model_query(models.Task.story_id, session) \
         .filter_by(project_id=project_id) \
         .distinct(True) \
-        .subquery()
+        .subquery('project_tasks')
 
-    query = api_base.model_query(models.Story, session) \
-        .filter_by(is_active=True) \
-        .join(sub_query, models.Story.tasks)
+    query = api_base.model_query(models.StorySummary, session) \
+        .join(sub_query, models.StorySummary.id == sub_query.c.story_id)
 
     return query.count()
 
@@ -88,5 +86,4 @@ def story_delete(story_id):
     story = story_get(story_id)
 
     if story:
-        story.is_active = False
-        api_base.entity_update(models.Story, story_id, story.as_dict())
+        api_base.entity_hard_delete(models.Story, story_id, story.as_dict())
