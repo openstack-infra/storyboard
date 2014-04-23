@@ -133,14 +133,3 @@ class ProjectsController(rest.RestController):
         else:
             raise ClientSideError("Project %s not found" % id,
                                   status_code=404)
-
-    @secure(checks.superuser)
-    @wsme_pecan.wsexpose(Project, int)
-    def delete(self, project_id):
-        """Delete this project.
-
-        :param project_id: An ID of the project.
-        """
-        projects_api.project_delete(project_id)
-
-        response.status_code = 204
