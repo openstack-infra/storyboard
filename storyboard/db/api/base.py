@@ -17,6 +17,7 @@ import copy
 
 from oslo.config import cfg
 import six
+import sqlalchemy.types as types
 
 from storyboard.common import exception as exc
 from storyboard.db import models
@@ -70,6 +71,25 @@ def _destroy_facade_instance():
     _FACADE = None
 
 
+def _apply_query_filters(query, model, **kwargs):
+    """Parses through a list of kwargs to determine which exist on the model,
+    which should be filtered as ==, and which should be filtered as LIKE
+    """
+
+    for k, v in kwargs.iteritems():
+        if v and hasattr(model, k):
+            column = getattr(model, k)
+            if column.is_attribute:
+                if isinstance(column.type, types.String):
+                    # Filter strings with LIKE
+                    query = query.filter(column.like("%" + v + "%"))
+                else:
+                    # Everything else is a strict equal
+                    query = query.filter(column == v)
+
+    return query
+
+
 def get_engine():
     """Returns the global instance of our database engine.
     """
@@ -117,12 +137,15 @@ def entity_get(kls, entity_id, filter_non_public=False):
 
 def entity_get_all(kls, filter_non_public=False, marker=None, limit=None,
                    **kwargs):
+    # Construct the query
+    query = model_query(kls)
 
     # Sanity check on input parameters
-    kwargs = dict((k, v) for k, v in kwargs.iteritems() if v)
+    query = _apply_query_filters(query=query,
+                                 model=kls,
+                                 **kwargs)
 
     # Construct the query
-    query = model_query(kls).filter_by(**kwargs)
     query = paginate_query(query=query,
                            model=kls,
                            limit=limit,
@@ -143,9 +166,15 @@ def entity_get_all(kls, filter_non_public=False, marker=None, limit=None,
 
 
 def entity_get_count(kls, **kwargs):
-    kwargs = dict((k, v) for k, v in kwargs.iteritems() if v)
+    # Construct the query
+    query = model_query(kls)
 
-    count = model_query(kls).filter_by(**kwargs).count()
+    # Sanity check on input parameters
+    query = _apply_query_filters(query=query,
+                                 model=kls,
+                                 **kwargs)
+
+    count = query.count()
 
     return count
 

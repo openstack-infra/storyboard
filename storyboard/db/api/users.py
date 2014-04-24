@@ -26,15 +26,17 @@ def user_get(user_id, filter_non_public=False):
     return entity
 
 
-def user_get_all(marker=None, limit=None, filter_non_public=False):
+def user_get_all(marker=None, limit=None, filter_non_public=False,
+                 **kwargs):
     return api_base.entity_get_all(models.User,
                                    marker=marker,
                                    limit=limit,
-                                   filter_non_public=filter_non_public)
+                                   filter_non_public=filter_non_public,
+                                   **kwargs)
 
 
-def user_get_count():
-    return api_base.entity_get_count(models.User)
+def user_get_count(**kwargs):
+    return api_base.entity_get_count(models.User, **kwargs)
 
 
 def user_get_by_openid(openid):

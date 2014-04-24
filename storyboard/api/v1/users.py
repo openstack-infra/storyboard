@@ -70,12 +70,14 @@ class UsersController(rest.RestController):
     """Manages users."""
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([User], int, int)
-    def get(self, marker=None, limit=None):
-        """Retrieve definitions of all of the users.
+    @wsme_pecan.wsexpose([User], int, int, unicode, unicode)
+    def get(self, marker=None, limit=None, username=None, full_name=None):
+        """Page and filter the users in storyboard.
 
         :param marker: The resource id where the page should begin.
         :param limit The number of users to retrieve.
+        :param username A string of characters to filter the username with.
+        :param full_name A string of characters to filter the full_name with.
         """
 
         # Boundary check on limit.
@@ -87,8 +89,10 @@ class UsersController(rest.RestController):
         marker_user = users_api.user_get(marker)
 
         users = users_api.user_get_all(marker=marker_user, limit=limit,
+                                       username=username, full_name=full_name,
                                        filter_non_public=True)
-        user_count = users_api.user_get_count()
+        user_count = users_api.user_get_count(username=username,
+                                              full_name=full_name)
 
         # Apply the query response headers.
         response.headers['X-Limit'] = str(limit)
