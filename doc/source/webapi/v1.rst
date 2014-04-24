@@ -11,6 +11,14 @@ Projects
 .. rest-controller:: storyboard.api.v1.projects:ProjectsController
    :webprefix: /v1/projects
 
+Project Groups
+==============
+.. rest-controller:: storyboard.api.v1.project_groups:ProjectGroupsController
+   :webprefix: /v1/project_groups
+
+.. rest-controller:: storyboard.api.v1.project_groups:ProjectsSubcontroller
+   :webprefix: /v1/project_groups/<project_group_id>/projects
+
 Stories
 =======
 .. rest-controller:: storyboard.api.v1.stories:StoriesController
