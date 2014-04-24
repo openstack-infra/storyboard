@@ -1,6 +1,8 @@
 - project: Test-Project
   description: First project
+  use-storyboard: true
   group: Group-1
 - project: Test-Project-Two
   description: Second project
+  use-storyboard: true
   group: Group-1
