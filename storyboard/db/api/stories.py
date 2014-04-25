@@ -22,28 +22,26 @@ def story_get(story_id):
     return api_base.entity_get(models.StorySummary, story_id)
 
 
-def story_get_all(marker=None, limit=None, project_id=None, status=None):
+def story_get_all(marker=None, limit=None, project_id=None, **kwargs):
     if project_id:
         return _story_get_all_in_project(marker=marker,
                                          limit=limit,
                                          project_id=project_id,
-                                         status=status)
+                                         **kwargs)
     else:
         return api_base.entity_get_all(models.StorySummary,
                                        marker=marker, limit=limit,
-                                       status=status)
+                                       **kwargs)
 
 
-def story_get_count(project_id=None, status=None):
+def story_get_count(project_id=None, **kwargs):
     if project_id:
-        return _story_get_count_in_project(project_id, status=status)
+        return _story_get_count_in_project(project_id, **kwargs)
     else:
-        return api_base.entity_get_count(models.StorySummary, status=status)
+        return api_base.entity_get_count(models.StorySummary, **kwargs)
 
 
 def _story_get_all_in_project(project_id, marker=None, limit=None, **kwargs):
-    # Sanity check on input parameters
-    kwargs = dict((k, v) for k, v in kwargs.iteritems() if v)
 
     session = api_base.get_session()
 
@@ -52,9 +50,9 @@ def _story_get_all_in_project(project_id, marker=None, limit=None, **kwargs):
         .distinct(True) \
         .subquery('project_tasks')
 
-    query = api_base.model_query(models.StorySummary, session) \
-        .filter_by(**kwargs) \
-        .join(sub_query, models.StorySummary.id == sub_query.c.story_id)
+    query = api_base.model_query(models.StorySummary, session)
+    query = api_base.apply_query_filters(query, models.StorySummary, **kwargs)
+    query.join(sub_query, models.StorySummary.id == sub_query.c.story_id)
 
     query = api_base.paginate_query(query=query,
                                     model=models.StorySummary,
@@ -77,9 +75,9 @@ def _story_get_count_in_project(project_id, **kwargs):
         .distinct(True) \
         .subquery('project_tasks')
 
-    query = api_base.model_query(models.StorySummary, session) \
-        .filter_by(**kwargs) \
-        .join(sub_query, models.StorySummary.id == sub_query.c.story_id)
+    query = api_base.model_query(models.StorySummary, session)
+    query = api_base.apply_query_filters(query, models.StorySummary, **kwargs)
+    query.join(sub_query, models.StorySummary.id == sub_query.c.story_id)
 
     return query.count()
 

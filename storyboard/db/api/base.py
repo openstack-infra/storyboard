@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#    http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -71,7 +71,7 @@ def _destroy_facade_instance():
     _FACADE = None
 
 
-def _apply_query_filters(query, model, **kwargs):
+def apply_query_filters(query, model, **kwargs):
     """Parses through a list of kwargs to determine which exist on the model,
     which should be filtered as ==, and which should be filtered as LIKE
     """
@@ -141,9 +141,7 @@ def entity_get_all(kls, filter_non_public=False, marker=None, limit=None,
     query = model_query(kls)
 
     # Sanity check on input parameters
-    query = _apply_query_filters(query=query,
-                                 model=kls,
-                                 **kwargs)
+    query = apply_query_filters(query=query, model=kls, **kwargs)
 
     # Construct the query
     query = paginate_query(query=query,
@@ -170,9 +168,7 @@ def entity_get_count(kls, **kwargs):
     query = model_query(kls)
 
     # Sanity check on input parameters
-    query = _apply_query_filters(query=query,
-                                 model=kls,
-                                 **kwargs)
+    query = apply_query_filters(query=query, model=kls, **kwargs)
 
     count = query.count()
 
@@ -221,7 +217,6 @@ def entity_update(kls, entity_id, values):
 
 
 def entity_hard_delete(kls, entity_id):
-
     session = get_session()
     with session.begin():
         query = model_query(kls, session)
