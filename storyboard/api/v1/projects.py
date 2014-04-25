@@ -80,12 +80,14 @@ class ProjectsController(rest.RestController):
                                   status_code=404)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([Project], int, int)
-    def get(self, marker=None, limit=None):
+    @wsme_pecan.wsexpose([Project], int, int, unicode, unicode)
+    def get(self, marker=None, limit=None, name=None, description=None):
         """Retrieve a list of projects.
 
         :param marker: The resource id where the page should begin.
         :param limit: The number of projects to retrieve.
+        :param name: A string to filter the name by.
+        :param description: A string to filter the description by.
         """
         # Boundary check on limit.
         if limit is None:
@@ -96,8 +98,11 @@ class ProjectsController(rest.RestController):
         marker_project = projects_api.project_get(marker)
 
         projects = projects_api.project_get_all(marker=marker_project,
-                                                limit=limit)
-        project_count = projects_api.project_get_count()
+                                                limit=limit,
+                                                name=name,
+                                                description=description)
+        project_count = projects_api.project_get_count(name=name,
+                                                       description=description)
 
         # Apply the query response headers.
         response.headers['X-Limit'] = str(limit)
