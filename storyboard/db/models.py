@@ -180,6 +180,7 @@ class Story(Base):
 
 class Task(Base):
     _TASK_STATUSES = ('todo', 'inprogress', 'invalid', 'review', 'merged')
+    _TASK_PRIORITIES = ('low', 'medium', 'high')
 
     creator_id = Column(Integer, ForeignKey('users.id'))
     title = Column(Unicode(100), nullable=True)
@@ -187,9 +188,10 @@ class Task(Base):
     story_id = Column(Integer, ForeignKey('stories.id'))
     project_id = Column(Integer, ForeignKey('projects.id'))
     assignee_id = Column(Integer, ForeignKey('users.id'), nullable=True)
+    priority = Column(Enum(*_TASK_PRIORITIES), default='medium')
 
     _public_fields = ["id", "creator_id", "title", "status", "story_id",
-                      "project_id", "assignee_id"]
+                      "project_id", "assignee_id", "priority"]
 
 
 class StoryTag(Base):

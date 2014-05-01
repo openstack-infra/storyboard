@@ -62,6 +62,9 @@ class Task(base.APIBase):
     assignee_id = int
     """The ID of the invidiual to whom this task is assigned."""
 
+    priority = wtypes.text
+    """The priority for this task, one of 'low', 'medium', 'high'"""
+
 
 class TasksController(rest.RestController):
     """Manages tasks."""
