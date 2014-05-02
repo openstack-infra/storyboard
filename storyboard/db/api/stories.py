@@ -52,7 +52,8 @@ def _story_get_all_in_project(project_id, marker=None, limit=None, **kwargs):
 
     query = api_base.model_query(models.StorySummary, session)
     query = api_base.apply_query_filters(query, models.StorySummary, **kwargs)
-    query.join(sub_query, models.StorySummary.id == sub_query.c.story_id)
+    query = query.join(sub_query,
+                       models.StorySummary.id == sub_query.c.story_id)
 
     query = api_base.paginate_query(query=query,
                                     model=models.StorySummary,
@@ -77,7 +78,8 @@ def _story_get_count_in_project(project_id, **kwargs):
 
     query = api_base.model_query(models.StorySummary, session)
     query = api_base.apply_query_filters(query, models.StorySummary, **kwargs)
-    query.join(sub_query, models.StorySummary.id == sub_query.c.story_id)
+    query = query.join(sub_query,
+                       models.StorySummary.id == sub_query.c.story_id)
 
     return query.count()
 
