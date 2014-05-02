@@ -22,66 +22,51 @@ def story_get(story_id):
     return api_base.entity_get(models.StorySummary, story_id)
 
 
-def story_get_all(marker=None, limit=None, project_id=None, **kwargs):
-    if project_id:
-        return _story_get_all_in_project(marker=marker,
-                                         limit=limit,
-                                         project_id=project_id,
-                                         **kwargs)
-    else:
-        return api_base.entity_get_all(models.StorySummary,
-                                       marker=marker, limit=limit,
-                                       **kwargs)
+def story_get_all(marker=None, limit=None, story_filters=None,
+                  task_filters=None):
+    query = _story_build_query(story_filters=story_filters,
+                               task_filters=task_filters)
 
-
-def story_get_count(project_id=None, **kwargs):
-    if project_id:
-        return _story_get_count_in_project(project_id, **kwargs)
-    else:
-        return api_base.entity_get_count(models.StorySummary, **kwargs)
-
-
-def _story_get_all_in_project(project_id, marker=None, limit=None, **kwargs):
-
-    session = api_base.get_session()
-
-    sub_query = api_base.model_query(models.Task.story_id, session) \
-        .filter_by(project_id=project_id) \
-        .distinct(True) \
-        .subquery('project_tasks')
-
-    query = api_base.model_query(models.StorySummary, session)
-    query = api_base.apply_query_filters(query, models.StorySummary, **kwargs)
-    query = query.join(sub_query,
-                       models.StorySummary.id == sub_query.c.story_id)
-
+    # paginate the query
     query = api_base.paginate_query(query=query,
                                     model=models.StorySummary,
                                     limit=limit,
                                     sort_keys=['id'],
                                     marker=marker,
                                     sort_dir='asc')
-
     return query.all()
 
 
-def _story_get_count_in_project(project_id, **kwargs):
-    # Sanity check on input parameters
-    kwargs = dict((k, v) for k, v in kwargs.iteritems() if v)
-
-    session = api_base.get_session()
-
-    sub_query = api_base.model_query(models.Task.story_id, session) \
-        .filter_by(project_id=project_id) \
-        .distinct(True) \
-        .subquery('project_tasks')
-
-    query = api_base.model_query(models.StorySummary, session)
-    query = api_base.apply_query_filters(query, models.StorySummary, **kwargs)
-    query = query.join(sub_query,
-                       models.StorySummary.id == sub_query.c.story_id)
-
+def story_get_count(story_filters=None, task_filters=None):
+    query = _story_build_query(story_filters=story_filters,
+                               task_filters=task_filters)
     return query.count()
+
+
+def _story_build_query(story_filters=None, task_filters=None):
+    # Input sanity checks
+    if story_filters:
+        story_filters = dict((k, v) for k, v in story_filters.iteritems() if v)
+    if task_filters:
+        task_filters = dict((k, v) for k, v in task_filters.iteritems() if v)
+
+    # Build the main story query
+    query = api_base.model_query(models.StorySummary)
+    query = api_base.apply_query_filters(query=query,
+                                         model=models.StorySummary,
+                                         **story_filters)
+
+    # Do we have task parameter queries we need to deal with?
+    if task_filters and len(task_filters) > 0:
+        subquery = api_base.model_query(models.Task.story_id) \
+            .filter_by(**task_filters) \
+            .distinct(True) \
+            .subquery('project_tasks')
+
+        query = query.join(subquery,
+                           models.StorySummary.id == subquery.c.story_id)
+
+    return query
 
 
 def story_create(values):

@@ -103,12 +103,14 @@ class StoriesController(rest.RestController):
                                   status_code=404)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([Story], int, int, int, unicode, unicode, unicode)
-    def get_all(self, project_id=None, marker=None, limit=None,
-                status=None, title=None, description=None):
+    @wsme_pecan.wsexpose([Story], int, int, int, int, unicode, unicode,
+                         unicode)
+    def get_all(self, project_id=None, assignee_id=None, marker=None,
+                limit=None, status=None, title=None, description=None):
         """Retrieve definitions of all of the stories.
 
         :param project_id: filter stories by project ID.
+        :param assignee_id: filter stories by who they are assigned to.
         :param marker: The resource id where the page should begin.
         :param limit: The number of stories to retrieve.
         :param status: Only show stories with this particular status.
@@ -127,16 +129,26 @@ class StoriesController(rest.RestController):
         if marker_story is None or marker_story.project_id != project_id:
             marker_story = None
 
+        # Build a dict of all story parameters by which we're filtering
+        # stories.
+        story_filters = {
+            'title': title,
+            'description': description,
+            'status': status
+        }
+
+        # Build a dict of all task parameters by which we're filtering stories.
+        task_filters = {
+            'project_id': project_id,
+            'assignee_id': assignee_id
+        }
+
         stories = stories_api.story_get_all(marker=marker_story,
                                             limit=limit,
-                                            project_id=project_id,
-                                            status=status,
-                                            title=title,
-                                            description=description)
-        story_count = stories_api.story_get_count(project_id=project_id,
-                                                  status=status,
-                                                  title=title,
-                                                  description=description)
+                                            story_filters=story_filters,
+                                            task_filters=task_filters)
+        story_count = stories_api.story_get_count(story_filters=story_filters,
+                                                  task_filters=task_filters)
 
         # Apply the query response headers.
         response.headers['X-Limit'] = str(limit)
