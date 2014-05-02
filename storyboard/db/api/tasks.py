@@ -21,15 +21,15 @@ def task_get(task_id):
     return api_base.entity_get(models.Task, task_id)
 
 
-def task_get_all(marker=None, limit=None, story_id=None):
+def task_get_all(marker=None, limit=None, **kwargs):
     return api_base.entity_get_all(models.Task,
                                    marker=marker,
                                    limit=limit,
-                                   story_id=story_id)
+                                   **kwargs)
 
 
-def task_get_count(story_id=None):
-    return api_base.entity_get_count(models.Task, story_id=story_id)
+def task_get_count(**kwargs):
+    return api_base.entity_get_count(models.Task, **kwargs)
 
 
 def task_create(values):

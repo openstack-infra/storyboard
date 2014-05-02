@@ -81,11 +81,13 @@ class TasksController(rest.RestController):
                                   status_code=404)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([Task], int, int, int)
-    def get_all(self, story_id=None, marker=None, limit=None):
+    @wsme_pecan.wsexpose([Task], int, int, int, int)
+    def get_all(self, story_id=None, assignee_id=None, marker=None,
+                limit=None):
         """Retrieve definitions of all of the tasks.
 
         :param story_id: filter tasks by story ID.
+        :param assignee_id: filter tasks by who they are assigned to.
         :param marker: The resource id where the page should begin.
         :param limit: The number of tasks to retrieve.
         """
@@ -103,8 +105,10 @@ class TasksController(rest.RestController):
 
         tasks = tasks_api.task_get_all(marker=marker_task,
                                        limit=limit,
+                                       assignee_id=assignee_id,
                                        story_id=story_id)
-        task_count = tasks_api.task_get_count(story_id=story_id)
+        task_count = tasks_api.task_get_count(assignee_id=assignee_id,
+                                              story_id=story_id)
 
         # Apply the query response headers.
         response.headers['X-Limit'] = str(limit)
