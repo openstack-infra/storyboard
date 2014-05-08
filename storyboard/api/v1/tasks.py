@@ -25,6 +25,7 @@ import wsmeext.pecan as wsme_pecan
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
 from storyboard.db.api import tasks as tasks_api
+from storyboard.db.api import timeline_events as events_api
 
 CONF = cfg.CONF
 
@@ -130,6 +131,11 @@ class TasksController(rest.RestController):
         task.creator_id = creator_id
 
         created_task = tasks_api.task_create(task.as_dict())
+
+        events_api.task_created_event(story_id=task.story_id,
+                                      task_title=created_task.title,
+                                      author_id=creator_id)
+
         return Task.from_db_model(created_task)
 
     @secure(checks.authenticated)
@@ -140,14 +146,48 @@ class TasksController(rest.RestController):
         :param task_id: An ID of the task.
         :param task: a task within the request body.
         """
+        original_task = tasks_api.task_get(task_id)
+
         updated_task = tasks_api.task_update(task_id,
                                              task.as_dict(omit_unset=True))
 
         if updated_task:
+            self._post_timeline_events(original_task, updated_task)
             return Task.from_db_model(updated_task)
         else:
             raise ClientSideError("Task %s not found" % id,
                                   status_code=404)
+
+    def _post_timeline_events(self, original_task, updated_task):
+        # If both the assignee_id and the status were changed there will be
+        # two separate comments in the activity log.
+
+        author_id = request.current_user_id
+        specific_change = False
+
+        if original_task.status != updated_task.status:
+            events_api.task_status_changed_event(
+                story_id=original_task.story_id,
+                task_title=original_task.title,
+                author_id=author_id,
+                old_status=original_task.status,
+                new_status=updated_task.status)
+            specific_change = True
+
+        if original_task.assignee_id != updated_task.assignee_id:
+            events_api.task_assignee_changed_event(
+                story_id=original_task.story_id,
+                task_title=original_task.title,
+                author_id=author_id,
+                old_assignee_id=original_task.assignee_id,
+                new_assignee_id=updated_task.assignee_id)
+            specific_change = True
+
+        if not specific_change:
+            events_api.task_details_changed_event(
+                story_id=original_task.story_id,
+                task_title=original_task.title,
+                author_id=author_id)
 
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(Task, int)
@@ -156,6 +196,13 @@ class TasksController(rest.RestController):
 
         :param task_id: An ID of the task.
         """
+        original_task = tasks_api.task_get(task_id)
+
+        events_api.task_deleted_event(
+            story_id=original_task.story_id,
+            task_title=original_task.title,
+            author_id=request.current_user_id)
+
         tasks_api.task_delete(task_id)
 
         response.status_code = 204

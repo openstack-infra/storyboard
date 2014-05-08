@@ -14,6 +14,7 @@
 
 import json
 
+from storyboard.common import user_utils
 from storyboard.tests import base
 
 
@@ -30,6 +31,10 @@ class TestComments(base.FunctionalTest):
             'content': 'And another one'
         }
 
+        self.original_user_utils = user_utils
+        self.addCleanup(self._restore_user_utils)
+        user_utils.username_by_id = lambda id: 'Test User'
+
         stories_resource = '/stories'
         story = {
             'title': 'StoryBoard',
@@ -39,9 +44,13 @@ class TestComments(base.FunctionalTest):
         resp = self.post_json(stories_resource, story)
         self.story_id = json.loads(resp.body)["id"]
 
+    def _restore_user_utils(self):
+        global user_utils
+        user_utils = self.original_user_utils
+
     def test_comments_endpoint(self):
         response = self.get_json(self.comments_resource % self.story_id)
-        self.assertEqual([], response)
+        self.assertEqual(0, len(response))
 
     def test_create(self):
         self.post_json(self.comments_resource % self.story_id, self.comment_01)
@@ -57,19 +66,19 @@ class TestComments(base.FunctionalTest):
         original = self.post_json(self.comments_resource % self.story_id,
                                   self.comment_01)
 
-        original_comment = json.loads(original.body)
+        original_event = json.loads(original.body)
 
         delta = {
-            'id': original_comment['id'],
+            'id': original_event['comment_id'],
             'content': 'Updated content'
         }
-        original_id = original_comment['id']
+        original_id = original_event['comment_id']
         update_url = self.comments_resource % self.story_id + \
             "/%d" % original_id
 
         updated = self.put_json(update_url, delta)
 
-        original_content = original_comment['content']
+        original_content = self.comment_01['content']
         updated_content = json.loads(updated.body)['content']
 
         self.assertNotEqual(original_content, updated_content)
