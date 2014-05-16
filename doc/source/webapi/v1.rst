@@ -1,6 +1,6 @@
-============
- V1 Web API
-============
+==========
+V1 Web API
+==========
 
 ###
 API
@@ -16,10 +16,13 @@ Stories
 .. rest-controller:: storyboard.api.v1.stories:StoriesController
    :webprefix: /v1/stories
 
-Comments
-=======
+Comments and Timeline events
+============================
 .. rest-controller:: storyboard.api.v1.timeline:CommentsController
-   :webprefix: /v1/stories/[ID]/comments
+   :webprefix: /v1/stories/<story_id>/comments
+
+.. rest-controller:: storyboard.api.v1.timeline:TimeLineEventsController
+   :webprefix: /v1/stories/<story_id>/events
 
 Tasks
 =====
@@ -49,8 +52,14 @@ Story
 
 
 Comment
-=====
+=======
 .. autotype:: storyboard.api.v1.timeline.Comment
+   :members:
+
+
+Timeline event
+==============
+.. autotype:: storyboard.api.v1.timeline.TimeLineEvent
    :members:
 
 
