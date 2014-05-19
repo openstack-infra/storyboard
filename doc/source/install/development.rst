@@ -18,19 +18,19 @@ Installing the API server
 
 2. Clone storyboard::
 
-	git clone https://git.openstack.org/openstack-infra/storyboard
-	cd storyboard
+    git clone https://git.openstack.org/openstack-infra/storyboard
+    cd storyboard
 
 
 3. Add MySQL user and create database::
 
-   	mysql -u $DB_USER -p$DB_PASSWORD -e 'DROP DATABASE IF EXISTS storyboard;'
-   	mysql -u $DB_USER -p$DB_PASSWORD -e 'CREATE DATABASE storyboard;'
+    mysql -u $DB_USER -p$DB_PASSWORD -e 'DROP DATABASE IF EXISTS storyboard;'
+    mysql -u $DB_USER -p$DB_PASSWORD -e 'CREATE DATABASE storyboard;'
 
 
 4. Copy the sample configuration file::
 
-	cp ./etc/storyboard.conf.sample ./etc/storyboard.conf
+    cp ./etc/storyboard.conf.sample ./etc/storyboard.conf
 
 
 5. Edit ``./etc/storyboard.conf`` and set the ``connection`` parameter in 
@@ -38,17 +38,17 @@ Installing the API server
 
 6. Install the correct version of tox. Latest tox has a bug. https://bugs.launchpad.net/openstack-ci/+bug/1274135::
 
-  pip install --upgrade "tox>=1.6,<1.7"
+    pip install --upgrade "tox>=1.6,<1.7"
 
 
 7. Upgrade DB schema to the latest version::
 
-	tox -e venv "storyboard-db-manage --config-file ./etc/storyboard.conf upgrade head"
+    tox -e venv "storyboard-db-manage --config-file ./etc/storyboard.conf upgrade head"
 
 
 8. Start the API server::
 
-	tox -e venv "storyboard-api --config-file ./etc/storyboard.conf"
+    tox -e venv "storyboard-api --config-file ./etc/storyboard.conf"
 
 
 Installing the Javascript-based web client
@@ -66,18 +66,18 @@ Installing the Javascript-based web client
 
 2. Clone storyboard::
 
-   	git clone https://git.openstack.org/openstack-infra/storyboard-webclient
-   	cd storyboard-webclient
+    git clone https://git.openstack.org/openstack-infra/storyboard-webclient
+    cd storyboard-webclient
 
 
 3. Run a local development server, which uses the localhost API::
 
-   	tox -egrunt_no_api server
+    tox -egrunt_no_api server
 
 
 4. Run a local development server, which uses the production API::
 
-   	tox -egrunt_no_api server:prod
+    tox -egrunt_no_api server:prod
 
 
 Optional steps: Seed database with base data
@@ -90,7 +90,7 @@ Optional steps: Seed database with base data
 
 2. Enable the superusers in the database::
 
-	tox -e venv "storyboard-db-manage --config-file ./etc/storyboard.conf load_superusers ./etc/superusers.yaml"
+    tox -e venv "storyboard-db-manage --config-file ./etc/storyboard.conf load_superusers ./etc/superusers.yaml"
 
 
 3. If you want to quickly set up a set of projects and project groups in the
@@ -100,4 +100,4 @@ Optional steps: Seed database with base data
 
 4. Create the projects and projectgroups in the DB::
 
-	tox -e venv "storyboard-db-manage --config-file ./etc/storyboard.conf load_projects ./etc/projects.yaml"
+    tox -e venv "storyboard-db-manage --config-file ./etc/storyboard.conf load_projects ./etc/projects.yaml"
