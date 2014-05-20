@@ -111,6 +111,34 @@ class StorageBase(object):
         """
         pass
 
+    @abc.abstractmethod
+    def check_refresh_token(self, refresh_token):
+        """This method should say if a given token exists in the storage and
+        that it has not expired yet.
+
+        @param refresh_token: The token to be checked.
+        @return bool
+        """
+        pass
+
+    @abc.abstractmethod
+    def get_refresh_token_info(self, refresh_token):
+        """Get the Bearer token from the storage.
+
+        @param refresh_token: The token to get the information about.
+        @return object: The object should contain all fields associated with
+            the token (refresh_token, expires_in, user_id).
+        """
+        pass
+
+    @abc.abstractmethod
+    def invalidate_refresh_token(self, refresh_token):
+        """Remove a token from the storage.
+
+        @param refresh_token: A refresh token
+        """
+        pass
+
 
 STORAGE = None
 

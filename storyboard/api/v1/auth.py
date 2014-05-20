@@ -70,28 +70,63 @@ class AuthController(rest.RestController):
 
         return response
 
-    @pecan.expose()
-    def token(self):
-        """Access token endpoint."""
-
+    def _access_token_by_code(self):
         auth_code = request.params.get("code")
-        code_info = storage.get_storage()\
+        code_info = storage.get_storage() \
             .get_authorization_code_info(auth_code)
+        headers, body, code = SERVER.create_token_response(
+            uri=request.url,
+            http_method=request.method,
+            body=request.body,
+            headers=request.headers)
+        response.headers = dict((str(k), str(v))
+                                for k, v in headers.iteritems())
+        response.status_code = code
+        json_body = json.loads(body)
+
+        # Update a body with user_id only if a response is 2xx
+        if code / 100 == 2:
+            json_body.update({
+                'id_token': code_info.user_id
+            })
+
+        response.body = json.dumps(json_body)
+        return response
+
+    def _access_token_by_refresh_token(self):
+        refresh_token = request.params.get("refresh_token")
+        refresh_token_info = storage.get_storage().get_refresh_token_info(
+            refresh_token)
 
         headers, body, code = SERVER.create_token_response(
             uri=request.url,
             http_method=request.method,
             body=request.body,
             headers=request.headers)
-
         response.headers = dict((str(k), str(v))
                                 for k, v in headers.iteritems())
         response.status_code = code
-
         json_body = json.loads(body)
-        json_body.update({
-            'id_token': code_info.user_id
-        })
+
+        # Update a body with user_id only if a response is 2xx
+        if code / 100 == 2:
+            json_body.update({
+                'id_token': refresh_token_info.user_id
+            })
 
         response.body = json.dumps(json_body)
+
         return response
+
+    @pecan.expose()
+    def token(self):
+        """Token endpoint."""
+
+        grant_type = request.params.get("grant_type")
+        if grant_type == "authorization_code":
+            # Serve an access token having an authorization code
+            return self._access_token_by_code()
+
+        if grant_type == "refresh_token":
+            # Serve an access token having a refresh token
+            return self._access_token_by_refresh_token()

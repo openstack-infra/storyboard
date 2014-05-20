@@ -75,6 +75,29 @@ class MemoryTokenStorage(storage.StorageBase):
     def remove_token(self, token):
         pass
 
+    def check_refresh_token(self, refresh_token):
+        for token_info in self.token_set:
+            if token_info.refresh_token == refresh_token:
+                return True
+
+        return False
+
+    def get_refresh_token_info(self, refresh_token):
+        for token_info in self.token_set:
+            if token_info.refresh_token == refresh_token:
+                return token_info
+
+        return None
+
+    def invalidate_refresh_token(self, refresh_token):
+        token_entry = None
+        for entry in self.token_set:
+            if entry.refresh_token == refresh_token:
+                token_entry = entry
+                break
+
+        self.token_set.remove(token_entry)
+
     def save_authorization_code(self, authorization_code, user_id):
         self.auth_code_set.add(AuthorizationCode(authorization_code, user_id))
 
