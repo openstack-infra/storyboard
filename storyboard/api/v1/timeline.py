@@ -98,6 +98,9 @@ class TimeLineEvent(base.APIBase):
         elif event.event_type == event_types.TASK_ASSIGNEE_CHANGED:
             return event_resolvers.task_assignee_changed(event)
 
+        elif event.event_type == event_types.TASK_DETAILS_CHANGED:
+            return event_resolvers.task_details_changed(event)
+
         elif event.event_type == event_types.TASK_DELETED:
             return event_resolvers.task_deleted(event)
 
