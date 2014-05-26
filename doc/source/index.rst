@@ -9,10 +9,10 @@ StoryBoard is a web application for task tracking across inter-related projects.
 It is meant to be suitable for OpenStack task tracking.
 
 StoryBoard consists of two components:
-	* `Storyboard API service`_ - is a Python application leveraging
-	  `Pecan`_/`WSME`_ for REST API layer
-	* `Storyboard Web Client`_ - is an all-javascript webclient for the
-	  Storyboard API
+    * `Storyboard API service`_ - is a Python application leveraging
+      `Pecan`_/`WSME`_ for REST API layer
+    * `Storyboard Web Client`_ - is an all-javascript webclient for the
+      Storyboard API
 
 
 .. _Pecan: http://pecan.readthedocs.org/en/latest/
