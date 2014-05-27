@@ -84,7 +84,7 @@ class TimeLineEvent(base.APIBase):
             return event_resolvers.story_created(event)
 
         elif event.event_type == event_types.STORY_DETAILS_CHANGED:
-            return event_resolvers.story_story_details_changed(event)
+            return event_resolvers.story_details_changed(event)
 
         elif event.event_type == event_types.USER_COMMENT:
             return event_resolvers.user_comment(event)

@@ -22,7 +22,7 @@ def story_created(event):
     return event
 
 
-def story_story_details_changed(event):
+def story_details_changed(event):
     return event
 
 
