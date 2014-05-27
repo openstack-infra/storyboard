@@ -27,11 +27,13 @@ def user_get(user_id, filter_non_public=False):
 
 
 def user_get_all(marker=None, limit=None, filter_non_public=False,
-                 **kwargs):
+                 sort_field=None, sort_dir=None, **kwargs):
     return api_base.entity_get_all(models.User,
                                    marker=marker,
                                    limit=limit,
                                    filter_non_public=filter_non_public,
+                                   sort_field=sort_field,
+                                   sort_dir=sort_dir,
                                    **kwargs)
 
 

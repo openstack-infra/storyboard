@@ -70,14 +70,17 @@ class UsersController(rest.RestController):
     """Manages users."""
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([User], int, int, unicode, unicode)
-    def get(self, marker=None, limit=None, username=None, full_name=None):
+    @wsme_pecan.wsexpose([User], int, int, unicode, unicode, unicode, unicode)
+    def get(self, marker=None, limit=None, username=None, full_name=None,
+            sort_field='id', sort_dir='asc'):
         """Page and filter the users in storyboard.
 
         :param marker: The resource id where the page should begin.
         :param limit The number of users to retrieve.
         :param username A string of characters to filter the username with.
         :param full_name A string of characters to filter the full_name with.
+        :param sort_field: The name of the field to sort on.
+        :param sort_dir: sort direction for results (asc, desc).
         """
 
         # Boundary check on limit.
@@ -90,7 +93,9 @@ class UsersController(rest.RestController):
 
         users = users_api.user_get_all(marker=marker_user, limit=limit,
                                        username=username, full_name=full_name,
-                                       filter_non_public=True)
+                                       filter_non_public=True,
+                                       sort_field=sort_field,
+                                       sort_dir=sort_dir)
         user_count = users_api.user_get_count(username=username,
                                               full_name=full_name)
 

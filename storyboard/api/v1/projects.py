@@ -80,14 +80,18 @@ class ProjectsController(rest.RestController):
                                   status_code=404)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([Project], int, int, unicode, unicode)
-    def get(self, marker=None, limit=None, name=None, description=None):
+    @wsme_pecan.wsexpose([Project], int, int, unicode, unicode, unicode,
+                         unicode)
+    def get(self, marker=None, limit=None, name=None, description=None,
+            sort_field='id', sort_dir='asc'):
         """Retrieve a list of projects.
 
         :param marker: The resource id where the page should begin.
         :param limit: The number of projects to retrieve.
         :param name: A string to filter the name by.
         :param description: A string to filter the description by.
+        :param sort_field: The name of the field to sort on.
+        :param sort_dir: sort direction for results (asc, desc).
         """
         # Boundary check on limit.
         if limit is None:
@@ -100,7 +104,9 @@ class ProjectsController(rest.RestController):
         projects = projects_api.project_get_all(marker=marker_project,
                                                 limit=limit,
                                                 name=name,
-                                                description=description)
+                                                description=description,
+                                                sort_field=sort_field,
+                                                sort_dir=sort_dir)
         project_count = projects_api.project_get_count(name=name,
                                                        description=description)
 

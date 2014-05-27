@@ -13,9 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from wsme.exc import ClientSideError
 
 from storyboard.db.api import base as api_base
 from storyboard.db import models
+from storyboard.openstack.common.db.sqlalchemy.utils import InvalidSortKey
 
 
 def story_get(story_id):
@@ -23,17 +25,30 @@ def story_get(story_id):
 
 
 def story_get_all(marker=None, limit=None, story_filters=None,
-                  task_filters=None):
+                  task_filters=None, sort_field='id', sort_dir='asc'):
     query = _story_build_query(story_filters=story_filters,
                                task_filters=task_filters)
 
+    # Sanity checks, in case someone accidentally explicitly passes in 'None'
+    if not sort_field:
+        sort_field = 'id'
+    if not sort_dir:
+        sort_dir = 'asc'
+
     # paginate the query
-    query = api_base.paginate_query(query=query,
-                                    model=models.StorySummary,
-                                    limit=limit,
-                                    sort_keys=['id'],
-                                    marker=marker,
-                                    sort_dir='asc')
+    try:
+        query = api_base.paginate_query(query=query,
+                                        model=models.StorySummary,
+                                        limit=limit,
+                                        sort_keys=[sort_field],
+                                        marker=marker,
+                                        sort_dir=sort_dir)
+    except InvalidSortKey:
+        raise ClientSideError("Invalid sort_field [%s]" % (sort_field,),
+                              status_code=400)
+    except ValueError as ve:
+        raise ClientSideError("%s" % (ve,), status_code=400)
+
     return query.all()
 
 

@@ -104,9 +104,10 @@ class StoriesController(rest.RestController):
 
     @secure(checks.guest)
     @wsme_pecan.wsexpose([Story], int, int, int, int, unicode, unicode,
-                         unicode)
+                         unicode, unicode, unicode)
     def get_all(self, project_id=None, assignee_id=None, marker=None,
-                limit=None, status=None, title=None, description=None):
+                limit=None, status=None, title=None, description=None,
+                sort_field='id', sort_dir='asc'):
         """Retrieve definitions of all of the stories.
 
         :param project_id: filter stories by project ID.
@@ -116,6 +117,8 @@ class StoriesController(rest.RestController):
         :param status: Only show stories with this particular status.
         :param title: A string to filter the title by.
         :param description: A string to filter the description by.
+        :param sort_field: The name of the field to sort on.
+        :param sort_dir: sort direction for results (asc, desc).
         """
 
         # Boundary check on limit.
@@ -146,7 +149,9 @@ class StoriesController(rest.RestController):
         stories = stories_api.story_get_all(marker=marker_story,
                                             limit=limit,
                                             story_filters=story_filters,
-                                            task_filters=task_filters)
+                                            task_filters=task_filters,
+                                            sort_field=sort_field,
+                                            sort_dir=sort_dir)
         story_count = stories_api.story_get_count(story_filters=story_filters,
                                                   task_filters=task_filters)
 

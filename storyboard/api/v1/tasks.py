@@ -85,15 +85,17 @@ class TasksController(rest.RestController):
                                   status_code=404)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([Task], int, int, int, int)
+    @wsme_pecan.wsexpose([Task], int, int, int, int, unicode, unicode)
     def get_all(self, story_id=None, assignee_id=None, marker=None,
-                limit=None):
+                limit=None, sort_field='id', sort_dir='asc'):
         """Retrieve definitions of all of the tasks.
 
         :param story_id: filter tasks by story ID.
         :param assignee_id: filter tasks by who they are assigned to.
         :param marker: The resource id where the page should begin.
         :param limit: The number of tasks to retrieve.
+        :param sort_field: The name of the field to sort on.
+        :param sort_dir: sort direction for results (asc, desc).
         """
 
         # Boundary check on limit.
@@ -110,7 +112,9 @@ class TasksController(rest.RestController):
         tasks = tasks_api.task_get_all(marker=marker_task,
                                        limit=limit,
                                        assignee_id=assignee_id,
-                                       story_id=story_id)
+                                       story_id=story_id,
+                                       sort_field=sort_field,
+                                       sort_dir=sort_dir)
         task_count = tasks_api.task_get_count(assignee_id=assignee_id,
                                               story_id=story_id)
 

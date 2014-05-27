@@ -18,11 +18,13 @@ import copy
 from oslo.config import cfg
 import six
 import sqlalchemy.types as types
+from wsme.exc import ClientSideError
 
 from storyboard.common import exception as exc
 from storyboard.db import models
 from storyboard.openstack.common.db import exception as db_exc
 from storyboard.openstack.common.db.sqlalchemy import session as db_session
+from storyboard.openstack.common.db.sqlalchemy.utils import InvalidSortKey
 from storyboard.openstack.common.db.sqlalchemy.utils import paginate_query
 from storyboard.openstack.common import log
 
@@ -136,7 +138,14 @@ def entity_get(kls, entity_id, filter_non_public=False):
 
 
 def entity_get_all(kls, filter_non_public=False, marker=None, limit=None,
-                   **kwargs):
+                   sort_field='id', sort_dir='asc', **kwargs):
+
+    # Sanity checks, in case someone accidentally explicitly passes in 'None'
+    if not sort_field:
+        sort_field = 'id'
+    if not sort_dir:
+        sort_dir = 'asc'
+
     # Construct the query
     query = model_query(kls)
 
@@ -144,12 +153,18 @@ def entity_get_all(kls, filter_non_public=False, marker=None, limit=None,
     query = apply_query_filters(query=query, model=kls, **kwargs)
 
     # Construct the query
-    query = paginate_query(query=query,
-                           model=kls,
-                           limit=limit,
-                           sort_keys=['id'],
-                           marker=marker,
-                           sort_dir='asc')
+    try:
+        query = paginate_query(query=query,
+                               model=kls,
+                               limit=limit,
+                               sort_keys=[sort_field],
+                               marker=marker,
+                               sort_dir=sort_dir)
+    except InvalidSortKey:
+        raise ClientSideError("Invalid sort_field [%s]" % (sort_field,),
+                              status_code=400)
+    except ValueError as ve:
+        raise ClientSideError("%s" % (ve,), status_code=400)
 
     # Execute the query
     entities = query.all()

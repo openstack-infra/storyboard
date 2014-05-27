@@ -21,11 +21,14 @@ def project_get(project_id):
     return api_base.entity_get(models.Project, project_id)
 
 
-def project_get_all(marker=None, limit=None, **kwargs):
+def project_get_all(marker=None, limit=None, sort_field=None, sort_dir=None,
+                    **kwargs):
     return api_base.entity_get_all(models.Project,
                                    is_active=True,
                                    marker=marker,
                                    limit=limit,
+                                   sort_field=sort_field,
+                                   sort_dir=sort_dir,
                                    **kwargs)
 
 

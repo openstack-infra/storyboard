@@ -132,13 +132,16 @@ class TimeLineEventsController(rest.RestController):
                                   status_code=404)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([TimeLineEvent], int, int, int)
-    def get_all(self, story_id=None, marker=None, limit=None):
+    @wsme_pecan.wsexpose([TimeLineEvent], int, int, int, unicode, unicode)
+    def get_all(self, story_id=None, marker=None, limit=None, sort_field=None,
+                sort_dir=None):
         """Retrieve all events that have happened under specified story.
 
         :param story_id: filter events by story ID.
         :param marker: The resource id where the page should begin.
         :param limit: The number of events to retrieve.
+        :param sort_field: The name of the field to sort on.
+        :param sort_dir: sort direction for results (asc, desc).
         """
 
         # Boundary check on limit.
@@ -152,7 +155,9 @@ class TimeLineEventsController(rest.RestController):
         event_count = events_api.events_get_count(story_id=story_id)
         events = events_api.events_get_all(story_id=story_id,
                                            marker=marker_event,
-                                           limit=limit)
+                                           limit=limit,
+                                           sort_field=sort_field,
+                                           sort_dir=sort_dir)
 
         # Apply the query response headers.
         response.headers['X-Limit'] = str(limit)
@@ -186,13 +191,16 @@ class CommentsController(rest.RestController):
                                   status_code=404)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([Comment], int, int, int)
-    def get_all(self, story_id=None, marker=None, limit=None):
+    @wsme_pecan.wsexpose([Comment], int, int, int, unicode, unicode)
+    def get_all(self, story_id=None, marker=None, limit=None, sort_field='id',
+                sort_dir='asc'):
         """Retrieve all comments posted under specified story.
 
         :param story_id: filter comments by story ID.
         :param marker: The resource id where the page should begin.
         :param limit: The number of comments to retrieve.
+        :param sort_field: The name of the field to sort on.
+        :param sort_dir: sort direction for results (asc, desc).
         """
 
         # Boundary check on limit.
@@ -214,7 +222,9 @@ class CommentsController(rest.RestController):
         events = events_api.events_get_all(story_id=story_id,
                                            marker=marker_event,
                                            limit=limit,
-                                           event_type=event_types.USER_COMMENT)
+                                           event_type=event_types.USER_COMMENT,
+                                           sort_field=sort_field,
+                                           sort_dir=sort_dir)
 
         comments = [comments_api.comment_get(event.comment_id)
                     for event in events]

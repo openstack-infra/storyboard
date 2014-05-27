@@ -24,10 +24,13 @@ def event_get(event_id):
     return api_base.entity_get(models.TimeLineEvent, event_id)
 
 
-def events_get_all(marker=None, limit=None, **kwargs):
+def events_get_all(marker=None, limit=None, sort_field=None, sort_dir=None,
+                   **kwargs):
     return api_base.entity_get_all(models.TimeLineEvent,
                                    marker=marker,
                                    limit=limit,
+                                   sort_field=sort_field,
+                                   sort_dir=sort_dir,
                                    **kwargs)
 
 

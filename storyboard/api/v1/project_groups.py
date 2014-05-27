@@ -122,8 +122,8 @@ class ProjectGroupsController(rest.RestController):
         return ProjectGroup.from_db_model(group)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([ProjectGroup], int, int)
-    def get(self, marker=None, limit=None):
+    @wsme_pecan.wsexpose([ProjectGroup], int, int, unicode, unicode)
+    def get(self, marker=None, limit=None, sort_field='id', sort_dir='asc'):
         """Retrieve a list of projects groups."""
 
         if limit is None:
@@ -131,7 +131,9 @@ class ProjectGroupsController(rest.RestController):
         limit = min(CONF.page_size_maximum, max(1, limit))
 
         groups = project_groups.project_group_get_all(marker=marker,
-                                                      limit=limit)
+                                                      limit=limit,
+                                                      sort_field=sort_field,
+                                                      sort_dir=sort_dir)
 
         return [ProjectGroup.from_db_model(group) for group in groups]
 

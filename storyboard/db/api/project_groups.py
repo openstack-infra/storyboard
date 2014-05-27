@@ -36,10 +36,13 @@ def project_group_get(project_group_id):
     return _entity_get(project_group_id)
 
 
-def project_group_get_all(marker=None, limit=None, **kwargs):
+def project_group_get_all(marker=None, limit=None, sort_field=None,
+                          sort_dir=None, **kwargs):
     return api_base.entity_get_all(models.ProjectGroup,
                                    marker=marker,
                                    limit=limit,
+                                   sort_field=sort_field,
+                                   sort_dir=sort_dir,
                                    **kwargs)
 
 

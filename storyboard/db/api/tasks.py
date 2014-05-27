@@ -21,10 +21,13 @@ def task_get(task_id):
     return api_base.entity_get(models.Task, task_id)
 
 
-def task_get_all(marker=None, limit=None, **kwargs):
+def task_get_all(marker=None, limit=None, sort_field=None, sort_dir=None,
+                 **kwargs):
     return api_base.entity_get_all(models.Task,
                                    marker=marker,
                                    limit=limit,
+                                   sort_field=sort_field,
+                                   sort_dir=sort_dir,
                                    **kwargs)
 
 
