@@ -23,6 +23,7 @@ import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
+from storyboard.common import custom_types
 from storyboard.db.api import projects as projects_api
 
 CONF = cfg.CONF
@@ -35,9 +36,9 @@ class Project(base.APIBase):
     Storyboard as Projects, among others.
     """
 
-    name = wtypes.text
-    """At least one lowercase letter or number, followed by letters, numbers,
-    dots, hyphens or pluses. Keep this name short; it is used in URLs.
+    name = custom_types.Name()
+    """At least three letters or digits. Also brackets, underscore, and
+    whitespaces are allowed.
     """
 
     description = wtypes.text
