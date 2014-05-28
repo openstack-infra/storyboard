@@ -83,6 +83,21 @@ def task_status_changed_event(story_id, task_title, author_id, old_status,
     })
 
 
+def task_priority_changed_event(story_id, task_title, author_id, old_priority,
+                                new_priority):
+    event_info = {
+        "task_title": task_title,
+        "old_priority": old_priority,
+        "new_priority": new_priority
+    }
+    return event_create({
+        "story_id": story_id,
+        "author_id": author_id,
+        "event_type": event_types.TASK_PRIORITY_CHANGED,
+        "event_info": json.dumps(event_info)
+    })
+
+
 def task_assignee_changed_event(story_id, task_title, author_id,
                                 old_assignee_id, new_assignee_id):
     event_info = {

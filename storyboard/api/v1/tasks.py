@@ -177,6 +177,15 @@ class TasksController(rest.RestController):
                 new_status=updated_task.status)
             specific_change = True
 
+        if original_task.priority != updated_task.priority:
+            events_api.task_priority_changed_event(
+                story_id=original_task.story_id,
+                task_title=original_task.title,
+                author_id=author_id,
+                old_priority=original_task.priority,
+                new_priority=updated_task.priority)
+            specific_change = True
+
         if original_task.assignee_id != updated_task.assignee_id:
             events_api.task_assignee_changed_event(
                 story_id=original_task.story_id,

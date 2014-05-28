@@ -95,6 +95,9 @@ class TimeLineEvent(base.APIBase):
         elif event.event_type == event_types.TASK_STATUS_CHANGED:
             return event_resolvers.task_status_changed(event)
 
+        elif event.event_type == event_types.TASK_PRIORITY_CHANGED:
+            return event_resolvers.task_priority_changed(event)
+
         elif event.event_type == event_types.TASK_ASSIGNEE_CHANGED:
             return event_resolvers.task_assignee_changed(event)
 

@@ -38,6 +38,10 @@ def task_status_changed(event):
     return event
 
 
+def task_priority_changed(event):
+    return event
+
+
 def task_assignee_changed(event):
     event_info = json.loads(event.event_info)
 
