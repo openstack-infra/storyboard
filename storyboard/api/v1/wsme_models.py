@@ -189,26 +189,6 @@ def update_db_model(cls, db_entry, wsme_entry):
     return db_entry
 
 
-class ProjectGroup(_Base):
-    """Represents a group of projects."""
-
-    name = wtypes.text
-    """A unique name, used in URLs, identifying the project group. All
-    lowercase, no special characters. Examples: infra, compute.
-    """
-
-    title = wtypes.text
-    """The full name of the project group, which can contain spaces, special
-    characters, etc.
-    """
-
-    @classmethod
-    def sample(cls):
-        return cls(
-            name="Infra",
-            title="Awesome project")
-
-
 class Permission(_Base):
     """Permissions can be associated with users and teams."""
     pass
@@ -254,7 +234,6 @@ class Team(_Base):
 
 
 SQLALCHEMY_TO_WSME = {
-    sqlalchemy_models.ProjectGroup: ProjectGroup,
     sqlalchemy_models.Permission: Permission,
     sqlalchemy_models.Comment: Comment,
     sqlalchemy_models.StoryTag: StoryTag
