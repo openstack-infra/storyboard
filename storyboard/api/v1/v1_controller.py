@@ -18,7 +18,6 @@ from storyboard.api.v1.project_groups import ProjectGroupsController
 from storyboard.api.v1.projects import ProjectsController
 from storyboard.api.v1.stories import StoriesController
 from storyboard.api.v1.tasks import TasksController
-from storyboard.api.v1.teams import TeamsController
 from storyboard.api.v1.users import UsersController
 
 
@@ -26,7 +25,6 @@ class V1Controller(object):
 
     project_groups = ProjectGroupsController()
     projects = ProjectsController()
-    teams = TeamsController()
     users = UsersController()
     stories = StoriesController()
     tasks = TasksController()
