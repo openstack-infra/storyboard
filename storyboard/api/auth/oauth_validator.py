@@ -27,9 +27,13 @@ CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
 TOKEN_OPTS = [
-    cfg.IntOpt("token_ttl",
-               default=3600,
-               help="Time in seconds before an access_token expires")
+    cfg.IntOpt("access_token_ttl",
+               default=60 * 60,  # One hour
+               help="Time in seconds before an access_token expires"),
+
+    cfg.IntOpt("refresh_token_ttl",
+               default=60 * 60 * 24 * 7,  # One week
+               help="Time in seconds before an refresh_token expires")
 ]
 
 CONF.register_opts(TOKEN_OPTS)
@@ -165,12 +169,31 @@ class SkeletonValidator(RequestValidator):
         return (grant_type == "authorization_code"
                 or grant_type == "refresh_token")
 
+    def _resolve_user_id(self, request):
+
+        # Try authorization code
+        code = request._params.get("code")
+        if code:
+            code_info = self.token_storage.get_authorization_code_info(code)
+            return code_info.user_id
+
+        # Try refresh token
+        refresh_token = request._params.get("refresh_token")
+        refresh_token_entry = self.token_storage.get_refresh_token_info(
+            refresh_token)
+        if refresh_token_entry:
+            return refresh_token_entry.user_id
+
+        return None
+
     def save_bearer_token(self, token, request, *args, **kwargs):
         """Save all token information to the storage."""
 
-        code = request._params["code"]
-        code_info = self.token_storage.get_authorization_code_info(code)
-        user_id = code_info.user_id
+        user_id = self._resolve_user_id(request)
+
+        # If a refresh_token was used to obtain a new access_token, it should
+        # be removed.
+        self.invalidate_refresh_token(request)
 
         self.token_storage.save_token(access_token=token["access_token"],
                                       expires_in=token["expires_in"],
@@ -202,13 +225,37 @@ class SkeletonValidator(RequestValidator):
         """
         return ["user"]
 
+    def rotate_refresh_token(self, request):
+        """The refresh token should be single use."""
+
+        return True
+
+    def validate_refresh_token(self, refresh_token, client, request, *args,
+                               **kwargs):
+        """Check that the refresh token exists in the db."""
+
+        return self.token_storage.check_refresh_token(refresh_token)
+
+    def invalidate_refresh_token(self, request):
+        """Remove a used token from the storage."""
+
+        refresh_token = request._params.get("refresh_token")
+
+        # The request may have no token in parameters which means that the
+        # authorization code was used.
+        if not refresh_token:
+            return
+
+        self.token_storage.invalidate_refresh_token(refresh_token)
+
 
 class OpenIdConnectServer(WebApplicationServer):
 
     def __init__(self, request_validator):
-        token_ttl = CONF.token_ttl
-        super(OpenIdConnectServer, self).__init__(request_validator,
-                                                  token_expires_in=token_ttl)
+        access_token_ttl = CONF.access_token_ttl
+        super(OpenIdConnectServer, self).__init__(
+            request_validator,
+            token_expires_in=access_token_ttl)
 
 validator = SkeletonValidator()
 SERVER = OpenIdConnectServer(validator)

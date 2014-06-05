@@ -15,8 +15,13 @@
 
 import datetime
 
+from oslo.config import cfg
+
 from storyboard.api.auth.token_storage import storage
 from storyboard.db.api import auth as auth_api
+
+
+CONF = cfg.CONF
 
 
 class DBTokenStorage(storage.StorageBase):
@@ -47,9 +52,16 @@ class DBTokenStorage(storage.StorageBase):
             "user_id": user_id
         }
 
+        # Oauthlib does not provide a separate expiration time for a
+        # refresh_token so taking it from config directly.
+        refresh_expires_in = CONF.refresh_token_ttl
+
         refresh_token_values = {
             "refresh_token": refresh_token,
-            "user_id": user_id
+            "user_id": user_id,
+            "expires_in": refresh_expires_in,
+            "expires_at": datetime.datetime.now() + datetime.timedelta(
+                seconds=refresh_expires_in),
         }
 
         auth_api.access_token_save(access_token_values)
@@ -72,3 +84,21 @@ class DBTokenStorage(storage.StorageBase):
 
     def remove_token(self, access_token):
         auth_api.access_token_delete(access_token)
+
+    def check_refresh_token(self, refresh_token):
+        refresh_token_entry = auth_api.refresh_token_get(refresh_token)
+
+        if not refresh_token_entry:
+            return False
+
+        if datetime.datetime.now() > refresh_token_entry.expires_at:
+            auth_api.refresh_token_delete(refresh_token)
+            return False
+
+        return True
+
+    def get_refresh_token_info(self, refresh_token):
+        return auth_api.refresh_token_get(refresh_token)
+
+    def invalidate_refresh_token(self, refresh_token):
+        auth_api.refresh_token_delete(refresh_token)

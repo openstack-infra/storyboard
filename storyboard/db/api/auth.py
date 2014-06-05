@@ -57,3 +57,10 @@ def refresh_token_get(refresh_token):
 
 def refresh_token_save(values):
     return api_base.entity_create(models.RefreshToken, values)
+
+
+def refresh_token_delete(refresh_token):
+    del_token = refresh_token_get(refresh_token)
+
+    if del_token:
+        api_base.entity_hard_delete(models.RefreshToken, del_token.id)

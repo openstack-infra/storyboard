@@ -37,7 +37,10 @@ lock_path = $state_path/lock
 # openid_url = https://login.launchpad.net/+openid
 
 # Time in seconds before an access_token expires
-# token_ttl = 3600
+# access_token_ttl = 3600
+
+# Time in seconds before an refresh_token expires
+# refresh_token_ttl = 604800
 
 # List paging configuration options.
 # page_size_maximum = 500

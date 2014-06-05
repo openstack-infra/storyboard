@@ -223,6 +223,8 @@ class RefreshToken(Base):
 
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     refresh_token = Column(Unicode(100), nullable=False)
+    expires_in = Column(Integer, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
 
 
 def _story_build_summary_query():
