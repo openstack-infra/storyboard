@@ -24,6 +24,7 @@ import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
+from storyboard.common import custom_types
 from storyboard.db.api import tasks as tasks_api
 from storyboard.db.api import timeline_events as events_api
 
@@ -37,8 +38,8 @@ class Task(base.APIBase):
     is generally linked to a code change proposed in Gerrit.
     """
 
-    title = wtypes.text
-    """An optional short label for the task, to show in listings."""
+    title = custom_types.Name()
+    """A descriptive title. Will be displayed in lists."""
 
     # TODO(ruhe): replace with enum
     status = wtypes.text
