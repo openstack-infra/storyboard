@@ -16,14 +16,10 @@ Installing the API service
      $ pip install storyboard
 
 2. By default Storyboard will use SQLite driver which is suitable only for
-   development mode. Storyboard supports MySQL and PostgreSQL backends.
-   To install MySQL driver execute::
+   development mode. Storyboard only supports MySQL, to install MySQL driver
+   execute::
 
      $ pip install MySQL-python
-
-   To install PostgreSQL driver execute::
-
-     $ pip install psycopg2
 
 3. Edit ``/etc/storyboard/storyboard.conf``. You'll need to modify ``connection``
    parameter in the ``[database]`` section.
