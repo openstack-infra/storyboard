@@ -23,6 +23,7 @@ import wsmeext.pecan as wsme_pecan
 import storyboard.api.auth.authorization_checks as checks
 from storyboard.api.v1 import base
 from storyboard.api.v1.projects import Project
+from storyboard.common.custom_types import NameType
 from storyboard.db.api import project_groups
 
 
@@ -32,9 +33,10 @@ CONF = cfg.CONF
 class ProjectGroup(base.APIBase):
     """Represents a group of projects."""
 
-    name = wtypes.text
-    """A unique name, used in URLs, identifying the project group. All
-    lowercase, no special characters. Examples: infra, compute.
+    name = NameType()
+    """The Project Group unique name. This name will be displayed in the URL.
+    At least 3 alphanumeric symbols. Minus and dot symbols are allowed as
+    separators.
     """
 
     title = wtypes.text

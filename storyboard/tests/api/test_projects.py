@@ -14,6 +14,8 @@
 
 import json
 
+from webtest.app import AppError
+
 from storyboard.tests import base
 
 
@@ -25,7 +27,7 @@ class TestProjects(base.FunctionalTest):
         self.resource = '/projects'
 
         self.project_01 = {
-            'name': 'test_project',
+            'name': 'test-project',
             'description': 'some description'
         }
 
@@ -42,13 +44,21 @@ class TestProjects(base.FunctionalTest):
         self.assertEqual(self.project_01['description'],
                          project['description'])
 
+    def test_create_invalid(self):
+
+        invalid_project = self.project_01.copy()
+        invalid_project["name"] = "name with spaces"
+
+        self.assertRaises(AppError, self.post_json, self.resource,
+                          invalid_project)
+
     def test_update(self):
         response = self.post_json(self.resource, self.project_01)
         original = json.loads(response.body)
 
         delta = {
             'id': original['id'],
-            'name': 'new name',
+            'name': 'new-name',
             'description': 'new description'
         }
 
@@ -62,3 +72,22 @@ class TestProjects(base.FunctionalTest):
         self.assertNotEqual(original['name'], updated['name'])
         self.assertNotEqual(original['description'],
                             updated['description'])
+
+    def test_update_invalid(self):
+        response = self.post_json(self.resource, self.project_01)
+        original = json.loads(response.body)
+
+        delta = {
+            'id': original['id'],
+            'name': 'new-name is invalid!',
+        }
+
+        url = "/projects/%d" % original['id']
+
+        # check for invalid characters like space and '!'
+        self.assertRaises(AppError, self.put_json, url, delta)
+
+        delta["name"] = "a"
+
+        # check for a too short name
+        self.assertRaises(AppError, self.put_json, url, delta)

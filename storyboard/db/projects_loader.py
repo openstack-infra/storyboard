@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import six
 import warnings
 import yaml
@@ -21,12 +22,14 @@ from oslo.config import cfg
 from sqlalchemy.exc import SADeprecationWarning
 from storyboard.db.api import base as db_api
 
+from storyboard.common.custom_types import NameType
 from storyboard.db.models import Project
 from storyboard.db.models import ProjectGroup
 
 
 warnings.simplefilter("ignore", SADeprecationWarning)
 CONF = cfg.CONF
+LOG = logging.getLogger(__name__)
 
 
 def do_load_models(filename):
@@ -34,20 +37,34 @@ def do_load_models(filename):
     config_file = open(filename)
     projects_list = yaml.load(config_file)
 
+    validator = NameType()
+
     project_groups = dict()
 
     for project in projects_list:
+
         if not project.get('use-storyboard'):
             continue
+
         group_name = project.get("group") or "default"
         if group_name not in project_groups:
             project_groups[group_name] = list()
 
         project_name = project.get("project")
+
+        try:
+            validator.validate(project_name)
+        except Exception:
+            # Skipping invalid project names
+            LOG.warn("Project %s was not loaded. Validation failed."
+                     % project_name)
+            continue
+
         project_description = project.get("description")
 
-        project_groups[group_name].append({"name": project_name,
-                                           "description": project_description})
+        project_groups[group_name].append(
+            {"name": project_name,
+             "description": project_description})
 
     session = db_api.get_session()
 
