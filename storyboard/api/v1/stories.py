@@ -26,7 +26,6 @@ from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
 from storyboard.api.v1.timeline import CommentsController
 from storyboard.api.v1.timeline import TimeLineEventsController
-from storyboard.common import custom_types
 from storyboard.db.api import stories as stories_api
 from storyboard.db.api import timeline_events as events_api
 
@@ -40,7 +39,7 @@ class Story(base.APIBase):
     Project and branch.
     """
 
-    title = custom_types.Name()
+    title = wtypes.text
     """A descriptive label for the story, to show in listings."""
 
     description = wtypes.text
