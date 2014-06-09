@@ -161,6 +161,8 @@ class ProjectGroup(Base):
     title = Column(Unicode(100))
     projects = relationship("Project", secondary="project_group_mapping")
 
+    _public_fields = ["id", "name", "title", "projects"]
+
 
 class Story(Base):
     __tablename__ = 'stories'

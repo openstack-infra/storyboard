@@ -166,7 +166,7 @@ class ProjectGroupsController(rest.RestController):
 
         updated_group = project_groups.project_group_update(
             id,
-            project_group.as_dict())
+            project_group.as_dict(omit_unset=True))
 
         if not updated_group:
             raise ClientSideError("Could not update group %s" % id)
