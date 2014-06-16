@@ -225,8 +225,13 @@ def entity_update(kls, entity_id, values):
         if entity is None:
             raise exc.NotFound("%s %s not found" % (kls.__name__, entity_id))
 
-        entity.update(values.copy())
+        values_copy = values.copy()
+        values_copy["id"] = entity_id
+        entity.update(values_copy)
         session.add(entity)
+
+    session = get_session()
+    entity = __entity_get(kls, entity_id, session)
 
     return entity
 
