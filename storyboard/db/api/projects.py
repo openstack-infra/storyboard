@@ -21,6 +21,11 @@ def project_get(project_id):
     return api_base.entity_get(models.Project, project_id)
 
 
+def project_get_by_name(name):
+    query = api_base.model_query(models.Project, api_base.get_session())
+    return query.filter_by(name=name).first()
+
+
 def project_get_all(marker=None, limit=None, sort_field=None, sort_dir=None,
                     **kwargs):
     return api_base.entity_get_all(models.Project,

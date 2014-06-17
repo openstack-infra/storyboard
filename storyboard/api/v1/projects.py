@@ -14,6 +14,8 @@
 # limitations under the License.
 
 from oslo.config import cfg
+from pecan.decorators import expose
+from pecan import request
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
@@ -64,8 +66,8 @@ class ProjectsController(rest.RestController):
     """
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose(Project, unicode)
-    def get_one(self, project_id):
+    @wsme_pecan.wsexpose(Project, int)
+    def get_one_by_id(self, project_id):
         """Retrieve information about the given project.
 
         :param project_id: project ID.
@@ -76,7 +78,23 @@ class ProjectsController(rest.RestController):
         if project:
             return Project.from_db_model(project)
         else:
-            raise ClientSideError("Project %s not found" % id,
+            raise ClientSideError("Project %s not found" % project_id,
+                                  status_code=404)
+
+    @secure(checks.guest)
+    @wsme_pecan.wsexpose(Project, unicode)
+    def get_one_by_name(self, project_name):
+        """Retrieve information about the given project.
+
+        :param name: project name.
+        """
+
+        project = projects_api.project_get_by_name(project_name)
+
+        if project:
+            return Project.from_db_model(project)
+        else:
+            raise ClientSideError("Project %s not found" % project_name,
                                   status_code=404)
 
     @secure(checks.guest)
@@ -144,3 +162,25 @@ class ProjectsController(rest.RestController):
         else:
             raise ClientSideError("Project %s not found" % id,
                                   status_code=404)
+
+    def _is_int(self, s):
+        try:
+            int(s)
+            return True
+        except ValueError:
+            return False
+
+    @expose()
+    def _route(self, args):
+        if request.method == 'GET' and len(args) == 1:
+            # It's a request by a name or id
+            something = args[0]
+            if self._is_int(something):
+                # Get by id
+                return self.get_one_by_id, args
+            else:
+                # Get by name
+                return self.get_one_by_name, args
+
+        # Use default routing for all other requests
+        return super(ProjectsController, self)._route(args)
