@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pecan import abort
 from pecan import request
 
 from storyboard.api.auth.token_storage import storage
@@ -54,5 +55,8 @@ def superuser():
 
     token_info = token_storage.get_access_token_info(token)
     user = user_api.user_get(token_info.user_id)
+
+    if not user.is_superuser:
+        abort(403, "This action is limited to superusers only.")
 
     return user.is_superuser
