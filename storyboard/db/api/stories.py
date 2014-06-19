@@ -96,4 +96,4 @@ def story_delete(story_id):
     story = story_get(story_id)
 
     if story:
-        api_base.entity_hard_delete(models.Story, story_id, story.as_dict())
+        api_base.entity_hard_delete(models.Story, story_id)
