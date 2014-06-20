@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from oslo.config import cfg
+from pecan import expose
 from pecan import request
 from pecan import response
 from pecan import rest
@@ -24,12 +25,15 @@ import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
+from storyboard.api.v1.search import search_engine
 from storyboard.api.v1.timeline import CommentsController
 from storyboard.api.v1.timeline import TimeLineEventsController
 from storyboard.db.api import stories as stories_api
 from storyboard.db.api import timeline_events as events_api
 
 CONF = cfg.CONF
+
+SEARCH_ENGINE = search_engine.get_engine()
 
 
 class Story(base.APIBase):
@@ -86,6 +90,8 @@ class Story(base.APIBase):
 
 class StoriesController(rest.RestController):
     """Manages operations on stories."""
+
+    _custom_actions = {"search": ["GET"]}
 
     @secure(checks.guest)
     @wsme_pecan.wsexpose(Story, int)
@@ -214,3 +220,30 @@ class StoriesController(rest.RestController):
 
     comments = CommentsController()
     events = TimeLineEventsController()
+
+    @secure(checks.guest)
+    @wsme_pecan.wsexpose([Story], unicode, unicode, int, int)
+    def search(self, q="", marker=None, limit=None):
+        """The search endpoint for stories.
+
+        :param q: The query string.
+        :return: List of Stories matching the query.
+        """
+
+        stories = SEARCH_ENGINE.stories_query(q=q,
+                                              marker=marker,
+                                              limit=limit)
+
+        return [Story.from_db_model(story) for story in stories]
+
+    @expose()
+    def _route(self, args, request):
+        if request.method == 'GET' and len(args) > 0:
+            # It's a request by a name or id
+            something = args[0]
+
+            if something == "search":
+                # Request to a search endpoint
+                return self.search, args
+
+        return super(StoriesController, self)._route(args, request)

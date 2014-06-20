@@ -36,6 +36,7 @@ from sqlalchemy import String
 from sqlalchemy import Table
 from sqlalchemy import Unicode
 from sqlalchemy import UnicodeText
+from sqlalchemy_fulltext import FullText
 
 
 CONF = cfg.CONF
@@ -91,11 +92,14 @@ team_membership = Table(
 )
 
 
-class User(Base):
+class User(FullText, Base):
     __table_args__ = (
         schema.UniqueConstraint('username', name='uniq_user_username'),
         schema.UniqueConstraint('email', name='uniq_user_email'),
     )
+
+    __fulltext_columns__ = ['username', 'full_name', 'email']
+
     username = Column(Unicode(30))
     full_name = Column(Unicode(255), nullable=True)
     email = Column(String(255))
@@ -134,12 +138,14 @@ class Permission(Base):
 
 
 # TODO(mordred): Do we really need name and title?
-class Project(Base):
+class Project(FullText, Base):
     """Represents a software project."""
 
     __table_args__ = (
         schema.UniqueConstraint('name', name='uniq_project_name'),
     )
+
+    __fulltext_columns__ = ['name', 'description']
 
     name = Column(String(50))
     description = Column(UnicodeText())
@@ -164,8 +170,10 @@ class ProjectGroup(Base):
     _public_fields = ["id", "name", "title", "projects"]
 
 
-class Story(Base):
+class Story(FullText, Base):
     __tablename__ = 'stories'
+
+    __fulltext_columns__ = ['title', 'description']
 
     creator_id = Column(Integer, ForeignKey('users.id'))
     creator = relationship(User, primaryjoin=creator_id == User.id)
@@ -180,7 +188,9 @@ class Story(Base):
                       "tasks", "events", "tags"]
 
 
-class Task(Base):
+class Task(FullText, Base):
+    __fulltext_columns__ = ['title']
+
     _TASK_STATUSES = ('todo', 'inprogress', 'invalid', 'review', 'merged')
     _TASK_PRIORITIES = ('low', 'medium', 'high')
 
@@ -285,7 +295,8 @@ class TimeLineEvent(Base):
     event_info = Column(UnicodeText(), nullable=True)
 
 
-class Comment(Base):
+class Comment(FullText, Base):
+    __fulltext_columns__ = ['content']
 
     content = Column(UnicodeText)
     is_active = Column(Boolean, default=True)

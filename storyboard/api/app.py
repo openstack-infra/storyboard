@@ -24,6 +24,8 @@ from storyboard.api.auth.token_storage import storage
 from storyboard.api import config as api_config
 from storyboard.api.middleware import token_middleware
 from storyboard.api.middleware import user_id_hook
+from storyboard.api.v1.search import impls as search_engine_impls
+from storyboard.api.v1.search import search_engine
 from storyboard.openstack.common.gettextutils import _  # noqa
 from storyboard.openstack.common import log
 
@@ -64,6 +66,11 @@ def setup_app(pecan_config=None):
     token_storage_type = CONF.token_storage_type
     storage_cls = storage_impls.STORAGE_IMPLS[token_storage_type]
     storage.set_storage(storage_cls())
+
+    # Setup search engine
+    search_engine_name = CONF.search_engine
+    search_engine_cls = search_engine_impls.ENGINE_IMPLS[search_engine_name]
+    search_engine.set_engine(search_engine_cls())
 
     app = pecan.make_app(
         pecan_config.app.root,

@@ -16,6 +16,7 @@
 from datetime import datetime
 
 from oslo.config import cfg
+from pecan import expose
 from pecan import request
 from pecan import response
 from pecan import rest
@@ -26,9 +27,12 @@ import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
+from storyboard.api.v1.search import search_engine
 from storyboard.db.api import users as users_api
 
 CONF = cfg.CONF
+
+SEARCH_ENGINE = search_engine.get_engine()
 
 
 class User(base.APIBase):
@@ -68,6 +72,8 @@ class User(base.APIBase):
 
 class UsersController(rest.RestController):
     """Manages users."""
+
+    _custom_actions = {"search": ["GET"]}
 
     @secure(checks.guest)
     @wsme_pecan.wsexpose([User], int, int, unicode, unicode, unicode, unicode)
@@ -158,3 +164,30 @@ class UsersController(rest.RestController):
 
         updated_user = users_api.user_update(user_id, user_dict)
         return User.from_db_model(updated_user)
+
+    @secure(checks.guest)
+    @wsme_pecan.wsexpose([User], unicode, unicode, int, int)
+    def search(self, q="", marker=None, limit=None):
+        """The search endpoint for users.
+
+        :param q: The query string.
+        :return: List of Users matching the query.
+        """
+
+        users = SEARCH_ENGINE.users_query(q=q, marker=marker, limit=limit)
+
+        return [User.from_db_model(u) for u in users]
+
+    @expose()
+    def _route(self, args, request):
+        if request.method == 'GET' and len(args) > 0:
+            # It's a request by a name or id
+            something = args[0]
+
+            if something == "search":
+                # Request to a search endpoint
+                return self.search, args
+            else:
+                return self.get_one, args
+
+        return super(UsersController, self)._route(args, request)

@@ -24,10 +24,13 @@ import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
+from storyboard.api.v1.search import search_engine
 from storyboard.db.api import tasks as tasks_api
 from storyboard.db.api import timeline_events as events_api
 
 CONF = cfg.CONF
+
+SEARCH_ENGINE = search_engine.get_engine()
 
 
 class Task(base.APIBase):
@@ -68,6 +71,8 @@ class Task(base.APIBase):
 
 class TasksController(rest.RestController):
     """Manages tasks."""
+
+    _custom_actions = {"search": ["GET"]}
 
     @secure(checks.guest)
     @wsme_pecan.wsexpose(Task, int)
@@ -222,3 +227,18 @@ class TasksController(rest.RestController):
         tasks_api.task_delete(task_id)
 
         response.status_code = 204
+
+    @secure(checks.guest)
+    @wsme_pecan.wsexpose([Task], unicode, unicode, int, int)
+    def search(self, q="", marker=None, limit=None):
+        """The search endpoint for tasks.
+
+        :param q: The query string.
+        :return: List of Tasks matching the query.
+        """
+
+        tasks = SEARCH_ENGINE.tasks_query(q=q,
+                                          marker=marker,
+                                          limit=limit)
+
+        return [Task.from_db_model(task) for task in tasks]

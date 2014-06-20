@@ -24,12 +24,15 @@ import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
+from storyboard.api.v1.search import search_engine
 from storyboard.common import event_resolvers
 from storyboard.common import event_types
 from storyboard.db.api import comments as comments_api
 from storyboard.db.api import timeline_events as events_api
 
 CONF = cfg.CONF
+
+SEARCH_ENGINE = search_engine.get_engine()
 
 
 class Comment(base.APIBase):
@@ -300,3 +303,18 @@ class CommentsController(rest.RestController):
 
         response.status_code = 204
         return response
+
+    @secure(checks.guest)
+    @wsme_pecan.wsexpose([Comment], unicode, unicode, int, int)
+    def search(self, q="", marker=None, limit=None):
+        """The search endpoint for comments.
+
+        :param q: The query string.
+        :return: List of Comments matching the query.
+        """
+
+        comments = SEARCH_ENGINE.comments_query(q=q,
+                                                marker=marker,
+                                                limit=limit)
+
+        return [Comment.from_db_model(comment) for comment in comments]

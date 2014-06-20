@@ -24,10 +24,13 @@ import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
+from storyboard.api.v1.search import search_engine
 from storyboard.common.custom_types import NameType
 from storyboard.db.api import projects as projects_api
 
 CONF = cfg.CONF
+
+SEARCH_ENGINE = search_engine.get_engine()
 
 
 class Project(base.APIBase):
@@ -65,6 +68,8 @@ class ProjectsController(rest.RestController):
 
     At this moment it provides read-only operations.
     """
+
+    _custom_actions = {"search": ["GET"]}
 
     @secure(checks.guest)
     @wsme_pecan.wsexpose(Project, int)
@@ -171,12 +176,31 @@ class ProjectsController(rest.RestController):
         except ValueError:
             return False
 
+    @secure(checks.guest)
+    @wsme_pecan.wsexpose([Project], unicode, unicode, int, int)
+    def search(self, q="", marker=None, limit=None):
+        """The search endpoint for projects.
+
+        :param q: The query string.
+        :return: List of Projects matching the query.
+        """
+
+        projects = SEARCH_ENGINE.projects_query(q=q, marker=marker,
+                                                limit=limit)
+
+        return [Project.from_db_model(project) for project in projects]
+
     @expose()
     def _route(self, args, request):
         if request.method == 'GET' and len(args) > 0:
             # It's a request by a name or id
-            first_token = args[0]
-            if self._is_int(first_token):
+            something = args[0]
+
+            if something == "search":
+                # Request to a search endpoint
+                return super(ProjectsController, self)._route(args, request)
+
+            if self._is_int(something):
                 # Get by id
                 return self.get_one_by_id, args
             else:

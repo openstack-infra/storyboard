@@ -14,4 +14,5 @@ six>=1.7.0
 SQLAlchemy>=0.8,<=0.8.99
 WSME>=0.6
 sqlalchemy-migrate>=0.8.2,!=0.8.4
+SQLAlchemy-FullText-Search
 eventlet>=0.13.0
