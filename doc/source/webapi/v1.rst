@@ -79,5 +79,5 @@ Task
 
 User
 ====
-.. autotype:: storyboard.api.v1.tasks.User
+.. autotype:: storyboard.api.v1.users.User
    :members:
