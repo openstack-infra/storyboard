@@ -25,6 +25,7 @@ import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
+from storyboard.common.custom_types import NameType
 from storyboard.db.api import projects as projects_api
 
 CONF = cfg.CONF
@@ -37,9 +38,10 @@ class Project(base.APIBase):
     Storyboard as Projects, among others.
     """
 
-    name = wtypes.text
-    """At least one lowercase letter or number, followed by letters, numbers,
-    dots, hyphens or pluses. Keep this name short; it is used in URLs.
+    name = NameType()
+    """The Project unique name. This name will be displayed in the URL.
+    At least 3 alphanumeric symbols. Minus and dot symbols are allowed as
+    separators.
     """
 
     description = wtypes.text
