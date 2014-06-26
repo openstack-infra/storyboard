@@ -22,14 +22,17 @@ from wsgiref import simple_server
 from storyboard.api.auth.token_storage import impls as storage_impls
 from storyboard.api.auth.token_storage import storage
 from storyboard.api import config as api_config
+from storyboard.api.middleware import resource_hook
 from storyboard.api.middleware import token_middleware
 from storyboard.api.middleware import user_id_hook
 from storyboard.api.v1.search import impls as search_engine_impls
 from storyboard.api.v1.search import search_engine
+from storyboard.notifications import connection_service
 from storyboard.openstack.common.gettextutils import _  # noqa
 from storyboard.openstack.common import log
 
 CONF = cfg.CONF
+
 LOG = log.getLogger(__name__)
 
 API_OPTS = [
@@ -38,7 +41,10 @@ API_OPTS = [
                help='API host'),
     cfg.IntOpt('bind_port',
                default=8080,
-               help='API port')
+               help='API port'),
+    cfg.BoolOpt('enable_notifications',
+               default=False,
+               help='Enable Notifications')
 ]
 CONF.register_opts(API_OPTS)
 
@@ -62,6 +68,10 @@ def setup_app(pecan_config=None):
                      ])
     log.setup('storyboard')
 
+    hooks = [
+        user_id_hook.UserIdHook()
+    ]
+
     # Setup token storage
     token_storage_type = CONF.token_storage_type
     storage_cls = storage_impls.STORAGE_IMPLS[token_storage_type]
@@ -72,10 +82,15 @@ def setup_app(pecan_config=None):
     search_engine_cls = search_engine_impls.ENGINE_IMPLS[search_engine_name]
     search_engine.set_engine(search_engine_cls())
 
+    # Setup notifier
+    if CONF.enable_notifications:
+        connection_service.initialize()
+        hooks.append(resource_hook.ResourceHook())
+
     app = pecan.make_app(
         pecan_config.app.root,
         debug=CONF.debug,
-        hooks=[user_id_hook.UserIdHook()],
+        hooks=hooks,
         force_canonical=getattr(pecan_config.app, 'force_canonical', True),
         guess_content_type_from_ext=False
     )
