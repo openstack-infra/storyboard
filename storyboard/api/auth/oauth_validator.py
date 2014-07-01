@@ -14,7 +14,6 @@
 # limitations under the License.
 
 from datetime import datetime
-import logging
 
 from oauthlib.oauth2 import RequestValidator
 from oauthlib.oauth2 import WebApplicationServer
@@ -22,9 +21,10 @@ from oslo.config import cfg
 
 from storyboard.api.auth.token_storage import storage
 from storyboard.db.api import users as user_api
+from storyboard.openstack.common import log
 
 CONF = cfg.CONF
-LOG = logging.getLogger(__name__)
+LOG = log.getLogger(__name__)
 
 TOKEN_OPTS = [
     cfg.IntOpt("access_token_ttl",

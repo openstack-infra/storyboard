@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import json
-import logging
 
 import pecan
 from pecan import request
@@ -24,8 +23,9 @@ from pecan import rest
 from storyboard.api.auth.oauth_validator import SERVER
 from storyboard.api.auth.openid_client import client as openid_client
 from storyboard.api.auth.token_storage import storage
+from storyboard.openstack.common import log
 
-LOG = logging.getLogger(__name__)
+LOG = log.getLogger(__name__)
 
 
 class AuthController(rest.RestController):
