@@ -18,6 +18,7 @@ SQLAlchemy Models for storing storyboard
 """
 
 from oslo.config import cfg
+from oslo.db.sqlalchemy import models
 import six.moves.urllib.parse as urlparse
 from sqlalchemy import Boolean
 from sqlalchemy import Column
@@ -36,7 +37,6 @@ from sqlalchemy import Table
 from sqlalchemy import Unicode
 from sqlalchemy import UnicodeText
 
-from storyboard.openstack.common.db.sqlalchemy import models
 
 CONF = cfg.CONF
 

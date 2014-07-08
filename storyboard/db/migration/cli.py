@@ -22,6 +22,7 @@ from alembic import command as alembic_command
 from alembic import config as alembic_config
 from alembic import util as alembic_util
 from oslo.config import cfg
+from oslo.db import options
 
 from storyboard.db import projects_loader
 from storyboard.db import superusers_loader
@@ -120,6 +121,7 @@ command_opt = cfg.SubCommandOpt('command',
                                 handler=add_command_parsers)
 
 CONF.register_cli_opt(command_opt)
+CONF.register_opts(options.database_opts, 'database')
 
 
 def get_alembic_config():
