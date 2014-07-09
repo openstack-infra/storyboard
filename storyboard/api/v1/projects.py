@@ -15,7 +15,6 @@
 
 from oslo.config import cfg
 from pecan.decorators import expose
-from pecan import request
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
@@ -173,16 +172,16 @@ class ProjectsController(rest.RestController):
             return False
 
     @expose()
-    def _route(self, args):
-        if request.method == 'GET' and len(args) == 1:
+    def _route(self, args, request):
+        if request.method == 'GET' and len(args) > 0:
             # It's a request by a name or id
-            something = args[0]
-            if self._is_int(something):
+            first_token = args[0]
+            if self._is_int(first_token):
                 # Get by id
                 return self.get_one_by_id, args
             else:
                 # Get by name
-                return self.get_one_by_name, args
+                return self.get_one_by_name, ["/".join(args)]
 
         # Use default routing for all other requests
-        return super(ProjectsController, self)._route(args)
+        return super(ProjectsController, self)._route(args, request)
