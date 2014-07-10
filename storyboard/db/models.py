@@ -289,3 +289,15 @@ class Comment(Base):
 
     content = Column(UnicodeText)
     is_active = Column(Boolean, default=True)
+
+
+# Subscription and notifications
+
+class Subscription(Base):
+    _SUBSCRIPTION_TARGETS = ('task', 'story', 'project', 'project_group')
+
+    user_id = Column(Integer, ForeignKey('users.id'))
+    target_type = Column(Enum(*_SUBSCRIPTION_TARGETS))
+
+    # Cant use foreign key here as it depends on the type
+    target_id = Column(Integer)
