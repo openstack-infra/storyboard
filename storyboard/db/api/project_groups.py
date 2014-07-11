@@ -109,3 +109,10 @@ def project_group_delete_project(project_group_id, project_id):
         session.add(project_group)
 
     return project_group
+
+
+def project_group_delete(project_group_id):
+    project_group = project_group_get(project_group_id)
+
+    if project_group:
+        api_base.entity_hard_delete(models.ProjectGroup, project_group_id)
