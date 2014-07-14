@@ -145,6 +145,7 @@ class TasksController(rest.RestController):
         created_task = tasks_api.task_create(task.as_dict())
 
         events_api.task_created_event(story_id=task.story_id,
+                                      task_id=created_task.id,
                                       task_title=created_task.title,
                                       author_id=creator_id)
 
@@ -180,6 +181,7 @@ class TasksController(rest.RestController):
         if original_task.status != updated_task.status:
             events_api.task_status_changed_event(
                 story_id=original_task.story_id,
+                task_id=original_task.id,
                 task_title=original_task.title,
                 author_id=author_id,
                 old_status=original_task.status,
@@ -189,6 +191,7 @@ class TasksController(rest.RestController):
         if original_task.priority != updated_task.priority:
             events_api.task_priority_changed_event(
                 story_id=original_task.story_id,
+                task_id=original_task.id,
                 task_title=original_task.title,
                 author_id=author_id,
                 old_priority=original_task.priority,
@@ -198,6 +201,7 @@ class TasksController(rest.RestController):
         if original_task.assignee_id != updated_task.assignee_id:
             events_api.task_assignee_changed_event(
                 story_id=original_task.story_id,
+                task_id=original_task.id,
                 task_title=original_task.title,
                 author_id=author_id,
                 old_assignee_id=original_task.assignee_id,
@@ -207,6 +211,7 @@ class TasksController(rest.RestController):
         if not specific_change:
             events_api.task_details_changed_event(
                 story_id=original_task.story_id,
+                task_id=original_task.id,
                 task_title=original_task.title,
                 author_id=author_id)
 
@@ -221,6 +226,7 @@ class TasksController(rest.RestController):
 
         events_api.task_deleted_event(
             story_id=original_task.story_id,
+            task_id=original_task.id,
             task_title=original_task.title,
             author_id=request.current_user_id)
 
