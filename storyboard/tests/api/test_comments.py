@@ -70,7 +70,8 @@ class TestComments(base.FunctionalTest):
 
         delta = {
             'id': original_event['comment_id'],
-            'content': 'Updated content'
+            'content': 'Updated content',
+            'is_active': True
         }
         original_id = original_event['comment_id']
         update_url = self.comments_resource % self.story_id + \

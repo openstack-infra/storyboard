@@ -13,6 +13,7 @@
 # under the License.
 
 from storyboard.common import user_utils
+from storyboard.db.api import stories
 from storyboard.tests import base
 
 
@@ -25,8 +26,11 @@ class TestTasks(base.FunctionalTest):
         self.task_01 = {
             'title': 'StoryBoard',
             'status': 'todo',
-            'story_id': 10
+            'story_id': 1
         }
+
+        stories.story_create({"name": "Test Story"})
+        stories.story_create({"name": "Test Story2"})
 
         self.original_user_utils = user_utils
         self.addCleanup(self._restore_user_utils)
@@ -42,7 +46,7 @@ class TestTasks(base.FunctionalTest):
 
     def test_create(self):
         self.post_json(self.resource, self.task_01)
-        self.task_01['story_id'] = 1000
+        self.task_01['story_id'] = 2
         self.post_json(self.resource, self.task_01)
 
         # No filters here - we should receive both created tasks
@@ -50,6 +54,6 @@ class TestTasks(base.FunctionalTest):
         self.assertEqual(2, len(all_tasks))
 
         # filter by story_id - we should receive only the one task
-        tasks_story_10 = self.get_json(self.resource, story_id=10)
+        tasks_story_10 = self.get_json(self.resource, story_id=1)
         self.assertEqual(1, len(tasks_story_10))
         self.assertEqual(self.task_01['title'], tasks_story_10[0]['title'])

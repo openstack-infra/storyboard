@@ -68,7 +68,6 @@ class TestStories(base.FunctionalTest):
         updated = json.loads(response.body)
 
         self.assertEqual(updated['id'], original['id'])
-        self.assertEqual(updated['created_at'], original['created_at'])
 
         self.assertNotEqual(updated['title'], original['title'])
         self.assertNotEqual(updated['description'],

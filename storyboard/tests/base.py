@@ -16,15 +16,19 @@
 # under the License.
 
 import os
+import uuid
 
+from alembic import command
 import fixtures
 from oslo.config import cfg
 import pecan
 import pecan.testing
+import sqlalchemy
 import testtools
 
 from storyboard.api.auth import authorization_checks
 from storyboard.db.api import base as db_api_base
+from storyboard.db.migration.cli import get_alembic_config
 from storyboard.openstack.common import lockutils
 from storyboard.openstack.common import log as logging
 
@@ -94,12 +98,29 @@ class DbTestCase(TestCase):
         self.setup_db()
 
     def setup_db(self):
-        CONF.set_default('connection', "sqlite://", group='database')
-        db_api_base.setup_db()
+        self.db_name = "storyboard_test_db_%s" % uuid.uuid4()
+        self.db_name = self.db_name.replace("-", "_")
+
+        # The engine w/o db name
+        engine = sqlalchemy.create_engine(
+            "mysql://openstack_citest:openstack_citest@127.0.0.1:3306")
+        engine.execute("CREATE DATABASE %s" % self.db_name)
+
+        alembic_config = get_alembic_config()
+        alembic_config.storyboard_config = CONF
+        CONF.set_override(
+            "connection",
+            "mysql://openstack_citest:openstack_citest@127.0.0.1:3306/%s"
+            % self.db_name,
+            group="database")
+
+        command.upgrade(alembic_config, "head")
         self.addCleanup(self._drop_db)
 
     def _drop_db(self):
-        db_api_base.drop_db()
+        engine = sqlalchemy.create_engine(
+            "mysql://openstack_citest:openstack_citest@127.0.0.1:3306")
+        engine.execute("DROP DATABASE %s" % self.db_name)
         db_api_base.cleanup()
 
 

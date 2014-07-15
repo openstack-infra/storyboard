@@ -67,7 +67,6 @@ class TestProjects(base.FunctionalTest):
         updated = json.loads(response.body)
 
         self.assertEqual(original['id'], updated['id'])
-        self.assertEqual(original['created_at'], updated['created_at'])
 
         self.assertNotEqual(original['name'], updated['name'])
         self.assertNotEqual(original['description'],
