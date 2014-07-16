@@ -16,20 +16,19 @@
 import copy
 
 from oslo.config import cfg
+from oslo.db import exception as db_exc
+from oslo.db.sqlalchemy import session as db_session
+from oslo.db.sqlalchemy.utils import InvalidSortKey
+from oslo.db.sqlalchemy.utils import paginate_query
 import six
 import sqlalchemy.types as types
 from wsme.exc import ClientSideError
 
 from storyboard.common import exception as exc
 from storyboard.db import models
-from storyboard.openstack.common.db import exception as db_exc
-from storyboard.openstack.common.db.sqlalchemy import session as db_session
-from storyboard.openstack.common.db.sqlalchemy.utils import InvalidSortKey
-from storyboard.openstack.common.db.sqlalchemy.utils import paginate_query
 from storyboard.openstack.common import log
 
 CONF = cfg.CONF
-CONF.import_group("database", "storyboard.openstack.common.db.options")
 LOG = log.getLogger(__name__)
 _FACADE = None
 
@@ -60,9 +59,7 @@ def _get_facade_instance():
     """
     global _FACADE
     if _FACADE is None:
-        _FACADE = db_session.EngineFacade(
-            CONF.database.connection,
-            **dict(CONF.database.iteritems()))
+        _FACADE = db_session.EngineFacade.from_config(CONF)
     return _FACADE
 
 
@@ -96,15 +93,15 @@ def get_engine():
     """Returns the global instance of our database engine.
     """
     facade = _get_facade_instance()
-    return facade.get_engine()
+    return facade.get_engine(use_slave=True)
 
 
-def get_session(autocommit=True, expire_on_commit=False):
+def get_session(autocommit=True, expire_on_commit=False, **kwargs):
     """Returns a database session from our facade.
     """
     facade = _get_facade_instance()
     return facade.get_session(autocommit=autocommit,
-                              expire_on_commit=expire_on_commit)
+                              expire_on_commit=expire_on_commit, **kwargs)
 
 
 def cleanup():

@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo.db.sqlalchemy.utils import InvalidSortKey
 from wsme.exc import ClientSideError
 
 from storyboard.db.api import base as api_base
 from storyboard.db import models
-from storyboard.openstack.common.db.sqlalchemy.utils import InvalidSortKey
 
 
 def story_get(story_id):
