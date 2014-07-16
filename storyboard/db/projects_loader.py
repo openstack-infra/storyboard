@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
 import six
 import warnings
 import yaml
@@ -25,11 +24,12 @@ from storyboard.db.api import base as db_api
 from storyboard.common.custom_types import NameType
 from storyboard.db.models import Project
 from storyboard.db.models import ProjectGroup
+from storyboard.openstack.common import log
 
 
 warnings.simplefilter("ignore", SADeprecationWarning)
 CONF = cfg.CONF
-LOG = logging.getLogger(__name__)
+LOG = log.getLogger(__name__)
 
 
 def do_load_models(filename):
