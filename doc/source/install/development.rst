@@ -54,15 +54,24 @@ Installing the API server
 Installing the Javascript-based web client
 ==========================================
 
-1. To build and start the web client, make sure you have the following packages 
-   installed locally:
+1. To build and start the web client, you will need either of these
+   dependency sets installed locally:
 
-   * Xvfb
-   * GCC 4.2 or newer
-   * Python 2.6 or 2.7
-   * GNU Make 3.81 or newer
-   * libexecinfo (FreeBSD and OpenBSD only)
+   * *Option 1:*
 
+     * Python 2.6 or 2.7
+     * NodeJS v0.10.29 or newer
+     * NPM v1.3.10 or newer
+
+     (Ubuntu Trusty packages are sufficient, even though they indicate an older
+     version).
+
+   * *Option 2:*
+
+     * GCC 4.2 or newer
+     * Python 2.6 or 2.7
+     * GNU Make 3.81 or newer
+     * libexecinfo (FreeBSD and OpenBSD only)
 
 2. Clone storyboard::
 
