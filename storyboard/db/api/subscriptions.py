@@ -21,8 +21,9 @@ def subscription_get(subscription_id):
     return api_base.entity_get(models.Subscription, subscription_id)
 
 
-def subscription_get_all(user_id):
-    return api_base.entity_get_all(models.Subscription, user_id=user_id)
+def subscription_get_all(**kwargs):
+    return api_base.entity_get_all(models.Subscription,
+                                   **kwargs)
 
 
 def subscription_get_all_by_target(target_type, target_id):
