@@ -26,6 +26,7 @@ from storyboard.api.v1 import base
 from storyboard.api.v1.projects import Project
 from storyboard.common.custom_types import NameType
 from storyboard.db.api import project_groups
+from storyboard.db.api import projects
 
 
 CONF = cfg.CONF
@@ -74,30 +75,24 @@ class ProjectsSubcontroller(rest.RestController):
                 for project in project_group.projects]
 
     @secure(checks.superuser)
-    @wsme_pecan.wsexpose([Project], int, int)
+    @wsme_pecan.wsexpose(Project, int, int)
     def put(self, project_group_id, project_id):
         """Add a project to a project_group
         """
 
         project_groups.project_group_add_project(project_group_id, project_id)
 
-        project_group = project_groups.project_group_get(project_group_id)
-
-        return [Project.from_db_model(project)
-                for project in project_group.projects]
+        return Project.from_db_model(projects.project_get(project_id))
 
     @secure(checks.superuser)
-    @wsme_pecan.wsexpose([Project], int, int)
+    @wsme_pecan.wsexpose(None, int, int)
     def delete(self, project_group_id, project_id):
         """Delete a project from a project_group
         """
         project_groups.project_group_delete_project(project_group_id,
                                                     project_id)
 
-        project_group = project_groups.project_group_get(project_group_id)
-
-        return [Project.from_db_model(project)
-                for project in project_group.projects]
+        response.status_code = 204
 
 
 class ProjectGroupsController(rest.RestController):
