@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from oslo.config import cfg
+from pecan import response
 from pecan import rest
 from pecan.secure import secure
 from wsme.exc import ClientSideError
@@ -172,5 +173,16 @@ class ProjectGroupsController(rest.RestController):
             raise ClientSideError("Could not update group %s" % id)
 
         return ProjectGroup.from_db_model(updated_group)
+
+    @secure(checks.superuser)
+    @wsme_pecan.wsexpose(ProjectGroup, int)
+    def delete(self, id):
+        """Delete this project group.
+
+        :param id: An ID of the project group.
+        """
+        project_groups.project_group_delete(id)
+
+        response.status_code = 204
 
     projects = ProjectsSubcontroller()
