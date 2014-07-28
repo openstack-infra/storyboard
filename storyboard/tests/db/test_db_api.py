@@ -20,6 +20,7 @@ from storyboard.db.api import comments
 from storyboard.db.api import projects
 from storyboard.db.api import stories
 from storyboard.db.api import tasks
+from storyboard.db.api import users
 from storyboard.tests import base
 
 
@@ -100,6 +101,9 @@ class TasksTest(BaseDbTestCase):
             'story_id': 1
         }
 
+        stories.story_create({"name": "Test Story"})
+        users.user_create({"fullname": "Test User"})
+
     def test_create_task(self):
         self._test_create(self.task_01, tasks.task_create)
 
@@ -123,6 +127,8 @@ class CommentsTest(BaseDbTestCase):
             'story_id': 1
         }
 
+        stories.story_create({"name": "Test Story"})
+
     def test_create_comment(self):
         self._test_create(self.comment_01, comments.comment_create)
 
@@ -145,6 +151,8 @@ class AuthorizationCodeTest(BaseDbTestCase):
             'state': u'another_random_stuff',
             'user_id': 1
         }
+
+        users.user_create({"fullname": "Test User"})
 
     def test_create_code(self):
         self._test_create(self.code_01, auth.authorization_code_save)
@@ -173,6 +181,8 @@ class TokenTest(BaseDbTestCase):
             "expires_at": datetime.now(),
             "user_id": 1
         }
+
+        users.user_create({"fullname": "Test User"})
 
     def test_create_token(self):
         self._test_create(self.token_01, auth.access_token_save)
