@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#    http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -125,18 +125,34 @@ class ProjectGroupsController(rest.RestController):
         return ProjectGroup.from_db_model(group)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([ProjectGroup], int, int, unicode, unicode)
-    def get(self, marker=None, limit=None, sort_field='id', sort_dir='asc'):
+    @wsme_pecan.wsexpose([ProjectGroup], int, int, unicode, unicode, unicode,
+                         unicode)
+    def get(self, marker=None, limit=None, name=None, title=None,
+            sort_field='id', sort_dir='asc'):
         """Retrieve a list of projects groups."""
 
         if limit is None:
             limit = CONF.page_size_default
         limit = min(CONF.page_size_maximum, max(1, limit))
 
-        groups = project_groups.project_group_get_all(marker=marker,
+        # Resolve the marker record.
+        marker_group = project_groups.project_group_get(marker)
+
+        groups = project_groups.project_group_get_all(marker=marker_group,
                                                       limit=limit,
+                                                      name=name,
+                                                      title=title,
                                                       sort_field=sort_field,
                                                       sort_dir=sort_dir)
+
+        group_count = project_groups.project_group_get_count(name=name,
+                                                             title=title)
+
+        # Apply the query response headers.
+        response.headers['X-Limit'] = str(limit)
+        response.headers['X-Total'] = str(group_count)
+        if marker_group:
+            response.headers['X-Marker'] = str(marker_group.id)
 
         return [ProjectGroup.from_db_model(group) for group in groups]
 
