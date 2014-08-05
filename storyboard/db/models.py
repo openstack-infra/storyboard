@@ -121,8 +121,10 @@ class User(FullText, ModelBuilder, Base):
     last_login = Column(DateTime)
     teams = relationship("Team", secondary="team_membership")
     permissions = relationship("Permission", secondary="user_permissions")
+    enable_login = Column(Boolean, default=True)
 
-    _public_fields = ["id", "openid", "full_name", "username", "last_login"]
+    _public_fields = ["id", "openid", "full_name", "username", "last_login",
+                      "enable_login"]
 
 
 class Team(ModelBuilder, Base):
