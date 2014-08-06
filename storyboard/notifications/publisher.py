@@ -26,44 +26,16 @@ CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
 
-def publish(state):
-
-    def parse(s):
-        url_pattern = re.match("^\/v1\/([a-z]+)\/?([0-9]+)?"
-                               "\/?([a-z]+)?$", s)
-        if url_pattern and url_pattern.groups()[0] != "openid":
-            return url_pattern.groups()
-        else:
-            return
-
-    request = state.request
-    req_method = request.method
-    req_user_id = request.current_user_id
-    req_path = request.path
-    req_resource_grp = parse(req_path)
-
-    if req_resource_grp:
-        resource = req_resource_grp[0]
-        resource_id = req_resource_grp[1]
+def parse(s):
+    url_pattern = re.match("^\/v1\/([a-z_]+)\/?([0-9]+)?"
+                           "\/?([a-z]+)?\/?([0-9]+)?$", s)
+    if url_pattern and url_pattern.groups()[0] != "openid":
+        return url_pattern.groups()
     else:
         return
 
-    if not resource_id:
-        response_str = state.response.body
-        response = json.loads(response_str)
 
-        if response:
-            resource_id = response.get('id')
-        else:
-            resource_id = None
-
-    payload = {
-        "user_id": req_user_id,
-        "method": req_method,
-        "resource_name": resource,
-        "resource_id": resource_id,
-    }
-
+def publish(payload, resource):
     payload = json.dumps(payload)
     routing_key = resource
     conn = connection_service.get_connection()
@@ -74,4 +46,53 @@ def publish(state):
     channel.basic_publish(exchange='storyboard',
                           routing_key=routing_key,
                           body=payload)
+
     channel.close()
+
+
+def process(state):
+
+    request = state.request
+    req_method = request.method
+    req_user_id = request.current_user_id
+    req_path = request.path
+    req_resource_grp = parse(req_path)
+
+    if req_resource_grp:
+
+        resource = req_resource_grp[0]
+
+        if req_resource_grp[1]:
+            resource_id = req_resource_grp[1]
+
+        # When a resource is created..
+        else:
+            response_str = state.response.body
+            response = json.loads(response_str)
+            if response:
+                resource_id = response.get('id')
+            else:
+                resource_id = None
+        # when adding/removing projects to project_groups..
+        if req_resource_grp[3]:
+            sub_resource_id = req_resource_grp[3]
+            payload = {
+                "user_id": req_user_id,
+                "method": req_method,
+                "resource": resource,
+                "resource_id": resource_id,
+                "sub_resource_id": sub_resource_id
+            }
+
+        else:
+            payload = {
+                "user_id": req_user_id,
+                "method": req_method,
+                "resource": resource,
+                "resource_id": resource_id
+            }
+
+        publish(payload, resource)
+
+    else:
+        return

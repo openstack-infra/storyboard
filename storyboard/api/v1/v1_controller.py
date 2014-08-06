@@ -17,6 +17,7 @@ from storyboard.api.v1.auth import AuthController
 from storyboard.api.v1.project_groups import ProjectGroupsController
 from storyboard.api.v1.projects import ProjectsController
 from storyboard.api.v1.stories import StoriesController
+from storyboard.api.v1.subscription_events import SubscriptionEventsController
 from storyboard.api.v1.subscriptions import SubscriptionsController
 from storyboard.api.v1.tasks import TasksController
 from storyboard.api.v1.teams import TeamsController
@@ -32,5 +33,6 @@ class V1Controller(object):
     stories = StoriesController()
     tasks = TasksController()
     subscriptions = SubscriptionsController()
+    subscription_events = SubscriptionEventsController()
 
     openid = AuthController()

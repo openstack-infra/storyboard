@@ -20,7 +20,7 @@ from pecan import request
 from storyboard.common import event_types
 from storyboard.db.api import base as api_base
 from storyboard.db import models
-from storyboard.notifications import connection_service
+from storyboard.notifications.publisher import publish
 
 CONF = cfg.CONF
 
@@ -48,25 +48,13 @@ def event_create(values):
     new_event = api_base.entity_create(models.TimeLineEvent, values)
 
     if CONF.enable_notifications:
-
-        payload_timeline_events = {
+        payload = {
             "user_id": request.current_user_id,
             "method": "POST",
-            "resource": "timeline_event",
+            "resource": "timeline_events",
             "event_id": new_event.id
         }
-        payload_timeline_events = json.dumps(payload_timeline_events)
-        routing_key = "timeline_events"
-
-        conn = connection_service.get_connection()
-        channel = conn.connection.channel()
-        conn.create_exchange(channel, 'storyboard', 'topic')
-
-        channel.basic_publish(exchange='storyboard',
-                              routing_key=routing_key,
-                              body=payload_timeline_events)
-
-        channel.close()
+        publish(payload, "timeline_events")
 
     return new_event
 

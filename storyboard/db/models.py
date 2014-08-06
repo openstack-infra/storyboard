@@ -320,3 +320,11 @@ class Subscription(Base):
 
     # Cant use foreign key here as it depends on the type
     target_id = Column(Integer)
+
+
+class SubscriptionEvents(Base):
+    __tablename__ = 'subscription_events'
+
+    subscriber_id = Column(Integer, ForeignKey('users.id'))
+    event_type = Column(Unicode(100), nullable=False)
+    event_info = Column(UnicodeText(), nullable=True)
