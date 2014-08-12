@@ -170,6 +170,13 @@ class ProjectGroup(Base):
     _public_fields = ["id", "name", "title", "projects"]
 
 
+story_storytags = Table(
+    'story_storytags', Base.metadata,
+    Column('story_id', Integer, ForeignKey('stories.id')),
+    Column('storytag_id', Integer, ForeignKey('storytags.id')),
+)
+
+
 class Story(FullText, Base):
     __tablename__ = 'stories'
 
@@ -182,7 +189,7 @@ class Story(FullText, Base):
     is_bug = Column(Boolean, default=True)
     tasks = relationship('Task', backref='story')
     events = relationship('TimeLineEvent', backref='story')
-    tags = relationship('StoryTag', backref='story')
+    tags = relationship('StoryTag', secondary='story_storytags')
 
     _public_fields = ["id", "creator_id", "title", "description", "is_bug",
                       "tasks", "events", "tags"]
@@ -207,11 +214,12 @@ class Task(FullText, Base):
 
 
 class StoryTag(Base):
+    __tablename__ = 'storytags'
     __table_args__ = (
         schema.UniqueConstraint('name', name='uniq_story_tags_name'),
     )
     name = Column(String(20))
-    story_id = Column(Integer, ForeignKey('stories.id'))
+    stories = relationship('StoryTag', secondary='story_storytags')
 
 
 # Authorization models
