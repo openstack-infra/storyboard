@@ -135,6 +135,9 @@ class Story(base.APIBase):
     task_statuses = wtypes.ArrayType(TaskStatusCount)
     """The summary of each tasks/status."""
 
+    tags = wtypes.ArrayType(unicode)
+    """Tag list assigned to this story."""
+
     @classmethod
     def sample(cls):
         return cls(
@@ -143,7 +146,18 @@ class Story(base.APIBase):
             is_bug=False,
             creator_id=1,
             task_statuses=[TaskStatusCount],
-            status="active")
+            status="active",
+            tags=["t1", "t2"])
+
+
+class Tag(base.APIBase):
+
+    name = wtypes.text
+    """The tag name"""
+
+    @classmethod
+    def sample(cls):
+        return cls(name="low_hanging_fruit")
 
 
 class Task(base.APIBase):

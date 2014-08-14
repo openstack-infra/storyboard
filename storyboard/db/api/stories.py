@@ -20,7 +20,7 @@ from wsme.exc import ClientSideError
 from storyboard.api.v1 import wmodels
 from storyboard.common import exception as exc
 from storyboard.db.api import base as api_base
-from storyboard.db.api import tags
+from storyboard.db.api import story_tags
 from storyboard.db import models
 from storyboard.openstack.common.gettextutils import _  # noqa
 
@@ -44,20 +44,20 @@ def summarize_task_statuses(story_summary):
 
 
 def story_get(story_id, session=None):
-    story_summary_query = api_base.model_query(models.StorySummary, session)
-    story_summary = story_summary_query.filter_by(id=story_id).first()
+    story_query = api_base.model_query(models.StorySummary, session)
+    story_summary = story_query\
+        .options(subqueryload(models.StorySummary.tags))\
+        .filter_by(id=story_id).first()
 
-    simple = story_get_simple(story_id)
-    if simple and story_summary:
-        story_summary.tags = simple.tags
+    if story_summary:
         return summarize_task_statuses(story_summary)
-    else:
-        return simple
+
+    return None
 
 
 def story_get_all(title=None, description=None, status=None, assignee_id=None,
-                  project_group_id=None, project_id=None, marker=None,
-                  limit=None, sort_field='id', sort_dir='asc'):
+                  project_group_id=None, project_id=None, tags=None,
+                  marker=None, limit=None, sort_field='id', sort_dir='asc'):
     # Sanity checks, in case someone accidentally explicitly passes in 'None'
     if not sort_field:
         sort_field = 'id'
@@ -69,13 +69,15 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
                                   description=description,
                                   assignee_id=assignee_id,
                                   project_group_id=project_group_id,
-                                  project_id=project_id)
+                                  project_id=project_id,
+                                  tags=tags)
 
     # Turn the whole shebang into a subquery.
     subquery = subquery.subquery('filtered_stories')
 
     # Return the story summary.
-    query = api_base.model_query(models.StorySummary)
+    query = api_base.model_query(models.StorySummary)\
+        .options(subqueryload(models.StorySummary.tags))
     query = query.join(subquery,
                        models.StorySummary.id == subquery.c.id)
 
@@ -102,12 +104,14 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
 
 
 def story_get_count(title=None, description=None, status=None,
-                    assignee_id=None, project_group_id=None, project_id=None):
+                    assignee_id=None, project_group_id=None, project_id=None,
+                    tags=None):
     query = _story_build_query(title=title,
                                description=description,
                                assignee_id=assignee_id,
                                project_group_id=project_group_id,
-                               project_id=project_id)
+                               project_id=project_id,
+                               tags=tags)
 
     # If we're also asking for status, we have to attach storysummary here,
     # since story status is derived.
@@ -122,13 +126,20 @@ def story_get_count(title=None, description=None, status=None,
 
 
 def _story_build_query(title=None, description=None, assignee_id=None,
-                       project_group_id=None, project_id=None):
+                       project_group_id=None, project_id=None, tags=None):
     # First build a standard story query.
     query = api_base.model_query(models.Story.id).distinct()
+
+    # Apply basic filters
     query = api_base.apply_query_filters(query=query,
                                          model=models.Story,
                                          title=title,
                                          description=description)
+
+    # Filtering by tags
+    if tags:
+        for tag in tags:
+            query = query.filter(models.Story.tags.any(name=tag))
 
     # Are we filtering by project group?
     if project_group_id:
@@ -163,9 +174,9 @@ def story_add_tag(story_id, tag_name):
     with session.begin():
 
         # Get a tag or create a new one
-        tag = tags.tag_get_by_name(tag_name, session=session)
+        tag = story_tags.tag_get_by_name(tag_name, session=session)
         if not tag:
-            tag = tags.tag_create({"name": tag_name})
+            tag = story_tags.tag_create({"name": tag_name})
 
         story = story_get_simple(story_id, session=session)
         if not story:
@@ -173,9 +184,9 @@ def story_add_tag(story_id, tag_name):
                                {'name': "Story", 'id': story_id})
 
         if tag_name in [t.name for t in story.tags]:
-            raise ClientSideError(_("The Story %(id)d already has "
-                                    "a tag %(tag)s") %
-                                  {'id': story_id, 'tag': tag_name})
+            raise exc.DuplicateEntry(_("The Story %(id)d already has "
+                                       "a tag %(tag)s") %
+                                     {'id': story_id, 'tag': tag_name})
 
         story.tags.append(tag)
         session.add(story)
@@ -192,22 +203,13 @@ def story_remove_tag(story_id, tag_name):
                                {'name': "Story", 'id': story_id})
 
         if tag_name not in [t.name for t in story.tags]:
-            raise ClientSideError(_("The Story %(story_id)d has "
-                                    "no tag %(tag)s") %
-                                  {'story_id': story_id, 'tag': tag_name})
+            raise exc.NotFound(_("The Story %(story_id)d has "
+                                 "no tag %(tag)s") %
+                               {'story_id': story_id, 'tag': tag_name})
 
         tag = [t for t in story.tags if t.name == tag_name][0]
         story.tags.remove(tag)
         session.add(story)
-
-
-def story_get_by_tags(*tags):
-    query = api_base.model_query(models.Story)
-
-    for tag in tags:
-        query = query.filter(models.Story.tags.any(name=tag))
-
-    return query.all()
 
 
 def story_delete(story_id):

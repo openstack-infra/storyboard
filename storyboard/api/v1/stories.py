@@ -24,6 +24,7 @@ import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1.search import search_engine
+from storyboard.api.v1.tags import TagsController
 from storyboard.api.v1.timeline import CommentsController
 from storyboard.api.v1.timeline import TimeLineEventsController
 from storyboard.api.v1 import validations
@@ -66,10 +67,11 @@ class StoriesController(rest.RestController):
     @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Story], unicode, unicode, [unicode], int,
-                         int, int, int, int, unicode, unicode)
+                         int, int, [unicode], int, int, unicode, unicode)
     def get_all(self, title=None, description=None, status=None,
                 assignee_id=None, project_group_id=None, project_id=None,
-                marker=None, limit=None, sort_field='id', sort_dir='asc'):
+                tags=None, marker=None, limit=None, sort_field='id',
+                sort_dir='asc'):
         """Retrieve definitions of all of the stories.
 
         :param title: A string to filter the title by.
@@ -78,6 +80,7 @@ class StoriesController(rest.RestController):
         :param assignee_id: filter stories by who they are assigned to.
         :param project_group_id: filter stories by project group.
         :param project_id: filter stories by project ID.
+        :param tags: a list of tags to filter by.
         :param marker: The resource id where the page should begin.
         :param limit: The number of stories to retrieve.
         :param sort_field: The name of the field to sort on.
@@ -99,6 +102,7 @@ class StoriesController(rest.RestController):
                            assignee_id=assignee_id,
                            project_group_id=project_group_id,
                            project_id=project_id,
+                           tags=tags,
                            marker=marker_story,
                            limit=limit, sort_field=sort_field,
                            sort_dir=sort_dir)
@@ -108,7 +112,8 @@ class StoriesController(rest.RestController):
                              status=status,
                              assignee_id=assignee_id,
                              project_group_id=project_group_id,
-                             project_id=project_id, )
+                             project_id=project_id,
+                             tags=tags)
 
         # Apply the query response headers.
         response.headers['X-Limit'] = str(limit)
@@ -130,6 +135,10 @@ class StoriesController(rest.RestController):
 
         user_id = request.current_user_id
         story_dict.update({"creator_id": user_id})
+
+        if not "tags" in story_dict or not story_dict["tags"]:
+            story_dict["tags"] = []
+
         created_story = stories_api.story_create(story_dict)
 
         events_api.story_created_event(created_story.id, user_id, story.title)
@@ -173,6 +182,7 @@ class StoriesController(rest.RestController):
 
     comments = CommentsController()
     events = TimeLineEventsController()
+    tags = TagsController()
 
     @decorators.db_exceptions
     @secure(checks.guest)
@@ -199,5 +209,9 @@ class StoriesController(rest.RestController):
             if something == "search":
                 # Request to a search endpoint
                 return self.search, args
+
+            if something == "get_by_tags":
+                # Request by a list of tags
+                return self.get_by_tags, args
 
         return super(StoriesController, self)._route(args, request)
