@@ -141,8 +141,7 @@ class SubscriptionsController(rest.RestController):
 
         subscription = subscription_api.subscription_get(subscription_id)
         if subscription.user_id != request.current_user_id:
-            raise ClientSideError("Subscription %s not found"
-                                  % subscription_id, status_code=404)
+            raise ClientSideError(status_code=403)
 
         subscription_api.subscription_delete(subscription_id)
 
