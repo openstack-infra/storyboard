@@ -19,13 +19,11 @@ from pecan import response
 from pecan import rest
 from pecan.secure import secure
 from wsme.exc import ClientSideError
-from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
-from storyboard.api.v1 import base
 from storyboard.api.v1.search import search_engine
-from storyboard.common import event_resolvers
+from storyboard.api.v1 import wmodels
 from storyboard.common import event_types
 from storyboard.db.api import comments as comments_api
 from storyboard.db.api import timeline_events as events_api
@@ -35,87 +33,11 @@ CONF = cfg.CONF
 SEARCH_ENGINE = search_engine.get_engine()
 
 
-class Comment(base.APIBase):
-    """Any user may leave comments for stories. Also comments api is used by
-    gerrit to leave service comments.
-    """
-
-    content = wtypes.text
-    """The content of the comment."""
-
-    is_active = bool
-    """Is this an active comment, or has it been deleted?"""
-
-
-class TimeLineEvent(base.APIBase):
-    """An event object should be created each time a story or a task state
-    changes.
-    """
-
-    event_type = wtypes.text
-    """This type should serve as a hint for the web-client when rendering
-    a comment."""
-
-    event_info = wtypes.text
-    """A JSON encoded field with details about the event."""
-
-    story_id = int
-    """The ID of the corresponding Story."""
-
-    author_id = int
-    """The ID of User who has left the comment."""
-
-    comment_id = int
-    """The id of a comment linked to this event."""
-
-    comment = Comment
-    """The resolved comment."""
-
-    @staticmethod
-    def resolve_event_values(event):
-        if event.comment_id:
-            comment = comments_api.comment_get(event.comment_id)
-            event.comment = Comment.from_db_model(comment)
-
-        event = TimeLineEvent._resolve_info(event)
-
-        return event
-
-    @staticmethod
-    def _resolve_info(event):
-        if event.event_type == event_types.STORY_CREATED:
-            return event_resolvers.story_created(event)
-
-        elif event.event_type == event_types.STORY_DETAILS_CHANGED:
-            return event_resolvers.story_details_changed(event)
-
-        elif event.event_type == event_types.USER_COMMENT:
-            return event_resolvers.user_comment(event)
-
-        elif event.event_type == event_types.TASK_CREATED:
-            return event_resolvers.task_created(event)
-
-        elif event.event_type == event_types.TASK_STATUS_CHANGED:
-            return event_resolvers.task_status_changed(event)
-
-        elif event.event_type == event_types.TASK_PRIORITY_CHANGED:
-            return event_resolvers.task_priority_changed(event)
-
-        elif event.event_type == event_types.TASK_ASSIGNEE_CHANGED:
-            return event_resolvers.task_assignee_changed(event)
-
-        elif event.event_type == event_types.TASK_DETAILS_CHANGED:
-            return event_resolvers.task_details_changed(event)
-
-        elif event.event_type == event_types.TASK_DELETED:
-            return event_resolvers.task_deleted(event)
-
-
 class TimeLineEventsController(rest.RestController):
     """Manages comments."""
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose(TimeLineEvent, int, int)
+    @wsme_pecan.wsexpose(wmodels.TimeLineEvent, int, int)
     def get_one(self, story_id, event_id):
         """Retrieve details about one event.
 
@@ -127,15 +49,16 @@ class TimeLineEventsController(rest.RestController):
         event = events_api.event_get(event_id)
 
         if event:
-            wsme_event = TimeLineEvent.from_db_model(event)
-            wsme_event = TimeLineEvent.resolve_event_values(wsme_event)
+            wsme_event = wmodels.TimeLineEvent.from_db_model(event)
+            wsme_event = wmodels.TimeLineEvent.resolve_event_values(wsme_event)
             return wsme_event
         else:
             raise ClientSideError("Comment %s not found" % event_id,
                                   status_code=404)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([TimeLineEvent], int, int, int, unicode, unicode)
+    @wsme_pecan.wsexpose([wmodels.TimeLineEvent], int, int, int, unicode,
+                         unicode)
     def get_all(self, story_id=None, marker=None, limit=None, sort_field=None,
                 sort_dir=None):
         """Retrieve all events that have happened under specified story.
@@ -168,15 +91,15 @@ class TimeLineEventsController(rest.RestController):
         if marker_event:
             response.headers['X-Marker'] = str(marker_event.id)
 
-        return [TimeLineEvent.resolve_event_values(
-            TimeLineEvent.from_db_model(event)) for event in events]
+        return [wmodels.TimeLineEvent.resolve_event_values(
+            wmodels.TimeLineEvent.from_db_model(event)) for event in events]
 
 
 class CommentsController(rest.RestController):
     """Manages comments."""
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose(Comment, int, int)
+    @wsme_pecan.wsexpose(wmodels.Comment, int, int)
     def get_one(self, story_id, comment_id):
         """Retrieve details about one comment.
 
@@ -188,13 +111,13 @@ class CommentsController(rest.RestController):
         comment = comments_api.comment_get(comment_id)
 
         if comment:
-            return Comment.from_db_model(comment)
+            return wmodels.Comment.from_db_model(comment)
         else:
             raise ClientSideError("Comment %s not found" % comment_id,
                                   status_code=404)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([Comment], int, int, int, unicode, unicode)
+    @wsme_pecan.wsexpose([wmodels.Comment], int, int, int, unicode, unicode)
     def get_all(self, story_id=None, marker=None, limit=None, sort_field='id',
                 sort_dir='asc'):
         """Retrieve all comments posted under specified story.
@@ -238,10 +161,10 @@ class CommentsController(rest.RestController):
         if marker_event:
             response.headers['X-Marker'] = str(marker)
 
-        return [Comment.from_db_model(comment) for comment in comments]
+        return [wmodels.Comment.from_db_model(comment) for comment in comments]
 
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose(TimeLineEvent, int, body=Comment)
+    @wsme_pecan.wsexpose(wmodels.TimeLineEvent, int, body=wmodels.Comment)
     def post(self, story_id, comment):
         """Create a new comment.
 
@@ -257,13 +180,13 @@ class CommentsController(rest.RestController):
             "event_type": event_types.USER_COMMENT,
             "comment_id": created_comment.id
         }
-        event = TimeLineEvent.from_db_model(
+        event = wmodels.TimeLineEvent.from_db_model(
             events_api.event_create(event_values))
-        event = TimeLineEvent.resolve_event_values(event)
+        event = wmodels.TimeLineEvent.resolve_event_values(event)
         return event
 
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose(Comment, int, int, body=Comment)
+    @wsme_pecan.wsexpose(wmodels.Comment, int, int, body=wmodels.Comment)
     def put(self, story_id, comment_id, comment_body):
         """Update an existing comment.
 
@@ -282,10 +205,10 @@ class CommentsController(rest.RestController):
         updated_comment = comments_api.comment_update(comment_id,
                                                       comment_body.as_dict())
 
-        return Comment.from_db_model(updated_comment)
+        return wmodels.Comment.from_db_model(updated_comment)
 
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose(Comment, int, int)
+    @wsme_pecan.wsexpose(wmodels.Comment, int, int)
     def delete(self, story_id, comment_id):
         """Update an existing comment.
 
@@ -305,7 +228,7 @@ class CommentsController(rest.RestController):
         return response
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([Comment], unicode, unicode, int, int)
+    @wsme_pecan.wsexpose([wmodels.Comment], unicode, unicode, int, int)
     def search(self, q="", marker=None, limit=None):
         """The search endpoint for comments.
 
@@ -317,4 +240,4 @@ class CommentsController(rest.RestController):
                                                 marker=marker,
                                                 limit=limit)
 
-        return [Comment.from_db_model(comment) for comment in comments]
+        return [wmodels.Comment.from_db_model(comment) for comment in comments]

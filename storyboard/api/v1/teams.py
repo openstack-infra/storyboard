@@ -19,38 +19,14 @@ from pecan import response
 from pecan import rest
 from pecan.secure import secure
 from wsme.exc import ClientSideError
-from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
-from storyboard.api.v1 import base
-from storyboard.api.v1.users import User
-from storyboard.common.custom_types import NameType
+from storyboard.api.v1 import wmodels
 from storyboard.db.api import teams as teams_api
 from storyboard.db.api import users as users_api
 
 CONF = cfg.CONF
-
-
-class Team(base.APIBase):
-    """The Team is a group od Users with a fixed set of permissions.
-    """
-
-    name = NameType()
-    """The Team unique name. This name will be displayed in the URL.
-    At least 3 alphanumeric symbols. Minus and dot symbols are allowed as
-    separators.
-    """
-
-    description = wtypes.text
-    """Details about the team.
-    """
-
-    @classmethod
-    def sample(cls):
-        return cls(
-            name="StoryBoard-core",
-            description="Core reviewers of StoryBoard team.")
 
 
 class UsersSubcontroller(rest.RestController):
@@ -58,7 +34,7 @@ class UsersSubcontroller(rest.RestController):
     """
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([User], int)
+    @wsme_pecan.wsexpose([wmodels.User], int)
     def get(self, team_id):
         """Get users inside a team.
 
@@ -70,17 +46,17 @@ class UsersSubcontroller(rest.RestController):
         if not team:
             raise ClientSideError("The requested team does not exist")
 
-        return [User.from_db_model(user) for user in team.users]
+        return [wmodels.User.from_db_model(user) for user in team.users]
 
     @secure(checks.superuser)
-    @wsme_pecan.wsexpose(User, int, int)
+    @wsme_pecan.wsexpose(wmodels.User, int, int)
     def put(self, team_id, user_id):
         """Add a user to a team."""
 
         teams_api.team_add_user(team_id, user_id)
         user = users_api.user_get(user_id)
 
-        return User.from_db_model(user)
+        return wmodels.User.from_db_model(user)
 
     @secure(checks.superuser)
     @wsme_pecan.wsexpose(None, int, int)
@@ -95,7 +71,7 @@ class TeamsController(rest.RestController):
     """REST controller for Teams."""
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose(Team, int)
+    @wsme_pecan.wsexpose(wmodels.Team, int)
     def get_one_by_id(self, team_id):
         """Retrieve information about the given team.
 
@@ -105,29 +81,29 @@ class TeamsController(rest.RestController):
         team = teams_api.team_get(team_id)
 
         if team:
-            return Team.from_db_model(team)
+            return wmodels.Team.from_db_model(team)
         else:
             raise ClientSideError("Team %s not found" % team_id,
                                   status_code=404)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose(Team, unicode)
+    @wsme_pecan.wsexpose(wmodels.Team, unicode)
     def get_one_by_name(self, team_name):
         """Retrieve information about the given team.
 
-        :param name: team name.
+        :param team_name: team name.
         """
 
         team = teams_api.team_get_by_name(team_name)
 
         if team:
-            return Team.from_db_model(team)
+            return wmodels.Team.from_db_model(team)
         else:
             raise ClientSideError("Team %s not found" % team_name,
                                   status_code=404)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([Team], int, int, unicode, unicode, unicode,
+    @wsme_pecan.wsexpose([wmodels.Team], int, int, unicode, unicode, unicode,
                          unicode)
     def get(self, marker=None, limit=None, name=None, description=None,
             sort_field='id', sort_dir='asc'):
@@ -164,20 +140,20 @@ class TeamsController(rest.RestController):
         if marker_team:
             response.headers['X-Marker'] = str(marker_team.id)
 
-        return [Team.from_db_model(t) for t in teams]
+        return [wmodels.Team.from_db_model(t) for t in teams]
 
     @secure(checks.superuser)
-    @wsme_pecan.wsexpose(Team, body=Team)
+    @wsme_pecan.wsexpose(wmodels.Team, body=wmodels.Team)
     def post(self, team):
         """Create a new team.
 
         :param team: a team within the request body.
         """
         result = teams_api.team_create(team.as_dict())
-        return Team.from_db_model(result)
+        return wmodels.Team.from_db_model(result)
 
     @secure(checks.superuser)
-    @wsme_pecan.wsexpose(Team, int, body=Team)
+    @wsme_pecan.wsexpose(wmodels.Team, int, body=wmodels.Team)
     def put(self, team_id, team):
         """Modify this team.
 
@@ -188,7 +164,7 @@ class TeamsController(rest.RestController):
                                        team.as_dict(omit_unset=True))
 
         if result:
-            return Team.from_db_model(result)
+            return wmodels.Team.from_db_model(result)
         else:
             raise ClientSideError("Team %s not found" % team_id,
                                   status_code=404)

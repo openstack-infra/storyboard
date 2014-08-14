@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from datetime import datetime
-
 from oslo.config import cfg
 from pecan import expose
 from pecan import request
@@ -22,52 +20,16 @@ from pecan import response
 from pecan import rest
 from pecan.secure import secure
 from wsme.exc import ClientSideError
-from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
-from storyboard.api.v1 import base
 from storyboard.api.v1.search import search_engine
+from storyboard.api.v1 import wmodels
 from storyboard.db.api import users as users_api
 
 CONF = cfg.CONF
 
 SEARCH_ENGINE = search_engine.get_engine()
-
-
-class User(base.APIBase):
-    """Represents a user."""
-
-    username = wtypes.text
-    """A short unique name, beginning with a lower-case letter or number, and
-    containing only letters, numbers, dots, hyphens, or plus signs"""
-
-    full_name = wtypes.text
-    """Full (Display) name."""
-
-    openid = wtypes.text
-    """The unique identifier, returned by an OpneId provider"""
-
-    email = wtypes.text
-    """Email Address."""
-
-    # Todo(nkonovalov): use teams to define superusers
-    is_superuser = bool
-
-    last_login = datetime
-    """Date of the last login."""
-
-    @classmethod
-    def sample(cls):
-        return cls(
-            username="elbarto",
-            full_name="Bart Simpson",
-            openid="https://login.launchpad.net/+id/Abacaba",
-            email="skinnerstinks@springfield.net",
-            is_staff=False,
-            is_active=True,
-            is_superuser=True,
-            last_login=datetime(2014, 1, 1, 16, 42))
 
 
 class UsersController(rest.RestController):
@@ -76,7 +38,8 @@ class UsersController(rest.RestController):
     _custom_actions = {"search": ["GET"]}
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([User], int, int, unicode, unicode, unicode, unicode)
+    @wsme_pecan.wsexpose([wmodels.User], int, int, unicode, unicode, unicode,
+                         unicode)
     def get(self, marker=None, limit=None, username=None, full_name=None,
             sort_field='id', sort_dir='asc'):
         """Page and filter the users in storyboard.
@@ -111,10 +74,10 @@ class UsersController(rest.RestController):
         if marker_user:
             response.headers['X-Marker'] = str(marker_user.id)
 
-        return [User.from_db_model(u) for u in users]
+        return [wmodels.User.from_db_model(u) for u in users]
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose(User, int)
+    @wsme_pecan.wsexpose(wmodels.User, int)
     def get_one(self, user_id):
         """Retrieve details about one user.
 
@@ -132,7 +95,7 @@ class UsersController(rest.RestController):
         return user
 
     @secure(checks.superuser)
-    @wsme_pecan.wsexpose(User, body=User)
+    @wsme_pecan.wsexpose(wmodels.User, body=wmodels.User)
     def post(self, user):
         """Create a new user.
 
@@ -140,10 +103,10 @@ class UsersController(rest.RestController):
         """
 
         created_user = users_api.user_create(user.as_dict())
-        return User.from_db_model(created_user)
+        return wmodels.User.from_db_model(created_user)
 
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose(User, int, body=User)
+    @wsme_pecan.wsexpose(wmodels.User, int, body=wmodels.User)
     def put(self, user_id, user):
         """Modify this user.
 
@@ -163,10 +126,10 @@ class UsersController(rest.RestController):
             return response
 
         updated_user = users_api.user_update(user_id, user_dict)
-        return User.from_db_model(updated_user)
+        return wmodels.User.from_db_model(updated_user)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([User], unicode, unicode, int, int)
+    @wsme_pecan.wsexpose([wmodels.User], unicode, unicode, int, int)
     def search(self, q="", marker=None, limit=None):
         """The search endpoint for users.
 
@@ -176,7 +139,7 @@ class UsersController(rest.RestController):
 
         users = SEARCH_ENGINE.users_query(q=q, marker=marker, limit=limit)
 
-        return [User.from_db_model(u) for u in users]
+        return [wmodels.User.from_db_model(u) for u in users]
 
     @expose()
     def _route(self, args, request):
