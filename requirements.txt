@@ -7,7 +7,6 @@ oauthlib>=0.6
 oslo.config>=1.2.1
 pecan>=0.4.5
 oslo.db>=0.2.0
-pika>=0.9.14
 python-openid
 PyYAML>=3.1.0
 requests>=1.1

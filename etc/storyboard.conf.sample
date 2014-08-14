@@ -46,30 +46,6 @@ lock_path = $state_path/lock
 # page_size_maximum = 500
 # page_size_default = 20
 
-# Enable notifications. This feature drives deferred processing, reporting,
-# and subscriptions.
-# enable_notifications = True
-
-[notifications]
-
-# Host of the rabbitmq server.
-# rabbit_host=localhost
-
-# The RabbitMQ login method
-# rabbit_login_method = AMQPLAIN
-
-# The RabbitMQ userid.
-# rabbit_userid = storyboard
-
-# The RabbitMQ password.
-# rabbit_password = storyboard
-
-# The RabbitMQ broker port where a single node is used.
-# rabbit_port = 5672
-
-# The virtual host within which our queues and exchanges live.
-# rabbit_virtual_host = /
-
 [database]
 # This line MUST be changed to actually run storyboard
 # Example:
