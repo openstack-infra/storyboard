@@ -14,15 +14,10 @@
 # limitations under the License.
 
 import json
-from oslo.config import cfg
-from pecan import request
 
 from storyboard.common import event_types
 from storyboard.db.api import base as api_base
 from storyboard.db import models
-from storyboard.notifications import connection_service
-
-CONF = cfg.CONF
 
 
 def event_get(event_id):
@@ -45,30 +40,7 @@ def events_get_count(**kwargs):
 
 
 def event_create(values):
-    new_event = api_base.entity_create(models.TimeLineEvent, values)
-
-    if CONF.enable_notifications:
-
-        payload_timeline_events = {
-            "user_id": request.current_user_id,
-            "method": "POST",
-            "resource": "timeline_event",
-            "event_id": new_event.id
-        }
-        payload_timeline_events = json.dumps(payload_timeline_events)
-        routing_key = "timeline_events"
-
-        conn = connection_service.get_connection()
-        channel = conn.connection.channel()
-        conn.create_exchange(channel, 'storyboard', 'topic')
-
-        channel.basic_publish(exchange='storyboard',
-                              routing_key=routing_key,
-                              body=payload_timeline_events)
-
-        channel.close()
-
-    return new_event
+    return api_base.entity_create(models.TimeLineEvent, values)
 
 
 def story_created_event(story_id, author_id):
