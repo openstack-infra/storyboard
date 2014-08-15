@@ -86,7 +86,7 @@ class TasksController(rest.RestController):
         if task:
             return Task.from_db_model(task)
         else:
-            raise ClientSideError("Task %s not found" % id,
+            raise ClientSideError("Task %s not found" % task_id,
                                   status_code=404)
 
     @secure(checks.guest)
@@ -168,7 +168,7 @@ class TasksController(rest.RestController):
             self._post_timeline_events(original_task, updated_task)
             return Task.from_db_model(updated_task)
         else:
-            raise ClientSideError("Task %s not found" % id,
+            raise ClientSideError("Task %s not found" % task_id,
                                   status_code=404)
 
     def _post_timeline_events(self, original_task, updated_task):

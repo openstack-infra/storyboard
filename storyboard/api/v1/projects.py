@@ -166,7 +166,7 @@ class ProjectsController(rest.RestController):
         if result:
             return Project.from_db_model(result)
         else:
-            raise ClientSideError("Project %s not found" % id,
+            raise ClientSideError("Project %s not found" % project_id,
                                   status_code=404)
 
     def _is_int(self, s):

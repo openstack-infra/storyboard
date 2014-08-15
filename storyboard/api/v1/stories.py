@@ -105,7 +105,7 @@ class StoriesController(rest.RestController):
         if story:
             return Story.from_db_model(story)
         else:
-            raise ClientSideError("Story %s not found" % id,
+            raise ClientSideError("Story %s not found" % story_id,
                                   status_code=404)
 
     @secure(checks.guest)
@@ -204,7 +204,7 @@ class StoriesController(rest.RestController):
 
             return Story.from_db_model(updated_story)
         else:
-            raise ClientSideError("Story %s not found" % id,
+            raise ClientSideError("Story %s not found" % story_id,
                                   status_code=404)
 
     @secure(checks.superuser)
