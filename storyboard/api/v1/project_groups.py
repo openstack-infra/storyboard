@@ -169,30 +169,31 @@ class ProjectGroupsController(rest.RestController):
 
     @secure(checks.superuser)
     @wsme_pecan.wsexpose(ProjectGroup, int, body=ProjectGroup)
-    def put(self, id, project_group):
+    def put(self, project_group_id, project_group):
         """Modify this project group.
 
-        :param id: An ID of the project group.
+        :param project_group_id: An ID of the project group.
         :param project_group: a project group within the request body.
         """
 
         updated_group = project_groups.project_group_update(
-            id,
+            project_group_id,
             project_group.as_dict(omit_unset=True))
 
         if not updated_group:
-            raise ClientSideError("Could not update group %s" % id)
+            raise ClientSideError("Could not update group %s" %
+                                  project_group_id)
 
         return ProjectGroup.from_db_model(updated_group)
 
     @secure(checks.superuser)
     @wsme_pecan.wsexpose(ProjectGroup, int)
-    def delete(self, id):
+    def delete(self, project_group_id):
         """Delete this project group.
 
-        :param id: An ID of the project group.
+        :param project_group_id: An ID of the project group.
         """
-        project_groups.project_group_delete(id)
+        project_groups.project_group_delete(project_group_id)
 
         response.status_code = 204
 
