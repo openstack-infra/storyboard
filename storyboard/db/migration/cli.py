@@ -80,6 +80,13 @@ def do_load_superusers(config, cmd):
     superusers_loader.do_load_models(CONF.command.file)
 
 
+def do_load_launchpad(config, cmd):
+    # Doing import here so that you only need launchpadlib
+    # if you're actually importing from launchpad
+    from storyboard.db import launchpad_loader
+    launchpad_loader.do_load_models(CONF.command.project)
+
+
 def add_command_parsers(subparsers):
     for name in ['current', 'history', 'branches']:
         parser = subparsers.add_parser(name)
@@ -113,6 +120,10 @@ def add_command_parsers(subparsers):
     parser = subparsers.add_parser('load_superusers')
     parser.add_argument('file', type=str)
     parser.set_defaults(func=do_load_superusers)
+
+    parser = subparsers.add_parser('load_launchpad')
+    parser.add_argument('project', type=str)
+    parser.set_defaults(func=do_load_launchpad)
 
 
 command_opt = cfg.SubCommandOpt('command',
