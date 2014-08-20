@@ -28,4 +28,4 @@ class ResourceHook(hooks.PecanHook):
         if state.request.method == 'GET':
             return
 
-        publisher.publish(state)
+        publisher.process(state)
