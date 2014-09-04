@@ -70,6 +70,15 @@ lock_path = $state_path/lock
 # The virtual host within which our queues and exchanges live.
 # rabbit_virtual_host = /
 
+# Application name that binds to rabbit.
+# rabbit_application_name=storyboard
+
+# The name of the topic exchange to which storyboard will broadcast its events.
+# rabbit_exchange_name=storyboard
+
+# The name of the queue that will be created for API events.
+# rabbit_event_queue_name=storyboard_events
+
 [database]
 # This line MUST be changed to actually run storyboard
 # Example:

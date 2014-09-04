@@ -54,7 +54,7 @@ def event_create(values):
             "resource": "timeline_events",
             "event_id": new_event.id
         }
-        publish(payload, "timeline_events")
+        publish("timeline_events", payload)
 
     return new_event
 

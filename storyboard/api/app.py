@@ -22,12 +22,11 @@ from wsgiref import simple_server
 from storyboard.api.auth.token_storage import impls as storage_impls
 from storyboard.api.auth.token_storage import storage
 from storyboard.api import config as api_config
-from storyboard.api.middleware import resource_hook
 from storyboard.api.middleware import token_middleware
 from storyboard.api.middleware import user_id_hook
 from storyboard.api.v1.search import impls as search_engine_impls
 from storyboard.api.v1.search import search_engine
-from storyboard.notifications import connection_service
+from storyboard.notifications.notification_hook import NotificationHook
 from storyboard.openstack.common.gettextutils import _  # noqa
 from storyboard.openstack.common import log
 
@@ -84,8 +83,7 @@ def setup_app(pecan_config=None):
 
     # Setup notifier
     if CONF.enable_notifications:
-        connection_service.initialize()
-        hooks.append(resource_hook.ResourceHook())
+        hooks.append(NotificationHook())
 
     app = pecan.make_app(
         pecan_config.app.root,

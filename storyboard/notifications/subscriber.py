@@ -14,16 +14,20 @@
 # limitations under the License.
 
 import ast
+import time
 
 from oslo.config import cfg
+from pika.exceptions import ConnectionClosed
 
 from storyboard.db.api import timeline_events
-from storyboard.notifications import connection_service
+from storyboard.notifications.conf import NOTIFICATION_OPTS
+from storyboard.notifications.connection_service import ConnectionService
 from storyboard.notifications.subscriptions_handler import handle_deletions
 from storyboard.notifications.subscriptions_handler import handle_resources
 from storyboard.notifications.subscriptions_handler import \
     handle_timeline_events
 from storyboard.openstack.common import log
+
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
@@ -32,25 +36,19 @@ LOG = log.getLogger(__name__)
 def subscribe():
     log.setup('storyboard')
     CONF(project='storyboard')
+    CONF.register_opts(NOTIFICATION_OPTS, "notifications")
 
-    connection_service.initialize()
+    subscriber = Subscriber(CONF.notifications)
+    subscriber.start()
 
-    conn = connection_service.get_connection()
-    channel = conn.connection.channel()
+    while subscriber.started:
+        (method, properties, body) = subscriber.get()
 
-    conn.create_exchange(channel, 'storyboard', 'topic')
+        if not method or not properties:
+            LOG.debug("No messages available, sleeping for 5 seconds.")
+            time.sleep(5)
+            continue
 
-    result = channel.queue_declare(queue='subscription_queue', durable=True)
-    queue_name = result.method.queue
-
-    binding_keys = ['tasks', 'stories', 'projects', 'project_groups',
-                    'timeline_events']
-    for binding_key in binding_keys:
-        channel.queue_bind(exchange='storyboard',
-                           queue=queue_name,
-                           routing_key=binding_key)
-
-    def callback(ch, method, properties, body):
         body_dict = ast.literal_eval(body)
         if 'event_id' in body_dict:
             event_id = body_dict['event_id']
@@ -73,8 +71,64 @@ def subscribe():
             if 'sub_resource_id' not in body_dict:
                 handle_deletions(resource_name, resource_id)
 
-    channel.basic_consume(callback,
-                          queue=queue_name,
-                          no_ack=True)
+        # Handle the message
+        subscriber.ack(method.delivery_tag)
 
-    channel.start_consuming()
+
+class Subscriber(ConnectionService):
+    def __init__(self, conf):
+        """Setup the subscriber instance based on our configuration.
+
+        :param conf A configuration object.
+        """
+        super(Subscriber, self).__init__(conf)
+
+        self._queue_name = conf.rabbit_event_queue_name
+        self._binding_keys = ['tasks', 'stories', 'projects', 'project_groups',
+                              'timeline_events']
+        self.add_open_hook(self._declare_queue)
+
+    def _declare_queue(self):
+        """Declare the subscription queue against our exchange.
+        """
+        self._channel.queue_declare(queue=self._queue_name,
+                                    durable=True)
+
+        # Set up the queue bindings.
+        for binding_key in self._binding_keys:
+            self._channel.queue_bind(exchange=self._exchange_name,
+                                     queue=self._queue_name,
+                                     routing_key=binding_key)
+
+    def ack(self, delivery_tag):
+        """Acknowledge receipt and processing of the message.
+        """
+        self._channel.basic_ack(delivery_tag)
+
+    def get(self):
+        """Get a single message from the queue. If the subscriber is currently
+        waiting to reconnect, it will return None. Note that you must
+        manually ack the message after it has been successfully processed.
+
+        :rtype: (None, None, None)|(spec.Basic.Get,
+                                    spec.Basic.Properties,
+                                    str or unicode)
+        """
+
+        # Sanity check one, are we closing?
+        if self._closing:
+            return None, None, None
+
+        # Sanity check two, are we open, or reconnecting?
+        if not self._open:
+            return None, None, None
+
+        try:
+            return self._channel.basic_get(queue=self._queue_name,
+                                           no_ack=False)
+        except ConnectionClosed as cc:
+            LOG.warning("Attempted to get message on closed connection.")
+            LOG.debug(cc)
+            self._open = False
+            self._reconnect()
+            return None, None, None

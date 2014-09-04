@@ -18,6 +18,15 @@ from oslo.config import cfg
 CONF = cfg.CONF
 
 NOTIFICATION_OPTS = [
+    cfg.StrOpt("rabbit_exchange_name", default="storyboard",
+               help="The name of the topic exchange which storyboard will "
+                    "use to broadcast its events."),
+    cfg.StrOpt("rabbit_event_queue_name", default="storyboard_events",
+               help="The name of the queue that will be created for "
+                    "API events."),
+    cfg.StrOpt("rabbit_application_name", default="storyboard",
+               help="The rabbit application identifier for storyboard's "
+                    "connection."),
     cfg.StrOpt("rabbit_host", default="localhost",
                help="Host of the rabbitmq server."),
     cfg.StrOpt("rabbit_login_method", default="AMQPLAIN",
