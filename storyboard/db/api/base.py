@@ -106,8 +106,11 @@ def __entity_get(kls, entity_id, session):
     return query.filter_by(id=entity_id).first()
 
 
-def entity_get(kls, entity_id, filter_non_public=False):
-    entity = __entity_get(kls, entity_id, get_session())
+def entity_get(kls, entity_id, filter_non_public=False, session=None):
+    if not session:
+        session = get_session()
+
+    entity = __entity_get(kls, entity_id, session)
 
     if filter_non_public:
         entity = _filter_non_public_fields(entity, entity._public_fields)
