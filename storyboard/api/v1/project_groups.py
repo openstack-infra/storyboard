@@ -18,39 +18,15 @@ from pecan import response
 from pecan import rest
 from pecan.secure import secure
 from wsme.exc import ClientSideError
-from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
 import storyboard.api.auth.authorization_checks as checks
-from storyboard.api.v1 import base
-from storyboard.api.v1.projects import Project
-from storyboard.common.custom_types import NameType
+from storyboard.api.v1 import wmodels
 from storyboard.db.api import project_groups
 from storyboard.db.api import projects
 
 
 CONF = cfg.CONF
-
-
-class ProjectGroup(base.APIBase):
-    """Represents a group of projects."""
-
-    name = NameType()
-    """The Project Group unique name. This name will be displayed in the URL.
-    At least 3 alphanumeric symbols. Minus and dot symbols are allowed as
-    separators.
-    """
-
-    title = wtypes.text
-    """The full name of the project group, which can contain spaces, special
-    characters, etc.
-    """
-
-    @classmethod
-    def sample(cls):
-        return cls(
-            name="Infra",
-            title="Awesome projects")
 
 
 class ProjectsSubcontroller(rest.RestController):
@@ -59,7 +35,7 @@ class ProjectsSubcontroller(rest.RestController):
     """
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([Project], int)
+    @wsme_pecan.wsexpose([wmodels.Project], int)
     def get(self, project_group_id):
         """Get projects inside a project group.
 
@@ -71,18 +47,18 @@ class ProjectsSubcontroller(rest.RestController):
         if not project_group:
             raise ClientSideError("The requested project group does not exist")
 
-        return [Project.from_db_model(project)
+        return [wmodels.Project.from_db_model(project)
                 for project in project_group.projects]
 
     @secure(checks.superuser)
-    @wsme_pecan.wsexpose(Project, int, int)
+    @wsme_pecan.wsexpose(wmodels.Project, int, int)
     def put(self, project_group_id, project_id):
         """Add a project to a project_group
         """
 
         project_groups.project_group_add_project(project_group_id, project_id)
 
-        return Project.from_db_model(projects.project_get(project_id))
+        return wmodels.Project.from_db_model(projects.project_get(project_id))
 
     @secure(checks.superuser)
     @wsme_pecan.wsexpose(None, int, int)
@@ -104,7 +80,7 @@ class ProjectGroupsController(rest.RestController):
     """
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose(ProjectGroup, int)
+    @wsme_pecan.wsexpose(wmodels.ProjectGroup, int)
     def get_one(self, project_group_id):
         """Retrieve information about the given project group.
 
@@ -117,11 +93,11 @@ class ProjectGroupsController(rest.RestController):
                                   project_group_id,
                                   status_code=404)
 
-        return ProjectGroup.from_db_model(group)
+        return wmodels.ProjectGroup.from_db_model(group)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([ProjectGroup], int, int, unicode, unicode, unicode,
-                         unicode)
+    @wsme_pecan.wsexpose([wmodels.ProjectGroup], int, int, unicode, unicode,
+                         unicode, unicode)
     def get(self, marker=None, limit=None, name=None, title=None,
             sort_field='id', sort_dir='asc'):
         """Retrieve a list of projects groups."""
@@ -149,10 +125,10 @@ class ProjectGroupsController(rest.RestController):
         if marker_group:
             response.headers['X-Marker'] = str(marker_group.id)
 
-        return [ProjectGroup.from_db_model(group) for group in groups]
+        return [wmodels.ProjectGroup.from_db_model(group) for group in groups]
 
     @secure(checks.superuser)
-    @wsme_pecan.wsexpose(ProjectGroup, body=ProjectGroup)
+    @wsme_pecan.wsexpose(wmodels.ProjectGroup, body=wmodels.ProjectGroup)
     def post(self, project_group):
         """Create a new project group.
 
@@ -165,10 +141,10 @@ class ProjectGroupsController(rest.RestController):
         if not created_group:
             raise ClientSideError("Could not create ProjectGroup")
 
-        return ProjectGroup.from_db_model(created_group)
+        return wmodels.ProjectGroup.from_db_model(created_group)
 
     @secure(checks.superuser)
-    @wsme_pecan.wsexpose(ProjectGroup, int, body=ProjectGroup)
+    @wsme_pecan.wsexpose(wmodels.ProjectGroup, int, body=wmodels.ProjectGroup)
     def put(self, project_group_id, project_group):
         """Modify this project group.
 
@@ -184,10 +160,10 @@ class ProjectGroupsController(rest.RestController):
             raise ClientSideError("Could not update group %s" %
                                   project_group_id)
 
-        return ProjectGroup.from_db_model(updated_group)
+        return wmodels.ProjectGroup.from_db_model(updated_group)
 
     @secure(checks.superuser)
-    @wsme_pecan.wsexpose(ProjectGroup, int)
+    @wsme_pecan.wsexpose(wmodels.ProjectGroup, int)
     def delete(self, project_group_id):
         """Delete this project group.
 

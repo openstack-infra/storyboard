@@ -19,48 +19,16 @@ from pecan import response
 from pecan import rest
 from pecan.secure import secure
 from wsme.exc import ClientSideError
-from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
-from storyboard.api.v1 import base
 from storyboard.api.v1.search import search_engine
-from storyboard.common.custom_types import NameType
+from storyboard.api.v1 import wmodels
 from storyboard.db.api import projects as projects_api
 
 CONF = cfg.CONF
 
 SEARCH_ENGINE = search_engine.get_engine()
-
-
-class Project(base.APIBase):
-    """The Storyboard Registry describes the open source world as ProjectGroups
-    and Projects. Each ProjectGroup may be responsible for several Projects.
-    For example, the OpenStack Infrastructure ProjectGroup has Zuul, Nodepool,
-    Storyboard as Projects, among others.
-    """
-
-    name = NameType()
-    """The Project unique name. This name will be displayed in the URL.
-    At least 3 alphanumeric symbols. Minus and dot symbols are allowed as
-    separators.
-    """
-
-    description = wtypes.text
-    """Details about the project's work, highlights, goals, and how to
-    contribute. Use plain text, paragraphs are preserved and URLs are
-    linked in pages.
-    """
-
-    is_active = bool
-    """Is this an active project, or has it been deleted?"""
-
-    @classmethod
-    def sample(cls):
-        return cls(
-            name="StoryBoard",
-            description="This is an awesome project.",
-            is_active=True)
 
 
 class ProjectsController(rest.RestController):
@@ -72,7 +40,7 @@ class ProjectsController(rest.RestController):
     _custom_actions = {"search": ["GET"]}
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose(Project, int)
+    @wsme_pecan.wsexpose(wmodels.Project, int)
     def get_one_by_id(self, project_id):
         """Retrieve information about the given project.
 
@@ -82,13 +50,13 @@ class ProjectsController(rest.RestController):
         project = projects_api.project_get(project_id)
 
         if project:
-            return Project.from_db_model(project)
+            return wmodels.Project.from_db_model(project)
         else:
             raise ClientSideError("Project %s not found" % project_id,
                                   status_code=404)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose(Project, unicode)
+    @wsme_pecan.wsexpose(wmodels.Project, unicode)
     def get_one_by_name(self, project_name):
         """Retrieve information about the given project.
 
@@ -98,14 +66,14 @@ class ProjectsController(rest.RestController):
         project = projects_api.project_get_by_name(project_name)
 
         if project:
-            return Project.from_db_model(project)
+            return wmodels.Project.from_db_model(project)
         else:
             raise ClientSideError("Project %s not found" % project_name,
                                   status_code=404)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([Project], int, int, unicode, unicode, unicode,
-                         unicode)
+    @wsme_pecan.wsexpose([wmodels.Project], int, int, unicode, unicode,
+                         unicode, unicode)
     def get(self, marker=None, limit=None, name=None, description=None,
             sort_field='id', sort_dir='asc'):
         """Retrieve a list of projects.
@@ -140,20 +108,20 @@ class ProjectsController(rest.RestController):
         if marker_project:
             response.headers['X-Marker'] = str(marker_project.id)
 
-        return [Project.from_db_model(p) for p in projects]
+        return [wmodels.Project.from_db_model(p) for p in projects]
 
     @secure(checks.superuser)
-    @wsme_pecan.wsexpose(Project, body=Project)
+    @wsme_pecan.wsexpose(wmodels.Project, body=wmodels.Project)
     def post(self, project):
         """Create a new project.
 
         :param project: a project within the request body.
         """
         result = projects_api.project_create(project.as_dict())
-        return Project.from_db_model(result)
+        return wmodels.Project.from_db_model(result)
 
     @secure(checks.superuser)
-    @wsme_pecan.wsexpose(Project, int, body=Project)
+    @wsme_pecan.wsexpose(wmodels.Project, int, body=wmodels.Project)
     def put(self, project_id, project):
         """Modify this project.
 
@@ -164,7 +132,7 @@ class ProjectsController(rest.RestController):
                                              project.as_dict(omit_unset=True))
 
         if result:
-            return Project.from_db_model(result)
+            return wmodels.Project.from_db_model(result)
         else:
             raise ClientSideError("Project %s not found" % project_id,
                                   status_code=404)
@@ -177,7 +145,7 @@ class ProjectsController(rest.RestController):
             return False
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([Project], unicode, unicode, int, int)
+    @wsme_pecan.wsexpose([wmodels.Project], unicode, unicode, int, int)
     def search(self, q="", marker=None, limit=None):
         """The search endpoint for projects.
 
@@ -188,7 +156,7 @@ class ProjectsController(rest.RestController):
         projects = SEARCH_ENGINE.projects_query(q=q, marker=marker,
                                                 limit=limit)
 
-        return [Project.from_db_model(project) for project in projects]
+        return [wmodels.Project.from_db_model(project) for project in projects]
 
     @expose()
     def _route(self, args, request):

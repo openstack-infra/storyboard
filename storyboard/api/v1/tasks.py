@@ -19,12 +19,11 @@ from pecan import response
 from pecan import rest
 from pecan.secure import secure
 from wsme.exc import ClientSideError
-from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
-from storyboard.api.v1 import base
 from storyboard.api.v1.search import search_engine
+from storyboard.api.v1 import wmodels
 from storyboard.db.api import tasks as tasks_api
 from storyboard.db.api import timeline_events as events_api
 
@@ -33,49 +32,13 @@ CONF = cfg.CONF
 SEARCH_ENGINE = search_engine.get_engine()
 
 
-class Task(base.APIBase):
-    """A Task represents an actionable work item, targeting a specific Project
-    and a specific branch. It is part of a Story. There may be multiple tasks
-    in a story, pointing to different projects or different branches. Each task
-    is generally linked to a code change proposed in Gerrit.
-    """
-
-    title = wtypes.text
-    """An optional short label for the task, to show in listings."""
-
-    # TODO(ruhe): replace with enum
-    status = wtypes.text
-    """Status.
-    Allowed values: ['todo', 'inprogress', 'invalid', 'review', 'merged'].
-    Human readable versions are left to the UI.
-    """
-
-    is_active = bool
-    """Is this an active task, or has it been deleted?"""
-
-    creator_id = int
-    """Id of the User who has created this Task"""
-
-    story_id = int
-    """The ID of the corresponding Story."""
-
-    project_id = int
-    """The ID of the corresponding Project."""
-
-    assignee_id = int
-    """The ID of the invidiual to whom this task is assigned."""
-
-    priority = wtypes.text
-    """The priority for this task, one of 'low', 'medium', 'high'"""
-
-
 class TasksController(rest.RestController):
     """Manages tasks."""
 
     _custom_actions = {"search": ["GET"]}
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose(Task, int)
+    @wsme_pecan.wsexpose(wmodels.Task, int)
     def get_one(self, task_id):
         """Retrieve details about one task.
 
@@ -84,13 +47,13 @@ class TasksController(rest.RestController):
         task = tasks_api.task_get(task_id)
 
         if task:
-            return Task.from_db_model(task)
+            return wmodels.Task.from_db_model(task)
         else:
             raise ClientSideError("Task %s not found" % task_id,
                                   status_code=404)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([Task], int, int, int, int, unicode, unicode)
+    @wsme_pecan.wsexpose([wmodels.Task], int, int, int, int, unicode, unicode)
     def get_all(self, story_id=None, assignee_id=None, marker=None,
                 limit=None, sort_field='id', sort_dir='asc'):
         """Retrieve definitions of all of the tasks.
@@ -129,10 +92,10 @@ class TasksController(rest.RestController):
         if marker_task:
             response.headers['X-Marker'] = str(marker_task.id)
 
-        return [Task.from_db_model(s) for s in tasks]
+        return [wmodels.Task.from_db_model(s) for s in tasks]
 
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose(Task, body=Task)
+    @wsme_pecan.wsexpose(wmodels.Task, body=wmodels.Task)
     def post(self, task):
         """Create a new task.
 
@@ -149,10 +112,10 @@ class TasksController(rest.RestController):
                                       task_title=created_task.title,
                                       author_id=creator_id)
 
-        return Task.from_db_model(created_task)
+        return wmodels.Task.from_db_model(created_task)
 
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose(Task, int, body=Task)
+    @wsme_pecan.wsexpose(wmodels.Task, int, body=wmodels.Task)
     def put(self, task_id, task):
         """Modify this task.
 
@@ -166,7 +129,7 @@ class TasksController(rest.RestController):
 
         if updated_task:
             self._post_timeline_events(original_task, updated_task)
-            return Task.from_db_model(updated_task)
+            return wmodels.Task.from_db_model(updated_task)
         else:
             raise ClientSideError("Task %s not found" % task_id,
                                   status_code=404)
@@ -216,7 +179,7 @@ class TasksController(rest.RestController):
                 author_id=author_id)
 
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose(Task, int)
+    @wsme_pecan.wsexpose(wmodels.Task, int)
     def delete(self, task_id):
         """Delete this task.
 
@@ -235,7 +198,7 @@ class TasksController(rest.RestController):
         response.status_code = 204
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([Task], unicode, unicode, int, int)
+    @wsme_pecan.wsexpose([wmodels.Task], unicode, unicode, int, int)
     def search(self, q="", marker=None, limit=None):
         """The search endpoint for tasks.
 
@@ -247,4 +210,4 @@ class TasksController(rest.RestController):
                                           marker=marker,
                                           limit=limit)
 
-        return [Task.from_db_model(task) for task in tasks]
+        return [wmodels.Task.from_db_model(task) for task in tasks]

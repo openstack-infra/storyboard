@@ -20,14 +20,13 @@ from pecan import response
 from pecan import rest
 from pecan.secure import secure
 from wsme.exc import ClientSideError
-from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
-from storyboard.api.v1 import base
 from storyboard.api.v1.search import search_engine
 from storyboard.api.v1.timeline import CommentsController
 from storyboard.api.v1.timeline import TimeLineEventsController
+from storyboard.api.v1 import wmodels
 from storyboard.db.api import stories as stories_api
 from storyboard.db.api import timeline_events as events_api
 
@@ -36,65 +35,13 @@ CONF = cfg.CONF
 SEARCH_ENGINE = search_engine.get_engine()
 
 
-class Story(base.APIBase):
-    """The Story is the main element of StoryBoard. It represents a user story
-    (generally a bugfix or a feature) that needs to be implemented. It will be
-    broken down into a series of Tasks, which will each target a specific
-    Project and branch.
-    """
-
-    title = wtypes.text
-    """A descriptive label for the story, to show in listings."""
-
-    description = wtypes.text
-    """A complete description of the goal this story wants to cover."""
-
-    is_bug = bool
-    """Is this a bug or a feature :)"""
-
-    creator_id = int
-    """User ID of the Story creator"""
-
-    todo = int
-    """The number of tasks remaining to be worked on."""
-
-    inprogress = int
-    """The number of in-progress tasks for this story."""
-
-    review = int
-    """The number of tasks in review for this story."""
-
-    merged = int
-    """The number of merged tasks for this story."""
-
-    invalid = int
-    """The number of invalid tasks for this story."""
-
-    status = unicode
-    """The derived status of the story, one of 'active', 'merged', 'invalid'"""
-
-    @classmethod
-    def sample(cls):
-        return cls(
-            title="Use Storyboard to manage Storyboard",
-            description="We should use Storyboard to manage Storyboard.",
-            is_bug=False,
-            creator_id=1,
-            todo=0,
-            inprogress=1,
-            review=1,
-            merged=0,
-            invalid=0,
-            status="active")
-
-
 class StoriesController(rest.RestController):
     """Manages operations on stories."""
 
     _custom_actions = {"search": ["GET"]}
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose(Story, int)
+    @wsme_pecan.wsexpose(wmodels.Story, int)
     def get_one(self, story_id):
         """Retrieve details about one story.
 
@@ -103,13 +50,13 @@ class StoriesController(rest.RestController):
         story = stories_api.story_get(story_id)
 
         if story:
-            return Story.from_db_model(story)
+            return wmodels.Story.from_db_model(story)
         else:
             raise ClientSideError("Story %s not found" % story_id,
                                   status_code=404)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([Story], int, int, int, int, unicode, unicode,
+    @wsme_pecan.wsexpose([wmodels.Story], int, int, int, int, unicode, unicode,
                          unicode, unicode, unicode)
     def get_all(self, project_id=None, assignee_id=None, marker=None,
                 limit=None, status=None, title=None, description=None,
@@ -167,10 +114,10 @@ class StoriesController(rest.RestController):
         if marker_story:
             response.headers['X-Marker'] = str(marker_story.id)
 
-        return [Story.from_db_model(s) for s in stories]
+        return [wmodels.Story.from_db_model(s) for s in stories]
 
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose(Story, body=Story)
+    @wsme_pecan.wsexpose(wmodels.Story, body=wmodels.Story)
     def post(self, story):
         """Create a new story.
 
@@ -184,10 +131,10 @@ class StoriesController(rest.RestController):
 
         events_api.story_created_event(created_story.id, user_id)
 
-        return Story.from_db_model(created_story)
+        return wmodels.Story.from_db_model(created_story)
 
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose(Story, int, body=Story)
+    @wsme_pecan.wsexpose(wmodels.Story, int, body=wmodels.Story)
     def put(self, story_id, story):
         """Modify this story.
 
@@ -202,13 +149,13 @@ class StoriesController(rest.RestController):
             user_id = request.current_user_id
             events_api.story_details_changed_event(story_id, user_id)
 
-            return Story.from_db_model(updated_story)
+            return wmodels.Story.from_db_model(updated_story)
         else:
             raise ClientSideError("Story %s not found" % story_id,
                                   status_code=404)
 
     @secure(checks.superuser)
-    @wsme_pecan.wsexpose(Story, int)
+    @wsme_pecan.wsexpose(wmodels.Story, int)
     def delete(self, story_id):
         """Delete this story.
 
@@ -222,7 +169,7 @@ class StoriesController(rest.RestController):
     events = TimeLineEventsController()
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([Story], unicode, unicode, int, int)
+    @wsme_pecan.wsexpose([wmodels.Story], unicode, unicode, int, int)
     def search(self, q="", marker=None, limit=None):
         """The search endpoint for stories.
 
@@ -234,7 +181,7 @@ class StoriesController(rest.RestController):
                                               marker=marker,
                                               limit=limit)
 
-        return [Story.from_db_model(story) for story in stories]
+        return [wmodels.Story.from_db_model(story) for story in stories]
 
     @expose()
     def _route(self, args, request):
