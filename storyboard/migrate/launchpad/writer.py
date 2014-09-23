@@ -158,18 +158,28 @@ class LaunchpadWriter(object):
             updated_at = None
 
         print "Importing %s" % (bug.self_link)
+
+        # If the title is too long, prepend it to the description and
+        # truncate it.
+        title = bug.title
+        description = bug.description
+
+        if len(title) > 100:
+            title = title[:97] + '...'
+            description = bug.title + '\n\n' + description
+
         story = db_api.entity_create(Story, {
-            'description': bug.description,
+            'description': description,
             'created_at': created_at,
             'creator': owner,
             'is_bug': True,
-            'title': bug.title,
+            'title': title,
             'updated_at': updated_at,
             'tags': tags
         })
 
         task = db_api.entity_create(Task, {
-            'title': bug.title,
+            'title': title,
             'assignee_id': assignee.id if assignee else None,
             'project_id': self.project.id,
             'story_id': story.id,
@@ -196,7 +206,7 @@ class LaunchpadWriter(object):
             'created_at': created_at,
             'event_info': json.dumps({
                 'task_id': task.id,
-                'task_title': task.title
+                'task_title': title
             })
         })
 
