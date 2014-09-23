@@ -16,6 +16,7 @@ import json
 import sys
 
 from openid.consumer import consumer
+from openid.consumer.discover import DiscoveryFailure
 from openid import cryptutil
 
 import storyboard.common.event_types as event_types
@@ -100,12 +101,20 @@ class LaunchpadWriter(object):
 
         # Resolve the openid.
         if username not in self._openid_map:
-            openid_consumer = consumer.Consumer(
-                dict(id=cryptutil.randomString(16, '0123456789abcdef')), None)
-            openid_request = openid_consumer.begin(lp_user.web_link)
-            openid = openid_request.endpoint.getLocalID()
+            try:
+                openid_consumer = consumer.Consumer(
+                    dict(id=cryptutil.randomString(16, '0123456789abcdef')),
+                    None)
+                openid_request = openid_consumer.begin(lp_user.web_link)
+                openid = openid_request.endpoint.getLocalID()
 
-            self._openid_map[username] = openid
+                self._openid_map[username] = openid
+            except DiscoveryFailure:
+                # If we encounter a launchpad maintenance user,
+                # give it an invalid openid.
+                print "WARNING: Invalid OpenID for user \'%s\'" % (username,)
+                self._openid_map[username] = \
+                    'http://example.com/invalid/~%s' % (username,)
 
         openid = self._openid_map[username]
 
