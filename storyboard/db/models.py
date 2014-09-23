@@ -218,7 +218,7 @@ class StoryTag(Base):
     __table_args__ = (
         schema.UniqueConstraint('name', name='uniq_story_tags_name'),
     )
-    name = Column(String(20))
+    name = Column(String(50))
     stories = relationship('StoryTag', secondary='story_storytags')
 
 
