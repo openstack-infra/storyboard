@@ -13,6 +13,7 @@
 # under the License.
 
 import json
+import re
 import sys
 
 from openid.consumer import consumer
@@ -157,7 +158,17 @@ class LaunchpadWriter(object):
         else:
             updated_at = None
 
-        print "Importing %s" % (bug.self_link)
+        # Extract the launchpad ID from the self link.
+        # example url: https://api.launchpad.net/1.0/bugs/1057477
+        url_match = re.search("([0-9]+)$", str(bug.self_link))
+        if not url_match:
+            print 'ERROR: Unable to extract launchpad ID from %s.' \
+                  % (bug.self_link,)
+            print 'ERROR: Please file a ticket.'
+            return
+        launchpad_id = int(url_match.groups()[0])
+
+        print "Importing %s" % (bug.self_link,)
 
         # If the title is too long, prepend it to the description and
         # truncate it.
@@ -169,6 +180,7 @@ class LaunchpadWriter(object):
             description = bug.title + '\n\n' + description
 
         story = db_api.entity_create(Story, {
+            'id': launchpad_id,
             'description': description,
             'created_at': created_at,
             'creator': owner,
@@ -182,7 +194,7 @@ class LaunchpadWriter(object):
             'title': title,
             'assignee_id': assignee.id if assignee else None,
             'project_id': self.project.id,
-            'story_id': story.id,
+            'story_id': launchpad_id,
             'created_at': created_at,
             'updated_at': updated_at,
             'priority': priority,
@@ -192,7 +204,7 @@ class LaunchpadWriter(object):
         # Create the creation event for the story manually, so we don't trigger
         # event notifications.
         db_api.entity_create(TimeLineEvent, {
-            'story_id': story.id,
+            'story_id': launchpad_id,
             'author_id': owner.id,
             'event_type': event_types.STORY_CREATED,
             'created_at': created_at
@@ -200,7 +212,7 @@ class LaunchpadWriter(object):
 
         # Create the creation event for the task.
         db_api.entity_create(TimeLineEvent, {
-            'story_id': story.id,
+            'story_id': launchpad_id,
             'author_id': owner.id,
             'event_type': event_types.TASK_CREATED,
             'created_at': created_at,
@@ -223,7 +235,7 @@ class LaunchpadWriter(object):
             })
 
             db_api.entity_create(TimeLineEvent, {
-                'story_id': story.id,
+                'story_id': launchpad_id,
                 'author_id': message_owner.id,
                 'event_type': event_types.USER_COMMENT,
                 'comment_id': comment.id,

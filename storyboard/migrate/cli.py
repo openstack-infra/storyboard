@@ -14,6 +14,7 @@
 
 from oslo.config import cfg
 
+from storyboard.db.api import base as db_api
 from storyboard.migrate.launchpad.loader import LaunchpadLoader
 from storyboard.openstack.common import log
 
@@ -26,7 +27,10 @@ IMPORT_OPTS = [
                help="The local destination project for the remote stories."),
     cfg.StrOpt("origin",
                default="launchpad",
-               help="The origin system from which to import.")
+               help="The origin system from which to import."),
+    cfg.IntOpt("auto-increment",
+               default=None,
+               help="Optionally set the auto-increment on the stories table.")
 ]
 
 CONF = cfg.CONF
@@ -37,6 +41,17 @@ def main():
     log.setup('storyboard')
     CONF.register_cli_opts(IMPORT_OPTS)
     CONF(project='storyboard')
+
+    # If the user requested an autoincrement value, set that before we start
+    # importing things. Note that mysql will automatically set the
+    # autoincrement to the next-available id equal to or larger than the
+    # requested one.
+    auto_increment = CONF.auto_increment
+    if auto_increment:
+        print 'Setting stories.AUTO_INCREMENT to %d' % (auto_increment,)
+        session = db_api.get_session()
+        session.execute('ALTER TABLE stories AUTO_INCREMENT = %d;'
+                        % (auto_increment,))
 
     if CONF.origin is 'launchpad':
         loader = LaunchpadLoader(CONF.from_project, CONF.to_project)
