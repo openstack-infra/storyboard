@@ -32,7 +32,7 @@ class NotificationHook(hooks.PecanHook):
 
         request = state.request
         req_method = request.method
-        req_user_id = request.current_user_id
+        req_author_id = request.current_user_id
         req_path = request.path
         req_resource_grp = self._parse(req_path)
 
@@ -56,7 +56,7 @@ class NotificationHook(hooks.PecanHook):
         if req_resource_grp[3]:
             sub_resource_id = req_resource_grp[3]
             payload = {
-                "user_id": req_user_id,
+                "author_id": req_author_id,
                 "method": req_method,
                 "resource": resource,
                 "resource_id": resource_id,
@@ -65,7 +65,7 @@ class NotificationHook(hooks.PecanHook):
 
         else:
             payload = {
-                "user_id": req_user_id,
+                "author_id": req_author_id,
                 "method": req_method,
                 "resource": resource,
                 "resource_id": resource_id

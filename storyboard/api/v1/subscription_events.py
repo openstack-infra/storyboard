@@ -39,6 +39,10 @@ class SubscriptionEvent(base.APIBase):
     """The owner of this subscription.
     """
 
+    author_id = int
+    """The author who triggered this event.
+    """
+
     event_type = wtypes.text
     """This type should serve as a hint for the web-client when rendering
     a comment."""
@@ -50,6 +54,7 @@ class SubscriptionEvent(base.APIBase):
     def sample(cls):
         return cls(
             subscriber_id=1,
+            author_id=1,
             event_type="project",
             event_info={"task_title": "story1", "old_status": "todo",
                         "task_id": 38, "new_status": "inprogress"}

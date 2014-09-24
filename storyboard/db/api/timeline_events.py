@@ -49,7 +49,7 @@ def event_create(values):
 
     if CONF.enable_notifications:
         payload = {
-            "user_id": request.current_user_id,
+            "author_id": request.current_user_id,
             "method": "POST",
             "resource": "timeline_events",
             "event_id": new_event.id

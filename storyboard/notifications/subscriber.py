@@ -53,17 +53,20 @@ def subscribe():
         if 'event_id' in body_dict:
             event_id = body_dict['event_id']
             event = timeline_events.event_get(event_id)
-            handle_timeline_events(event)
+            handle_timeline_events(event, body_dict['author_id'])
 
         else:
             if body_dict['resource'] == 'project_groups':
                 if 'sub_resource_id' in body_dict:
-                    handle_resources(body_dict['method'],
-                                     body_dict['resource_id'],
-                                     body_dict['sub_resource_id'])
+                    handle_resources(method=body_dict['method'],
+                                     resource_id=body_dict['resource_id'],
+                                     sub_resource_id=body_dict[
+                                         'sub_resource_id'],
+                                     author_id=body_dict['author_id'])
                 else:
-                    handle_resources(body_dict['method'],
-                                     body_dict['resource_id'])
+                    handle_resources(method=body_dict['method'],
+                                     resource_id=body_dict['resource_id'],
+                                     author_id=body_dict['author_id'])
 
         if body_dict['method'] == 'DELETE':
             resource_name = body_dict['resource']

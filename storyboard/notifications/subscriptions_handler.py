@@ -22,7 +22,7 @@ from storyboard.db.api import subscriptions as subscriptions_api
 from storyboard.db.api import tasks as tasks_api
 
 
-def handle_timeline_events(event):
+def handle_timeline_events(event, author_id):
 
     target_subs = []
     user_ids = set()
@@ -72,20 +72,19 @@ def handle_timeline_events(event):
             event_info = event.event_info
 
         sub_events_api.subscription_events_create({
+            "author_id": author_id,
             "subscriber_id": user_id,
             "event_type": event.event_type,
             "event_info": event_info
         })
 
 
-def handle_resources(method, *argv):
+def handle_resources(method, resource_id, sub_resource_id, author_id):
 
     target_subs = []
     user_ids = set()
-    resource_id = argv[0]
 
-    if len(argv) > 1:
-        sub_resource_id = argv[1]
+    if sub_resource_id:
 
         # Handling project addition/deletion to/from project_group.
         target_sub = subscriptions_api.subscription_get_all_by_target(
@@ -108,6 +107,7 @@ def handle_resources(method, *argv):
                                          'project_id': sub_resource_id})
 
             sub_events_api.subscription_events_create({
+                "author_id": author_id,
                 "subscriber_id": user_id,
                 "event_type": event_type,
                 "event_info": event_info
@@ -115,7 +115,7 @@ def handle_resources(method, *argv):
 
     else:
         if method == 'DELETE':
-           #Handling project_group targeted.
+            # Handling project_group targeted.
             target_sub = subscriptions_api.subscription_get_all_by_target(
                 'project_group', resource_id)
             target_subs.extend(target_sub)
@@ -125,6 +125,7 @@ def handle_resources(method, *argv):
 
             for user_id in user_ids:
                 sub_events_api.subscription_events_create({
+                    "author_id": author_id,
                     "subscriber_id": user_id,
                     "event_type": 'project_group deleted',
                     "event_info": json.dumps({'project_group_id': resource_id})
