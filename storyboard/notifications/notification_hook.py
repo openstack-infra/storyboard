@@ -27,7 +27,7 @@ class NotificationHook(hooks.PecanHook):
 
     def after(self, state):
         # Ignore get methods, we only care about changes.
-        if state.request.method == 'GET':
+        if state.request.method not in ['POST', 'PUT', 'DELETE']:
             return
 
         request = state.request

@@ -22,6 +22,7 @@ from wsgiref import simple_server
 from storyboard.api.auth.token_storage import impls as storage_impls
 from storyboard.api.auth.token_storage import storage
 from storyboard.api import config as api_config
+from storyboard.api.middleware.cors_middleware import CORSMiddleware
 from storyboard.api.middleware import token_middleware
 from storyboard.api.middleware import user_id_hook
 from storyboard.api.v1.search import impls as search_engine_impls
@@ -45,7 +46,16 @@ API_OPTS = [
                default=False,
                help='Enable Notifications')
 ]
+CORS_OPTS = [
+    cfg.ListOpt('allowed_origins',
+                default=None,
+                help='List of permitted CORS origins.'),
+    cfg.IntOpt('max_age',
+               default=3600,
+               help='Maximum cache age of CORS preflight requests.')
+]
 CONF.register_opts(API_OPTS)
+CONF.register_opts(CORS_OPTS, 'cors')
 
 
 def get_pecan_config():
@@ -94,6 +104,17 @@ def setup_app(pecan_config=None):
     )
 
     app = token_middleware.AuthTokenMiddleware(app)
+
+    # Setup CORS
+    if CONF.cors.allowed_origins:
+        app = CORSMiddleware(app,
+                             allowed_origins=CONF.cors.allowed_origins,
+                             allowed_methods=['GET', 'POST', 'PUT', 'DELETE',
+                                              'OPTIONS'],
+                             allowed_headers=['origin', 'authorization',
+                                              'accept', 'x-total', 'x-limit',
+                                              'x-marker', 'x-client'],
+                             max_age=CONF.cors.max_age)
 
     return app
 

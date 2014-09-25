@@ -50,6 +50,15 @@ lock_path = $state_path/lock
 # and subscriptions.
 # enable_notifications = True
 
+[cors]
+# W3C CORS configuration. For more information, see http://www.w3.org/TR/cors/
+
+# List of permitted CORS domains.
+# allowed_origins = https://storyboard.openstack.org, http://localhost:9000
+
+# CORS browser options cache max age (in seconds)
+# max_age=3600
+
 [notifications]
 
 # Host of the rabbitmq server.
