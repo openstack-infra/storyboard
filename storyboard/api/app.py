@@ -113,7 +113,8 @@ def setup_app(pecan_config=None):
                                               'OPTIONS'],
                              allowed_headers=['origin', 'authorization',
                                               'accept', 'x-total', 'x-limit',
-                                              'x-marker', 'x-client'],
+                                              'x-marker', 'x-client',
+                                              'content-type'],
                              max_age=CONF.cors.max_age)
 
     return app
