@@ -13,19 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import ast
 import time
 
 from oslo.config import cfg
 from pika.exceptions import ConnectionClosed
+from stevedore import enabled
 
-from storyboard.db.api import timeline_events
 from storyboard.notifications.conf import NOTIFICATION_OPTS
 from storyboard.notifications.connection_service import ConnectionService
-from storyboard.notifications.subscriptions_handler import handle_deletions
-from storyboard.notifications.subscriptions_handler import handle_resources
-from storyboard.notifications.subscriptions_handler import \
-    handle_timeline_events
 from storyboard.openstack.common import log
 
 
@@ -41,6 +36,13 @@ def subscribe():
     subscriber = Subscriber(CONF.notifications)
     subscriber.start()
 
+    manager = enabled.EnabledExtensionManager(
+        namespace='storyboard.worker.task',
+        check_func=check_enabled,
+        invoke_on_load=True,
+        invoke_args=(CONF,)
+    )
+
     while subscriber.started:
         (method, properties, body) = subscriber.get()
 
@@ -49,33 +51,29 @@ def subscribe():
             time.sleep(5)
             continue
 
-        body_dict = ast.literal_eval(body)
-        if 'event_id' in body_dict:
-            event_id = body_dict['event_id']
-            event = timeline_events.event_get(event_id)
-            handle_timeline_events(event, body_dict['author_id'])
+        manager.map(handle_event, body)
 
-        else:
-            if body_dict['resource'] == 'project_groups':
-                if 'sub_resource_id' in body_dict:
-                    handle_resources(method=body_dict['method'],
-                                     resource_id=body_dict['resource_id'],
-                                     sub_resource_id=body_dict[
-                                         'sub_resource_id'],
-                                     author_id=body_dict['author_id'])
-                else:
-                    handle_resources(method=body_dict['method'],
-                                     resource_id=body_dict['resource_id'],
-                                     author_id=body_dict['author_id'])
-
-        if body_dict['method'] == 'DELETE':
-            resource_name = body_dict['resource']
-            resource_id = body_dict['resource_id']
-            if 'sub_resource_id' not in body_dict:
-                handle_deletions(resource_name, resource_id)
-
-        # Handle the message
+        # Ack the message
         subscriber.ack(method.delivery_tag)
+
+
+def handle_event(ext, body):
+    """Handle an event from the queue.
+
+    :param ext: The extension that's handling this event.
+    :param body: The body of the event.
+    :return: The result of the handler.
+    """
+    return ext.obj.handle(body)
+
+
+def check_enabled(ext):
+    """Check to see whether an extension should be enabled.
+
+    :param ext: The extension instance to check.
+    :return: True if it should be enabled. Otherwise false.
+    """
+    return ext.obj.enabled()
 
 
 class Subscriber(ConnectionService):
