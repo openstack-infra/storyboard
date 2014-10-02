@@ -16,6 +16,7 @@ import json
 
 from webtest.app import AppError
 
+from storyboard.db.models import User
 from storyboard.tests import base
 
 
@@ -30,6 +31,17 @@ class TestProjects(base.FunctionalTest):
             'name': 'test-project',
             'description': 'some description'
         }
+
+        self.load_data([
+            User(id=1,
+                 username='superuser',
+                 email='superuser@example.com',
+                 full_name='Super User',
+                 is_superuser=True)
+        ])
+        su_token = self.build_access_token(1)
+        self.default_headers['Authorization'] = 'Bearer %s' % (
+            su_token.access_token)
 
     def test_projects_endpoint(self):
         response = self.get_json(path=self.resource)

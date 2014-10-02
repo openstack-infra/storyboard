@@ -73,6 +73,17 @@ class StoriesBase(models.TimestampMixin,
 
 Base = declarative.declarative_base(cls=StoriesBase)
 
+
+class ModelBuilder(object):
+    def __init__(self, **kwargs):
+        super(ModelBuilder, self).__init__()
+
+        if kwargs:
+            for key in kwargs:
+                if key in self:
+                    self[key] = kwargs[key]
+
+
 user_permissions = Table(
     'user_permissions', Base.metadata,
     Column('user_id', Integer, ForeignKey('users.id')),
@@ -92,7 +103,7 @@ team_membership = Table(
 )
 
 
-class User(FullText, Base):
+class User(FullText, ModelBuilder, Base):
     __table_args__ = (
         schema.UniqueConstraint('username', name='uniq_user_username'),
         schema.UniqueConstraint('email', name='uniq_user_email'),
@@ -114,7 +125,7 @@ class User(FullText, Base):
     _public_fields = ["id", "openid", "full_name", "username", "last_login"]
 
 
-class Team(Base):
+class Team(ModelBuilder, Base):
     __table_args__ = (
         schema.UniqueConstraint('name', name='uniq_team_name'),
     )
@@ -129,7 +140,7 @@ project_group_mapping = Table(
 )
 
 
-class Permission(Base):
+class Permission(ModelBuilder, Base):
     __table_args__ = (
         schema.UniqueConstraint('name', name='uniq_permission_name'),
     )
@@ -138,7 +149,7 @@ class Permission(Base):
 
 
 # TODO(mordred): Do we really need name and title?
-class Project(FullText, Base):
+class Project(FullText, ModelBuilder, Base):
     """Represents a software project."""
 
     __table_args__ = (
@@ -157,7 +168,7 @@ class Project(FullText, Base):
     _public_fields = ["id", "name", "description", "tasks"]
 
 
-class ProjectGroup(Base):
+class ProjectGroup(ModelBuilder, Base):
     __tablename__ = 'project_groups'
     __table_args__ = (
         schema.UniqueConstraint('name', name='uniq_group_name'),
@@ -177,7 +188,7 @@ story_storytags = Table(
 )
 
 
-class Story(FullText, Base):
+class Story(FullText, ModelBuilder, Base):
     __tablename__ = 'stories'
 
     __fulltext_columns__ = ['title', 'description']
@@ -195,7 +206,7 @@ class Story(FullText, Base):
                       "tasks", "events", "tags"]
 
 
-class Task(FullText, Base):
+class Task(FullText, ModelBuilder, Base):
     __fulltext_columns__ = ['title']
 
     _TASK_STATUSES = ('todo', 'inprogress', 'invalid', 'review', 'merged')
@@ -213,7 +224,7 @@ class Task(FullText, Base):
                       "project_id", "assignee_id", "priority"]
 
 
-class StoryTag(Base):
+class StoryTag(ModelBuilder, Base):
     __tablename__ = 'storytags'
     __table_args__ = (
         schema.UniqueConstraint('name', name='uniq_story_tags_name'),
@@ -224,14 +235,14 @@ class StoryTag(Base):
 
 # Authorization models
 
-class AuthorizationCode(Base):
+class AuthorizationCode(ModelBuilder, Base):
 
     code = Column(Unicode(100), nullable=False)
     state = Column(Unicode(100), nullable=False)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
 
 
-class AccessToken(Base):
+class AccessToken(ModelBuilder, Base):
 
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     access_token = Column(Unicode(100), nullable=False)
@@ -239,7 +250,7 @@ class AccessToken(Base):
     expires_at = Column(DateTime, nullable=False)
 
 
-class RefreshToken(Base):
+class RefreshToken(ModelBuilder, Base):
 
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     refresh_token = Column(Unicode(100), nullable=False)
@@ -288,7 +299,7 @@ class StorySummary(Base):
 
 # Time-line models
 
-class TimeLineEvent(Base):
+class TimeLineEvent(ModelBuilder, Base):
     __tablename__ = 'events'
 
     story_id = Column(Integer, ForeignKey('stories.id'))
@@ -303,7 +314,7 @@ class TimeLineEvent(Base):
     event_info = Column(UnicodeText(), nullable=True)
 
 
-class Comment(FullText, Base):
+class Comment(FullText, ModelBuilder, Base):
     __fulltext_columns__ = ['content']
 
     content = Column(UnicodeText)
@@ -312,7 +323,7 @@ class Comment(FullText, Base):
 
 # Subscription and notifications
 
-class Subscription(Base):
+class Subscription(ModelBuilder, Base):
     _SUBSCRIPTION_TARGETS = ('task', 'story', 'project', 'project_group')
 
     user_id = Column(Integer, ForeignKey('users.id'))
@@ -322,7 +333,7 @@ class Subscription(Base):
     target_id = Column(Integer)
 
 
-class SubscriptionEvents(Base):
+class SubscriptionEvents(ModelBuilder, Base):
     __tablename__ = 'subscription_events'
 
     subscriber_id = Column(Integer, ForeignKey('users.id'))

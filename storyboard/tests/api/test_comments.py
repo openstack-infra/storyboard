@@ -14,7 +14,8 @@
 
 import json
 
-from storyboard.common import user_utils
+from storyboard.db.models import Story
+from storyboard.db.models import User
 from storyboard.tests import base
 
 
@@ -24,6 +25,20 @@ class TestComments(base.FunctionalTest):
         super(TestComments, self).setUp()
         self.comments_resource = '/stories/%s/comments'
 
+        # pre load data:
+        self.load_data([
+            Story(id=1,
+                  title='StoryBoard',
+                  description='Awesome Task Tracker',
+                  priority='High'),
+            User(id=1,
+                 username='active',
+                 email='active@example.com',
+                 full_name='Active User',
+                 is_superuser=True)
+        ])
+        self.story_id = 1
+
         self.comment_01 = {
             'content': 'Just a comment passing by'
         }
@@ -31,22 +46,9 @@ class TestComments(base.FunctionalTest):
             'content': 'And another one'
         }
 
-        self.original_user_utils = user_utils
-        self.addCleanup(self._restore_user_utils)
-        user_utils.username_by_id = lambda id: 'Test User'
-
-        stories_resource = '/stories'
-        story = {
-            'title': 'StoryBoard',
-            'description': 'Awesome Task Tracker',
-            'priority': 'High'
-        }
-        resp = self.post_json(stories_resource, story)
-        self.story_id = json.loads(resp.body)["id"]
-
-    def _restore_user_utils(self):
-        global user_utils
-        user_utils = self.original_user_utils
+        active_token = self.build_access_token(1)
+        self.default_headers['Authorization'] = 'Bearer %s' % (
+            active_token.access_token)
 
     def test_comments_endpoint(self):
         response = self.get_json(self.comments_resource % self.story_id)

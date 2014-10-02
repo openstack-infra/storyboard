@@ -15,6 +15,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import datetime
 import os
 import uuid
 
@@ -26,9 +27,9 @@ import pecan.testing
 import sqlalchemy
 import testtools
 
-from storyboard.api.auth import authorization_checks
 from storyboard.db.api import base as db_api_base
 from storyboard.db.migration.cli import get_alembic_config
+from storyboard.db.models import AccessToken
 from storyboard.openstack.common import lockutils
 from storyboard.openstack.common import log as logging
 
@@ -123,6 +124,18 @@ class DbTestCase(TestCase):
         engine.execute("DROP DATABASE %s" % self.db_name)
         db_api_base.cleanup()
 
+    def load_data(self, data):
+        """Pre load test data into the database.
+
+        :param data An iterable collection of database models.
+        """
+        session = db_api_base.get_session(autocommit=False)
+
+        for entity in data:
+            session.add(entity)
+
+        session.commit()
+
 
 PATH_PREFIX = '/v1'
 
@@ -136,17 +149,10 @@ class FunctionalTest(DbTestCase):
     def setUp(self):
         super(FunctionalTest, self).setUp()
 
-        self.disable_auth_checks()
-        self.addCleanup(self._reset_checks)
-
+        self.default_headers = {}
         self.app = self._make_app()
         self.addCleanup(self._reset_pecan)
-
-    def disable_auth_checks(self):
-        self.auth_check = authorization_checks.authenticated
-        self.superuser_check = authorization_checks.superuser
-        authorization_checks.authenticated = lambda: True
-        authorization_checks.superuser = lambda: True
+        self.addCleanup(self._clear_headers)
 
     def _make_app(self):
         config = {
@@ -160,9 +166,8 @@ class FunctionalTest(DbTestCase):
     def _reset_pecan(self):
         pecan.set_config({}, overwrite=True)
 
-    def _reset_checks(self):
-        authorization_checks.authenticated = self.auth_check
-        authorization_checks.superuser = self.superuser_check
+    def _clear_headers(self):
+        self.default_headers = {}
 
     def _request_json(self, path, params, expect_errors=False, headers=None,
                       method="post", extra_environ=None, status=None,
@@ -181,11 +186,16 @@ class FunctionalTest(DbTestCase):
         :param status: expected status code of response
         :param path_prefix: prefix of the url path
         """
+
+        merged_headers = self.default_headers.copy()
+        if headers:
+            merged_headers.update(headers)
+
         full_path = path_prefix + path
         response = getattr(self.app, "%s_json" % method)(
             str(full_path),
             params=params,
-            headers=headers,
+            headers=merged_headers,
             status=status,
             extra_environ=extra_environ,
             expect_errors=expect_errors
@@ -259,9 +269,13 @@ class FunctionalTest(DbTestCase):
         :param status: expected status code of response
         :param path_prefix: prefix of the url path
         """
+        merged_headers = self.default_headers.copy()
+        if headers:
+            merged_headers.update(headers)
+
         full_path = path_prefix + path
         response = self.app.delete(str(full_path),
-                                   headers=headers,
+                                   headers=merged_headers,
                                    status=status,
                                    extra_environ=extra_environ,
                                    expect_errors=expect_errors)
@@ -282,6 +296,10 @@ class FunctionalTest(DbTestCase):
         :param path_prefix: prefix of the url path
         :param params: content for wsgi.input of request
         """
+        merged_headers = self.default_headers.copy()
+        if headers:
+            merged_headers.update(headers)
+
         full_path = path_prefix + path
         query_params = {'q.field': [],
                         'q.value': [],
@@ -296,7 +314,7 @@ class FunctionalTest(DbTestCase):
             all_params.update(query_params)
         response = self.app.get(full_path,
                                 params=all_params,
-                                headers=headers,
+                                headers=merged_headers,
                                 extra_environ=extra_environ,
                                 expect_errors=expect_errors)
         if not expect_errors:
@@ -313,3 +331,28 @@ class FunctionalTest(DbTestCase):
             return True
         except Exception:
             return False
+
+    def build_access_token(self, user_id, expired=False):
+        """Returns an authorization token for the passed user entity.
+
+        :param user_id: A user id.
+        :param expired: Whether this token is expired.
+        :return:
+        """
+
+        now = datetime.datetime.now()
+        expires_in = 3600 if not expired else -3600
+        expires_at = now + datetime.timedelta(seconds=expires_in)
+
+        token = AccessToken(
+            user_id=user_id,
+            access_token=str(uuid.uuid4()),
+            expires_in=expires_in,
+            expires_at=expires_at.strftime('%Y-%m-%d %H:%M:%S')
+        )
+
+        session = db_api_base.get_session()
+        with session.begin():
+            session.add(token)
+
+        return token

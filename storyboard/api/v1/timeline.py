@@ -135,12 +135,14 @@ class CommentsController(rest.RestController):
         limit = min(CONF.page_size_maximum, max(1, limit))
 
         # Resolve the marker record.
-        event_query = events_api.events_get_all(comment_id=marker)
-        if len(event_query) == 0:
-            raise ClientSideError("Marker comment %s not found" % marker,
-                                  status_code=404)
+        marker_event = None
+        if marker:
+            event_query = \
+                events_api.events_get_all(comment_id=marker,
+                                          event_type=event_types.USER_COMMENT)
+            if len(event_query) > 0:
+                marker_event = event_query[0]
 
-        marker_event = event_query[0]
         events_count = events_api.events_get_count(
             story_id=story_id,
             event_type=event_types.USER_COMMENT)
