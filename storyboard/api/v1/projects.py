@@ -72,16 +72,18 @@ class ProjectsController(rest.RestController):
                                   status_code=404)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.Project], int, int, unicode, unicode,
+    @wsme_pecan.wsexpose([wmodels.Project], int, int, unicode, unicode, int,
                          unicode, unicode)
     def get(self, marker=None, limit=None, name=None, description=None,
-            sort_field='id', sort_dir='asc'):
+            project_group_id=None, sort_field='id', sort_dir='asc'):
         """Retrieve a list of projects.
 
         :param marker: The resource id where the page should begin.
         :param limit: The number of projects to retrieve.
         :param name: A string to filter the name by.
         :param description: A string to filter the description by.
+        :param project_group_id: The ID of a project group to which the
+        projects must belong.
         :param sort_field: The name of the field to sort on.
         :param sort_dir: sort direction for results (asc, desc).
         """
@@ -93,14 +95,18 @@ class ProjectsController(rest.RestController):
         # Resolve the marker record.
         marker_project = projects_api.project_get(marker)
 
-        projects = projects_api.project_get_all(marker=marker_project,
-                                                limit=limit,
-                                                name=name,
-                                                description=description,
-                                                sort_field=sort_field,
-                                                sort_dir=sort_dir)
-        project_count = projects_api.project_get_count(name=name,
-                                                       description=description)
+        projects = \
+            projects_api.project_get_all(marker=marker_project,
+                                         limit=limit,
+                                         name=name,
+                                         description=description,
+                                         project_group_id=project_group_id,
+                                         sort_field=sort_field,
+                                         sort_dir=sort_dir)
+        project_count = \
+            projects_api.project_get_count(name=name,
+                                           description=description,
+                                           project_group_id=project_group_id)
 
         # Apply the query response headers.
         response.headers['X-Limit'] = str(limit)

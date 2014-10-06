@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo.db.sqlalchemy.utils import InvalidSortKey
+from wsme.exc import ClientSideError
+
 from storyboard.db.api import base as api_base
 from storyboard.db import models
 
@@ -27,18 +30,40 @@ def project_get_by_name(name):
 
 
 def project_get_all(marker=None, limit=None, sort_field=None, sort_dir=None,
-                    **kwargs):
-    return api_base.entity_get_all(models.Project,
-                                   is_active=True,
-                                   marker=marker,
-                                   limit=limit,
-                                   sort_field=sort_field,
-                                   sort_dir=sort_dir,
-                                   **kwargs)
+                    project_group_id=None, **kwargs):
+    # Sanity checks, in case someone accidentally explicitly passes in 'None'
+    if not sort_field:
+        sort_field = 'id'
+    if not sort_dir:
+        sort_dir = 'asc'
+
+    # Construct the query
+    query = project_build_query(project_group_id=project_group_id,
+                                **kwargs)
+
+    try:
+        query = api_base.paginate_query(query=query,
+                                        model=models.Project,
+                                        limit=limit,
+                                        sort_keys=[sort_field],
+                                        marker=marker,
+                                        sort_dir=sort_dir)
+    except InvalidSortKey:
+        raise ClientSideError("Invalid sort_field [%s]" % (sort_field,),
+                              status_code=400)
+    except ValueError as ve:
+        raise ClientSideError("%s" % (ve,), status_code=400)
+
+    # Execute the query
+    return query.all()
 
 
-def project_get_count(**kwargs):
-    return api_base.entity_get_count(models.Project, is_active=True, **kwargs)
+def project_get_count(project_group_id=None, **kwargs):
+    # Construct the query
+    query = project_build_query(project_group_id=project_group_id,
+                                **kwargs)
+
+    return query.count()
 
 
 def project_create(values):
@@ -47,3 +72,18 @@ def project_create(values):
 
 def project_update(project_id, values):
     return api_base.entity_update(models.Project, project_id, values)
+
+
+def project_build_query(project_group_id, **kwargs):
+    # Construct the query
+    query = api_base.model_query(models.Project)
+
+    if project_group_id:
+        query = query.join(models.Project.project_groups) \
+            .filter(models.ProjectGroup.id == project_group_id)
+
+    # Sanity check on input parameters
+    query = api_base.apply_query_filters(query=query, model=models.Project,
+                                         **kwargs)
+
+    return query
