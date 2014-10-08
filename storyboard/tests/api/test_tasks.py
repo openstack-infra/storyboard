@@ -12,8 +12,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from storyboard.common import user_utils
-from storyboard.db.api import stories
+from storyboard.db.models import Story
+from storyboard.db.models import User
 from storyboard.tests import base
 
 
@@ -29,16 +29,18 @@ class TestTasks(base.FunctionalTest):
             'story_id': 1
         }
 
-        stories.story_create({"name": "Test Story"})
-        stories.story_create({"name": "Test Story2"})
-
-        self.original_user_utils = user_utils
-        self.addCleanup(self._restore_user_utils)
-        user_utils.username_by_id = lambda id: 'Test User'
-
-    def _restore_user_utils(self):
-        global user_utils
-        user_utils = self.original_user_utils
+        self.load_data([
+            User(id=1,
+                 username='superuser',
+                 email='superuser@example.com',
+                 full_name='Super User',
+                 is_superuser=True),
+            Story(name="Test Story"),
+            Story(name="Test Story2")
+        ])
+        su_token = self.build_access_token(1)
+        self.default_headers['Authorization'] = 'Bearer %s' % (
+            su_token.access_token)
 
     def test_tasks_endpoint(self):
         response = self.get_json(self.resource)
