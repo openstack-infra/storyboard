@@ -18,9 +18,6 @@ from urllib import urlencode
 
 from webtest.app import AppError
 
-from storyboard.db.models import Project
-from storyboard.db.models import ProjectGroup
-from storyboard.db.models import User
 from storyboard.tests import base
 
 
@@ -35,29 +32,18 @@ class TestProjects(base.FunctionalTest):
             'description': 'some description'
         }
 
-        self.load_data([
-            User(id=1,
-                 username='superuser',
-                 email='superuser@example.com',
-                 full_name='Super User',
-                 is_superuser=True),
-            Project(id=1,
-                    name='test-project-1',
-                    description='Test Project Description')
-        ])
-        su_token = self.build_access_token(1)
-        self.default_headers['Authorization'] = 'Bearer %s' % (
-            su_token.access_token)
+        self.default_headers['Authorization'] = 'Bearer valid_superuser_token'
 
     def test_projects_endpoint(self):
         response = self.get_json(path=self.resource)
-        self.assertEqual(1, len(response))
+        self.assertEqual(3, len(response))
 
     def test_get(self):
         response = self.get_json(path=self.resource + "/1")
         self.assertEqual(1, response['id'])
-        self.assertEqual('test-project-1', response['name'])
-        self.assertEqual('Test Project Description', response['description'])
+        self.assertEqual('project1', response['name'])
+        self.assertEqual('Project 3 Description - foo',
+                         response['description'])
 
     def test_get_nonexistent(self):
         response = self.get_json(path=self.resource + "/999",
@@ -122,42 +108,6 @@ class TestProjects(base.FunctionalTest):
 class TestProjectSearch(base.FunctionalTest):
     def setUp(self):
         super(TestProjectSearch, self).setUp()
-
-        projects = self.load_data([
-            Project(
-                id=1,
-                name='project1',
-                description='Project 3 Description - foo'),
-            Project(
-                id=2,
-                name='project2',
-                description='Project 2 Description - bar'),
-            Project(
-                id=3,
-                name='project3',
-                description='Project 1 Description - foo')
-        ])
-
-        self.load_data([
-            ProjectGroup(
-                id=1,
-                name='projectgroup1',
-                title='Project Group 1',
-                projects=[
-                    projects[0],
-                    projects[2]
-                ]
-            ),
-            ProjectGroup(
-                id=2,
-                name='projectgroup2',
-                title='Project Group 2',
-                projects=[
-                    projects[1],
-                    projects[2]
-                ]
-            )
-        ])
 
     def build_search_url(self, params):
         return '/projects?%s' % (urlencode(params))

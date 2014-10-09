@@ -14,7 +14,6 @@
 
 import json
 
-from storyboard.db.models import User
 from storyboard.tests import base
 
 
@@ -28,17 +27,7 @@ class TestStories(base.FunctionalTest):
             'title': 'StoryBoard',
             'description': 'Awesome Task Tracker'
         }
-
-        self.load_data([
-            User(id=1,
-                 username='superuser',
-                 email='superuser@example.com',
-                 full_name='Super User',
-                 is_superuser=True)
-        ])
-        su_token = self.build_access_token(1)
-        self.default_headers['Authorization'] = 'Bearer %s' % (
-            su_token.access_token)
+        self.default_headers['Authorization'] = 'Bearer valid_superuser_token'
 
     def test_stories_endpoint(self):
         response = self.get_json(self.resource, project_id=1)

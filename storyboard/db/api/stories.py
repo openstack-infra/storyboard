@@ -36,8 +36,9 @@ def story_get(story_id, session=None):
     simple = story_get_simple(story_id)
     if simple and story_summary:
         story_summary.tags = simple.tags
-
-    return story_summary
+        return story_summary
+    else:
+        return simple
 
 
 def story_get_all(marker=None, limit=None, story_filters=None,

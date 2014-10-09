@@ -4,7 +4,7 @@
 # not use this file except in compliance with the License. You may obtain
 # a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
@@ -12,13 +12,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from storyboard.db.models import Story
-from storyboard.db.models import User
 from storyboard.tests import base
 
 
 class TestTasks(base.FunctionalTest):
-
     def setUp(self):
         super(TestTasks, self).setUp()
         self.resource = '/tasks'
@@ -28,19 +25,7 @@ class TestTasks(base.FunctionalTest):
             'status': 'todo',
             'story_id': 1
         }
-
-        self.load_data([
-            User(id=1,
-                 username='superuser',
-                 email='superuser@example.com',
-                 full_name='Super User',
-                 is_superuser=True),
-            Story(name="Test Story"),
-            Story(name="Test Story2")
-        ])
-        su_token = self.build_access_token(1)
-        self.default_headers['Authorization'] = 'Bearer %s' % (
-            su_token.access_token)
+        self.default_headers['Authorization'] = 'Bearer valid_superuser_token'
 
     def test_tasks_endpoint(self):
         response = self.get_json(self.resource)

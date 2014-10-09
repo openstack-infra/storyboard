@@ -15,7 +15,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import datetime
 import os
 import uuid
 
@@ -29,9 +28,9 @@ import testtools
 
 from storyboard.db.api import base as db_api_base
 from storyboard.db.migration.cli import get_alembic_config
-from storyboard.db.models import AccessToken
 from storyboard.openstack.common import lockutils
 from storyboard.openstack.common import log as logging
+import storyboard.tests.mock_data as mock_data
 
 
 cfg.set_defaults(lockutils.util_opts, lock_path='/tmp')
@@ -124,24 +123,6 @@ class DbTestCase(TestCase):
         engine.execute("DROP DATABASE %s" % self.db_name)
         db_api_base.cleanup()
 
-    def load_data(self, data):
-        """Pre load test data into the database.
-
-        :param data An iterable collection of database models.
-        """
-        session = db_api_base.get_session(autocommit=False)
-
-        for entity in data:
-            session.add(entity)
-
-        session.commit()
-
-        # Clear these items from the session.
-        for entity in data:
-            session.expunge(entity)
-
-        return data
-
 PATH_PREFIX = '/v1'
 
 
@@ -158,6 +139,7 @@ class FunctionalTest(DbTestCase):
         self.app = self._make_app()
         self.addCleanup(self._reset_pecan)
         self.addCleanup(self._clear_headers)
+        mock_data.load()
 
     def _make_app(self):
         config = {
@@ -336,28 +318,3 @@ class FunctionalTest(DbTestCase):
             return True
         except Exception:
             return False
-
-    def build_access_token(self, user_id, expired=False):
-        """Returns an authorization token for the passed user entity.
-
-        :param user_id: A user id.
-        :param expired: Whether this token is expired.
-        :return:
-        """
-
-        now = datetime.datetime.now()
-        expires_in = 3600 if not expired else -3600
-        expires_at = now + datetime.timedelta(seconds=expires_in)
-
-        token = AccessToken(
-            user_id=user_id,
-            access_token=str(uuid.uuid4()),
-            expires_in=expires_in,
-            expires_at=expires_at.strftime('%Y-%m-%d %H:%M:%S')
-        )
-
-        session = db_api_base.get_session()
-        with session.begin():
-            session.add(token)
-
-        return token

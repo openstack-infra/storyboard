@@ -17,13 +17,10 @@ from urllib import urlencode
 
 from webtest.app import AppError
 
-from storyboard.db.models import ProjectGroup
-from storyboard.db.models import User
 from storyboard.tests import base
 
 
 class TestProjectGroups(base.FunctionalTest):
-
     def setUp(self):
         super(TestProjectGroups, self).setUp()
 
@@ -33,32 +30,17 @@ class TestProjectGroups(base.FunctionalTest):
             'name': 'test-group',
             'title': 'with a title'
         }
-
-        self.load_data([
-            User(id=1,
-                 username='superuser',
-                 email='superuser@example.com',
-                 full_name='Super User',
-                 is_superuser=True),
-            ProjectGroup(
-                id=1,
-                name='group-one',
-                title='Project Group Title'
-            )
-        ])
-        su_token = self.build_access_token(1)
-        self.default_headers['Authorization'] = 'Bearer %s' % (
-            su_token.access_token)
+        self.default_headers['Authorization'] = 'Bearer valid_superuser_token'
 
     def test_projects_endpoint(self):
         response = self.get_json(path=self.resource)
-        self.assertEqual(1, len(response))
+        self.assertEqual(3, len(response))
 
     def test_get(self):
         response = self.get_json(path=self.resource + "/1")
         self.assertEqual(1, response['id'])
-        self.assertEqual("group-one", response['name'])
-        self.assertEqual("Project Group Title", response['title'])
+        self.assertEqual("projectgroup1", response['name'])
+        self.assertEqual("C Sort - foo", response['title'])
 
     def test_get_empty(self):
         response = self.get_json(path=self.resource + "/999",
@@ -73,7 +55,6 @@ class TestProjectGroups(base.FunctionalTest):
         self.assertEqual(self.group_01['title'], project_group['title'])
 
     def test_create_invalid(self):
-
         invalid_project_group = self.group_01.copy()
         invalid_project_group["name"] = "name with spaces"
 
@@ -124,24 +105,6 @@ class TestProjectGroupSearch(base.FunctionalTest):
         super(TestProjectGroupSearch, self).setUp()
 
         self.resource = '/project_groups'
-
-        self.load_data([
-            ProjectGroup(
-                id=1,
-                name='projectgroup1',
-                title='C Sort - foo'
-            ),
-            ProjectGroup(
-                id=2,
-                name='projectgroup2',
-                title='B Sort - bar'
-            ),
-            ProjectGroup(
-                id=3,
-                name='projectgroup3',
-                title='A Sort - foo'
-            )
-        ])
 
     def build_search_url(self, params):
         return '/project_groups?%s' % (urlencode(params))

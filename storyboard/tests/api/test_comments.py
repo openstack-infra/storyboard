@@ -14,8 +14,6 @@
 
 import json
 
-from storyboard.db.models import Story
-from storyboard.db.models import User
 from storyboard.tests import base
 
 
@@ -25,18 +23,6 @@ class TestComments(base.FunctionalTest):
         super(TestComments, self).setUp()
         self.comments_resource = '/stories/%s/comments'
 
-        # pre load data:
-        self.load_data([
-            Story(id=1,
-                  title='StoryBoard',
-                  description='Awesome Task Tracker',
-                  priority='High'),
-            User(id=1,
-                 username='active',
-                 email='active@example.com',
-                 full_name='Active User',
-                 is_superuser=True)
-        ])
         self.story_id = 1
 
         self.comment_01 = {
@@ -46,9 +32,7 @@ class TestComments(base.FunctionalTest):
             'content': 'And another one'
         }
 
-        active_token = self.build_access_token(1)
-        self.default_headers['Authorization'] = 'Bearer %s' % (
-            active_token.access_token)
+        self.default_headers['Authorization'] = 'Bearer valid_superuser_token'
 
     def test_comments_endpoint(self):
         response = self.get_json(self.comments_resource % self.story_id)

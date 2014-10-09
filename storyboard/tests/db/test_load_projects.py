@@ -24,7 +24,7 @@ from storyboard.db import models
 from storyboard.tests import base
 
 
-class TestLoadProjects(base.FunctionalTest):
+class TestLoadProjects(base.DbTestCase):
 
     scenarios = [
         ('do_load_projects',

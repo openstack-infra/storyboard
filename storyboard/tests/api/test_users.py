@@ -13,7 +13,6 @@
 # under the License.
 
 from storyboard.db.api import users as user_api
-from storyboard.db.models import User
 from storyboard.tests import base
 
 
@@ -21,23 +20,7 @@ class TestUsersAsSuperuser(base.FunctionalTest):
     def setUp(self):
         super(TestUsersAsSuperuser, self).setUp()
         self.resource = '/users'
-
-        self.load_data([
-            User(id=1,
-                 username='superuser',
-                 email='superuser@example.com',
-                 full_name='Super User',
-                 is_superuser=True),
-            User(id=2,
-                 username='jenkins',
-                 email='jenkins@example.com',
-                 full_name='Jenkins User',
-                 is_superuser=False,
-                 enable_login=False)
-        ])
-        su_token = self.build_access_token(1)
-        self.default_headers['Authorization'] = 'Bearer %s' % (
-            su_token.access_token)
+        self.default_headers['Authorization'] = 'Bearer valid_superuser_token'
 
     def test_update_enable_login(self):
         path = self.resource + '/2'
@@ -46,39 +29,28 @@ class TestUsersAsSuperuser(base.FunctionalTest):
         self.assertIsNotNone(jenkins)
 
         # Try to modify the enable_login field
-        jenkins['enable_login'] = True
+        jenkins['enable_login'] = False
 
         self.put_json(path, jenkins)
         user = user_api.user_get(user_id=2)
-        self.assertTrue(user.enable_login)
+        self.assertFalse(user.enable_login)
 
 
 class TestUsersAsUser(base.FunctionalTest):
     def setUp(self):
         super(TestUsersAsUser, self).setUp()
         self.resource = '/users'
-
-        self.load_data([
-            User(id=1,
-                 username='user',
-                 email='user@example.com',
-                 full_name='User',
-                 is_superuser=False,
-                 enable_login=False),
-        ])
-        active_token = self.build_access_token(1)
-        self.default_headers['Authorization'] = 'Bearer %s' % (
-            active_token.access_token)
+        self.default_headers['Authorization'] = 'Bearer valid_user_token'
 
     def test_update_enable_login(self):
-        path = self.resource + '/1'
+        path = self.resource + '/2'
 
         jenkins = self.get_json(path)
         self.assertIsNotNone(jenkins)
 
         # Try to modify the enable_login field
-        jenkins['enable_login'] = True
+        jenkins['enable_login'] = False
 
         self.put_json(path, jenkins)
-        user = user_api.user_get(user_id=1)
-        self.assertFalse(user.enable_login)
+        user = user_api.user_get(user_id=2)
+        self.assertTrue(user.enable_login)
