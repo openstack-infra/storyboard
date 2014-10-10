@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo.db.sqlalchemy.utils import InvalidSortKey
+from wsme.exc import ClientSideError
+
 from storyboard.db.api import base as api_base
 from storyboard.db import models
 
@@ -22,17 +25,36 @@ def task_get(task_id):
 
 
 def task_get_all(marker=None, limit=None, sort_field=None, sort_dir=None,
-                 **kwargs):
-    return api_base.entity_get_all(models.Task,
-                                   marker=marker,
-                                   limit=limit,
-                                   sort_field=sort_field,
-                                   sort_dir=sort_dir,
-                                   **kwargs)
+                 project_group_id=None, **kwargs):
+    # Sanity checks, in case someone accidentally explicitly passes in 'None'
+    if not sort_field:
+        sort_field = 'id'
+    if not sort_dir:
+        sort_dir = 'asc'
+
+    # Construct the query
+    query = task_build_query(project_group_id, **kwargs)
+
+    try:
+        query = api_base.paginate_query(query=query,
+                                        model=models.Task,
+                                        limit=limit,
+                                        sort_keys=[sort_field],
+                                        marker=marker,
+                                        sort_dir=sort_dir)
+    except InvalidSortKey:
+        raise ClientSideError("Invalid sort_field [%s]" % (sort_field,),
+                              status_code=400)
+    except ValueError as ve:
+        raise ClientSideError("%s" % (ve,), status_code=400)
+
+    # Execute the query
+    return query.all()
 
 
-def task_get_count(**kwargs):
-    return api_base.entity_get_count(models.Task, **kwargs)
+def task_get_count(project_group_id=None, **kwargs):
+    query = task_build_query(project_group_id, **kwargs)
+    return query.count()
 
 
 def task_create(values):
@@ -48,3 +70,21 @@ def task_delete(task_id):
 
     if task:
         api_base.entity_hard_delete(models.Task, task_id)
+
+
+def task_build_query(project_group_id, **kwargs):
+    # Construct the query
+    query = api_base.model_query(models.Task)
+
+    if project_group_id:
+        query = query.join(models.Project,
+                           models.project_group_mapping,
+                           models.ProjectGroup) \
+            .filter(models.ProjectGroup.id == project_group_id)
+
+    # Sanity check on input parameters
+    query = api_base.apply_query_filters(query=query,
+                                         model=models.Task,
+                                         **kwargs)
+
+    return query

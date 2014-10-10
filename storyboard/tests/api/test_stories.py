@@ -31,7 +31,7 @@ class TestStories(base.FunctionalTest):
 
     def test_stories_endpoint(self):
         response = self.get_json(self.resource, project_id=1)
-        self.assertEqual([], response)
+        self.assertEqual(1, len(response))
 
     def test_create(self):
         response = self.post_json(self.resource, self.story_01)

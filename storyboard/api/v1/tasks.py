@@ -53,13 +53,21 @@ class TasksController(rest.RestController):
                                   status_code=404)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.Task], int, int, int, int, unicode, unicode)
-    def get_all(self, story_id=None, assignee_id=None, marker=None,
-                limit=None, sort_field='id', sort_dir='asc'):
+    @wsme_pecan.wsexpose([wmodels.Task], unicode, int, int, int, int,
+                         [unicode], [unicode], int, int, unicode, unicode)
+    def get_all(self, title=None, story_id=None, assignee_id=None,
+                project_id=None, project_group_id=None, status=None,
+                priority=None, marker=None, limit=None, sort_field='id',
+                sort_dir='asc'):
         """Retrieve definitions of all of the tasks.
 
+        :param title: search by task title.
         :param story_id: filter tasks by story ID.
         :param assignee_id: filter tasks by who they are assigned to.
+        :param project_id: filter the tasks based on project.
+        :param project_group_id: filter tasks based on project group.
+        :param status: filter tasks by status.
+        :param priority: filter tasks by priority.
         :param marker: The resource id where the page should begin.
         :param limit: The number of tasks to retrieve.
         :param sort_field: The name of the field to sort on.
@@ -74,17 +82,26 @@ class TasksController(rest.RestController):
         # Resolve the marker record.
         marker_task = tasks_api.task_get(marker)
 
-        if marker_task is None or marker_task.story_id != story_id:
-            marker_task = None
-
-        tasks = tasks_api.task_get_all(marker=marker_task,
-                                       limit=limit,
-                                       assignee_id=assignee_id,
-                                       story_id=story_id,
-                                       sort_field=sort_field,
-                                       sort_dir=sort_dir)
-        task_count = tasks_api.task_get_count(assignee_id=assignee_id,
-                                              story_id=story_id)
+        tasks = tasks_api \
+            .task_get_all(title=title,
+                          story_id=story_id,
+                          assignee_id=assignee_id,
+                          project_id=project_id,
+                          project_group_id=project_group_id,
+                          status=status,
+                          priority=priority,
+                          sort_field=sort_field,
+                          sort_dir=sort_dir,
+                          marker=marker_task,
+                          limit=limit)
+        task_count = tasks_api \
+            .task_get_count(title=title,
+                            story_id=story_id,
+                            assignee_id=assignee_id,
+                            project_id=project_id,
+                            project_group_id=project_group_id,
+                            status=status,
+                            priority=priority)
 
         # Apply the query response headers.
         response.headers['X-Limit'] = str(limit)

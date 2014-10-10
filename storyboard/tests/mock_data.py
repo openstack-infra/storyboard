@@ -19,6 +19,7 @@ from storyboard.db.models import AccessToken
 from storyboard.db.models import Project
 from storyboard.db.models import ProjectGroup
 from storyboard.db.models import Story
+from storyboard.db.models import Task
 from storyboard.db.models import User
 
 
@@ -132,6 +133,50 @@ def load():
         Story(
             id=5,
             title="Test story 5 - oh hai"
+        )
+    ])
+
+    # Create some tasks
+    load_data([
+        Task(
+            id=1,
+            creator_id=1,
+            title='A Test Task 1 - foo',
+            status='inprogress',
+            story_id=1,
+            project_id=1,
+            assignee_id=2,
+            priority='medium'
+        ),
+        Task(
+            id=2,
+            creator_id=1,
+            title='B Test Task 2 - bar',
+            status='merged',
+            story_id=1,
+            project_id=2,
+            assignee_id=1,
+            priority='high'
+        ),
+        Task(
+            id=3,
+            creator_id=1,
+            title='C Test Task 3 - foo',
+            status='invalid',
+            story_id=1,
+            project_id=3,
+            assignee_id=1,
+            priority='low'
+        ),
+        Task(
+            id=4,
+            creator_id=1,
+            title='D Test Task 4 - bar',
+            status='merged',
+            story_id=2,
+            project_id=2,
+            assignee_id=1,
+            priority='medium'
         )
     ])
 

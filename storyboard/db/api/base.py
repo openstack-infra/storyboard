@@ -60,7 +60,9 @@ def apply_query_filters(query, model, **kwargs):
         if v and hasattr(model, k):
             column = getattr(model, k)
             if column.is_attribute:
-                if isinstance(column.type, types.String):
+                if isinstance(column.type, types.Enum):
+                    query = query.filter(column.in_(v))
+                elif isinstance(column.type, types.String):
                     # Filter strings with LIKE
                     query = query.filter(column.like("%" + v + "%"))
                 else:
