@@ -289,7 +289,7 @@ def _story_build_summary_query():
                   None,
                   expr.Join(Story, Task, onclause=Story.id == Task.story_id,
                             isouter=True)) \
-        .group_by(Task.story_id) \
+        .group_by(Story.id) \
         .alias('story_summary')
 
 

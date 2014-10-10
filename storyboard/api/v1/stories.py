@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#    http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,6 +29,7 @@ from storyboard.api.v1.timeline import TimeLineEventsController
 from storyboard.api.v1 import wmodels
 from storyboard.db.api import stories as stories_api
 from storyboard.db.api import timeline_events as events_api
+
 
 CONF = cfg.CONF
 
@@ -56,20 +57,21 @@ class StoriesController(rest.RestController):
                                   status_code=404)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.Story], int, int, int, int, unicode, unicode,
-                         unicode, unicode, unicode)
-    def get_all(self, project_id=None, assignee_id=None, marker=None,
-                limit=None, status=None, title=None, description=None,
-                sort_field='id', sort_dir='asc'):
+    @wsme_pecan.wsexpose([wmodels.Story], unicode, unicode, [unicode], int,
+                         int, int, int, int, unicode, unicode)
+    def get_all(self, title=None, description=None, status=None,
+                assignee_id=None, project_group_id=None, project_id=None,
+                marker=None, limit=None, sort_field='id', sort_dir='asc'):
         """Retrieve definitions of all of the stories.
 
-        :param project_id: filter stories by project ID.
-        :param assignee_id: filter stories by who they are assigned to.
-        :param marker: The resource id where the page should begin.
-        :param limit: The number of stories to retrieve.
-        :param status: Only show stories with this particular status.
         :param title: A string to filter the title by.
         :param description: A string to filter the description by.
+        :param status: Only show stories with this particular status.
+        :param assignee_id: filter stories by who they are assigned to.
+        :param project_group_id: filter stories by project group.
+        :param project_id: filter stories by project ID.
+        :param marker: The resource id where the page should begin.
+        :param limit: The number of stories to retrieve.
         :param sort_field: The name of the field to sort on.
         :param sort_dir: sort direction for results (asc, desc).
         """
@@ -82,31 +84,23 @@ class StoriesController(rest.RestController):
         # Resolve the marker record.
         marker_story = stories_api.story_get(marker)
 
-        if marker_story is None or marker_story.project_id != project_id:
-            marker_story = None
-
-        # Build a dict of all story parameters by which we're filtering
-        # stories.
-        story_filters = {
-            'title': title,
-            'description': description,
-            'status': status
-        }
-
-        # Build a dict of all task parameters by which we're filtering stories.
-        task_filters = {
-            'project_id': project_id,
-            'assignee_id': assignee_id
-        }
-
-        stories = stories_api.story_get_all(marker=marker_story,
-                                            limit=limit,
-                                            story_filters=story_filters,
-                                            task_filters=task_filters,
-                                            sort_field=sort_field,
-                                            sort_dir=sort_dir)
-        story_count = stories_api.story_get_count(story_filters=story_filters,
-                                                  task_filters=task_filters)
+        stories = stories_api \
+            .story_get_all(title=title,
+                           description=description,
+                           status=status,
+                           assignee_id=assignee_id,
+                           project_group_id=project_group_id,
+                           project_id=project_id,
+                           marker=marker_story,
+                           limit=limit, sort_field=sort_field,
+                           sort_dir=sort_dir)
+        story_count = stories_api \
+            .story_get_count(title=title,
+                             description=description,
+                             status=status,
+                             assignee_id=assignee_id,
+                             project_group_id=project_group_id,
+                             project_id=project_id, )
 
         # Apply the query response headers.
         response.headers['X-Limit'] = str(limit)

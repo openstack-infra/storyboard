@@ -116,23 +116,28 @@ def load():
     load_data([
         Story(
             id=1,
-            title="Test story 1 - foo"
+            title="E Test story 1 - foo",
+            description="Test Description - foo"
         ),
         Story(
             id=2,
-            title="Test story 2 - bar"
+            title="D Test story 2 - bar",
+            description="Test Description - bar"
         ),
         Story(
             id=3,
-            title="Test story 3 - foo"
+            title="C Test story 3 - foo",
+            description="Test Description - foo"
         ),
         Story(
             id=4,
-            title="Test story 4 - bar"
+            title="B Test story 4 - bar",
+            description="Test Description - bar"
         ),
         Story(
             id=5,
-            title="Test story 5 - oh hai"
+            title="A Test story 5 - oh hai",
+            description="Test Description - oh hai"
         )
     ])
 
