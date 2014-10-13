@@ -166,6 +166,8 @@ class Project(FullText, ModelBuilder, Base):
     team = relationship(Team, primaryjoin=team_id == Team.id)
     tasks = relationship('Task', backref='project')
     is_active = Column(Boolean, default=True)
+    project_groups = relationship("ProjectGroup",
+                                  secondary="project_group_mapping")
 
     _public_fields = ["id", "name", "description", "tasks"]
 

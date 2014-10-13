@@ -5,7 +5,7 @@
 # not use this file except in compliance with the License. You may obtain
 # a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
@@ -25,7 +25,6 @@ from storyboard.tests import base
 
 
 class TestProjects(base.FunctionalTest):
-
     def setUp(self):
         super(TestProjects, self).setUp()
 
@@ -66,7 +65,6 @@ class TestProjects(base.FunctionalTest):
         self.assertEqual(404, response.status_code)
 
     def test_create(self):
-
         response = self.post_json(self.resource, self.project_01)
         project = json.loads(response.body)
 
@@ -75,7 +73,6 @@ class TestProjects(base.FunctionalTest):
                          project['description'])
 
     def test_create_invalid(self):
-
         invalid_project = self.project_01.copy()
         invalid_project["name"] = "name with spaces"
 
@@ -202,6 +199,45 @@ class TestProjectSearch(base.FunctionalTest):
         result = results.json[1]
         self.assertEqual(3, result['id'])
 
+    def test_search_by_project_group(self):
+        url = self.build_search_url({
+            'project_group_id': 2
+        })
+
+        results = self.get_json(url, expect_errors=True)
+        self.assertEqual(2, len(results.json))
+        self.assertEqual('2', results.headers['X-Total'])
+        self.assertFalse('X-Marker' in results.headers)
+
+        result = results.json[0]
+        self.assertEqual(2, result['id'])
+        result = results.json[1]
+        self.assertEqual(3, result['id'])
+
+    def test_search_by_project_group_and_name(self):
+        url = self.build_search_url({
+            'project_group_id': 2,
+            'description': 'bar'
+        })
+
+        results = self.get_json(url, expect_errors=True)
+        self.assertEqual(1, len(results.json))
+        self.assertEqual('1', results.headers['X-Total'])
+        self.assertFalse('X-Marker' in results.headers)
+
+        result = results.json[0]
+        self.assertEqual(2, result['id'])
+
+    def test_search_by_empty_project_group(self):
+        url = self.build_search_url({
+            'project_group_id': 999
+        })
+
+        results = self.get_json(url, expect_errors=True)
+        self.assertEqual(0, len(results.json))
+        self.assertEqual('0', results.headers['X-Total'])
+        self.assertFalse('X-Marker' in results.headers)
+
     def test_search_limit(self):
         url = self.build_search_url({
             'description': 'foo',
@@ -266,3 +302,13 @@ class TestProjectSearch(base.FunctionalTest):
         self.assertEqual(2, result['id'])
         result = results.json[2]
         self.assertEqual(3, result['id'])
+
+    def test_search_no_results(self):
+        url = self.build_search_url({
+            'description': 'zing'
+        })
+
+        results = self.get_json(url, expect_errors=True)
+        self.assertEqual(0, len(results.json))
+        self.assertEqual('0', results.headers['X-Total'])
+        self.assertFalse('X-Marker' in results.headers)
