@@ -136,6 +136,11 @@ class DbTestCase(TestCase):
 
         session.commit()
 
+        # Clear these items from the session.
+        for entity in data:
+            session.expunge(entity)
+
+        return data
 
 PATH_PREFIX = '/v1'
 
