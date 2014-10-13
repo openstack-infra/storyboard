@@ -282,6 +282,9 @@ class User(base.APIBase):
     last_login = datetime
     """Date of the last login."""
 
+    enable_login = bool
+    """Whether this user is permitted to log in."""
+
     @classmethod
     def sample(cls):
         return cls(

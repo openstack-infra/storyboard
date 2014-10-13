@@ -113,17 +113,30 @@ class UsersController(rest.RestController):
         :param user_id: unique id to identify the user.
         :param user: a user within the request body.
         """
+        current_user = users_api.user_get(request.current_user_id)
 
-        if request.current_user_id != user_id:
-            response.status_code = 400
-            response.body = "You are not allowed to update another user."
-
-        user_dict = user.as_dict()
-        if "openid" in user_dict or "is_superuser" in user_dict:
-            response.status_code = 400
-            response.body = "You are not allowed to update " \
-                            "your identity fields."
+        if not user or not user.id or not current_user:
+            response.status_code = 404
+            response.body = "Not found"
             return response
+
+        # Only owners and superadmins are allowed to modify users.
+        if request.current_user_id != user.id \
+                and not current_user.is_superuser:
+            response.status_code = 403
+            response.body = "You are not allowed to update this user."
+            return response
+
+        # Strip out values that you're not allowed to change.
+        user_dict = user.as_dict()
+
+        # You cannot modify the openid field.
+        del user_dict['openid']
+
+        if not current_user.is_superuser:
+            # Only superuser may create superusers or modify login permissions.
+            del user_dict['enable_login']
+            del user_dict['is_superuser']
 
         updated_user = users_api.user_update(user_id, user_dict)
         return wmodels.User.from_db_model(updated_user)

@@ -84,6 +84,13 @@ class SkeletonValidator(RequestValidator):
 
         """
 
+        # Verify that the claimed user is allowed to log in.
+        openid = request._params["openid.claimed_id"]
+        user = user_api.user_get_by_openid(openid)
+
+        if user and not user.enable_login:
+            return False
+
         return scopes == "user"
 
     def get_default_scopes(self, client_id, request, *args, **kwargs):
