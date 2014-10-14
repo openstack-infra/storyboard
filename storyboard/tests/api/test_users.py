@@ -54,3 +54,14 @@ class TestUsersAsUser(base.FunctionalTest):
         self.put_json(path, jenkins)
         user = user_api.user_get(user_id=2)
         self.assertTrue(user.enable_login)
+
+
+class TestSearchUsers(base.FunctionalTest):
+    def setUp(self):
+        super(TestSearchUsers, self).setUp()
+        self.resource = '/users'
+        self.default_headers['Authorization'] = 'Bearer valid_user_token'
+
+    def testBrowse(self):
+        result = self.get_json(self.resource + '?username=regularuser')
+        self.assertEqual(1, len(result))

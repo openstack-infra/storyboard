@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#    http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,8 +24,10 @@ import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1.search import search_engine
+from storyboard.api.v1.user_preferences import UserPreferencesController
 from storyboard.api.v1 import wmodels
 from storyboard.db.api import users as users_api
+
 
 CONF = cfg.CONF
 
@@ -34,6 +36,9 @@ SEARCH_ENGINE = search_engine.get_engine()
 
 class UsersController(rest.RestController):
     """Manages users."""
+
+    # Import the user preferences.
+    preferences = UserPreferencesController()
 
     _custom_actions = {"search": ["GET"]}
 
@@ -142,7 +147,7 @@ class UsersController(rest.RestController):
         return wmodels.User.from_db_model(updated_user)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.User], unicode, unicode, int, int)
+    @wsme_pecan.wsexpose([wmodels.User], unicode, int, int)
     def search(self, q="", marker=None, limit=None):
         """The search endpoint for users.
 
@@ -156,7 +161,7 @@ class UsersController(rest.RestController):
 
     @expose()
     def _route(self, args, request):
-        if request.method == 'GET' and len(args) > 0:
+        if request.method == 'GET' and len(args) == 1:
             # It's a request by a name or id
             something = args[0]
 
