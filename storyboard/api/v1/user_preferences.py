@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo.config import cfg
 from pecan import abort
 from pecan import request
 from pecan import rest
@@ -22,6 +23,11 @@ import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
 import storyboard.db.api.users as user_api
+from storyboard.openstack.common import log
+
+
+CONF = cfg.CONF
+LOG = log.getLogger(__name__)
 
 
 class UserPreferencesController(rest.RestController):
@@ -40,7 +46,11 @@ class UserPreferencesController(rest.RestController):
     @wsme_pecan.wsexpose(types.DictType(unicode, unicode), int,
                          body=types.DictType(unicode, unicode))
     def post(self, user_id, body):
-        """Allow a user to update their preferences.
+        """Allow a user to update their preferences. Note that a user must
+        explicitly set a preference value to Null/None to have it deleted.
+
+        :param user_id The ID of the user whose preferences we're updating.
+        :param body A dictionary of preference values.
         """
         if request.current_user_id != user_id:
             abort(403)
