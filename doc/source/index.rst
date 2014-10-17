@@ -48,6 +48,15 @@ Developer docs
     contributing
     webclient
 
+Extending StoryBoard
+--------------------
+
+.. toctree::
+    :maxdepth: 1
+
+    Overview <extending/index>
+    Plugins: Cron Workers <extending/plugin_cron>
+
 
 Client API Reference
 --------------------
