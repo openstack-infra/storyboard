@@ -57,20 +57,6 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
                                   project_group_id=project_group_id,
                                   project_id=project_id)
 
-    # paginate the query
-    try:
-        subquery = api_base.paginate_query(query=subquery,
-                                           model=models.Story,
-                                           limit=limit,
-                                           sort_keys=[sort_field],
-                                           marker=marker,
-                                           sort_dir=sort_dir)
-    except InvalidSortKey:
-        raise ClientSideError("Invalid sort_field [%s]" % (sort_field,),
-                              status_code=400)
-    except ValueError as ve:
-        raise ClientSideError("%s" % (ve,), status_code=400)
-
     # Turn the whole shebang into a subquery.
     subquery = subquery.subquery('filtered_stories')
 
@@ -81,6 +67,20 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
 
     if status:
         query = query.filter(models.StorySummary.status.in_(status))
+
+    # paginate the query
+    try:
+        query = api_base.paginate_query(query=query,
+                                        model=models.StorySummary,
+                                        limit=limit,
+                                        sort_keys=[sort_field],
+                                        marker=marker,
+                                        sort_dir=sort_dir)
+    except InvalidSortKey:
+        raise ClientSideError("Invalid sort_field [%s]" % (sort_field,),
+                              status_code=400)
+    except ValueError as ve:
+        raise ClientSideError("%s" % (ve,), status_code=400)
 
     return query.all()
 

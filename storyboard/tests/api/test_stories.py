@@ -265,3 +265,17 @@ class TestStorySearch(base.FunctionalTest):
         self.assertEqual(4, result['id'])
         result = results.json[4]
         self.assertEqual(5, result['id'])
+
+    def test_filter_paged_status(self):
+        url = self.build_search_url({
+            'limit': '2',
+            'sort_field': 'id',
+            'status': 'invalid'
+        })
+
+        results = self.get_json(url)
+        self.assertEqual(2, len(results))
+        result = results[0]
+        self.assertEqual(3, result['id'])
+        result = results[1]
+        self.assertEqual(4, result['id'])
