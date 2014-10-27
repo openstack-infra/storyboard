@@ -5,7 +5,7 @@
 # not use this file except in compliance with the License. You may obtain
 # a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
@@ -19,7 +19,6 @@ SQLAlchemy Models for storing storyboard
 
 from oslo.config import cfg
 from oslo.db.sqlalchemy import models
-import six.moves.urllib.parse as urlparse
 from sqlalchemy import Boolean
 from sqlalchemy import Column
 from sqlalchemy import DateTime
@@ -37,6 +36,8 @@ from sqlalchemy import Table
 from sqlalchemy import Unicode
 from sqlalchemy import UnicodeText
 from sqlalchemy_fulltext import FullText
+
+import six.moves.urllib.parse as urlparse
 
 
 CONF = cfg.CONF
@@ -123,8 +124,50 @@ class User(FullText, ModelBuilder, Base):
     permissions = relationship("Permission", secondary="user_permissions")
     enable_login = Column(Boolean, default=True)
 
+    preferences = relationship("UserPreference")
+
     _public_fields = ["id", "openid", "full_name", "username", "last_login",
                       "enable_login"]
+
+
+class UserPreference(ModelBuilder, Base):
+    __tablename__ = 'user_preferences'
+
+    _TASK_TYPES = ('string', 'int', 'bool', 'float')
+
+    user_id = Column(Integer, ForeignKey('users.id'))
+    key = Column(Unicode(100))
+    value = Column(Unicode(255))
+    type = Column(Enum(*_TASK_TYPES), default='string')
+
+    @property
+    def cast_value(self):
+        try:
+            cast_func = {
+                'float': lambda x: float(x),
+                'int': lambda x: int(x),
+                'bool': lambda x: bool(x),
+                'string': lambda x: str(x)
+            }[self.type]
+
+            return cast_func(self.value)
+        except ValueError:
+            return self.value
+
+    @cast_value.setter
+    def cast_value(self, value):
+        if isinstance(value, bool):
+            self.type = 'bool'
+        elif isinstance(value, int):
+            self.type = 'int'
+        elif isinstance(value, float):
+            self.type = 'float'
+        else:
+            self.type = 'string'
+
+        self.value = str(value)
+
+    _public_fields = ["id", "key", "value", "type"]
 
 
 class Team(ModelBuilder, Base):
@@ -134,6 +177,7 @@ class Team(ModelBuilder, Base):
     name = Column(Unicode(255))
     users = relationship("User", secondary="team_membership")
     permissions = relationship("Permission", secondary="team_permissions")
+
 
 project_group_mapping = Table(
     'project_group_mapping', Base.metadata,
@@ -240,14 +284,12 @@ class StoryTag(ModelBuilder, Base):
 # Authorization models
 
 class AuthorizationCode(ModelBuilder, Base):
-
     code = Column(Unicode(100), nullable=False)
     state = Column(Unicode(100), nullable=False)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
 
 
 class AccessToken(ModelBuilder, Base):
-
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     access_token = Column(Unicode(100), nullable=False)
     expires_in = Column(Integer, nullable=False)
@@ -255,7 +297,6 @@ class AccessToken(ModelBuilder, Base):
 
 
 class RefreshToken(ModelBuilder, Base):
-
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     refresh_token = Column(Unicode(100), nullable=False)
     expires_in = Column(Integer, nullable=False)
