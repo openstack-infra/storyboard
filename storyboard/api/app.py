@@ -30,6 +30,7 @@ from storyboard.api.v1.search import search_engine
 from storyboard.notifications.notification_hook import NotificationHook
 from storyboard.openstack.common.gettextutils import _  # noqa
 from storyboard.openstack.common import log
+from storyboard.plugin.user_preferences import initialize_user_preferences
 
 CONF = cfg.CONF
 
@@ -90,6 +91,9 @@ def setup_app(pecan_config=None):
     search_engine_name = CONF.search_engine
     search_engine_cls = search_engine_impls.ENGINE_IMPLS[search_engine_name]
     search_engine.set_engine(search_engine_cls())
+
+    # Load user preference plugins
+    initialize_user_preferences()
 
     # Setup notifier
     if CONF.enable_notifications:

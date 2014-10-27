@@ -18,6 +18,7 @@ from oslo.db import exception as db_exc
 from storyboard.common import exception as exc
 from storyboard.db.api import base as api_base
 from storyboard.db import models
+from storyboard.plugin.user_preferences import PREFERENCE_DEFAULTS
 
 
 def user_get(user_id, filter_non_public=False):
@@ -73,6 +74,11 @@ def user_get_preferences(user_id):
     pref_dict = dict()
     for pref in preferences:
         pref_dict[pref.key] = pref.cast_value
+
+    # Decorate with plugin defaults.
+    for key in PREFERENCE_DEFAULTS:
+        if key not in pref_dict:
+            pref_dict[key] = PREFERENCE_DEFAULTS[key]
 
     return pref_dict
 
