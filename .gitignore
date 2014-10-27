@@ -57,6 +57,7 @@ ChangeLog
 
 # Local settings
 etc/storyboard.conf
+.vagrant
 
 # IDE settings
 .idea
