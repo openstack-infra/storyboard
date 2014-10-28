@@ -42,6 +42,10 @@ Users
 .. rest-controller:: storyboard.api.v1.users:UsersController
    :webprefix: /v1/users
 
+System Info
+===========
+.. rest-controller:: storyboard.api.v1.system_info:SystemInfoController
+   :webprefix: /v1/systeminfo
 
 ############
 Object model
@@ -80,4 +84,9 @@ Task
 User
 ====
 .. autotype:: storyboard.api.v1.users.User
+   :members:
+
+SystemInfo
+==========
+.. autotype:: storyboard.api.v1.system_info.SystemInfo
    :members:

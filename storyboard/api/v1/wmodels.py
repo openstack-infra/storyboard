@@ -36,6 +36,19 @@ class Comment(base.APIBase):
     """Is this an active comment, or has it been deleted?"""
 
 
+class SystemInfo(base.APIBase):
+    """Represents the system information for Storyboard
+    """
+
+    version = wtypes.text
+    """The application version."""
+
+    @classmethod
+    def sample(cls):
+        return cls(
+            version="338c2d6")
+
+
 class Project(base.APIBase):
     """The Storyboard Registry describes the open source world as ProjectGroups
     and Projects. Each ProjectGroup may be responsible for several Projects.
