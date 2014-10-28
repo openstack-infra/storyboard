@@ -16,6 +16,13 @@
 from storyboard.db.api import base as api_base
 from storyboard.db import models
 
+SUPPORTED_TYPES = {
+    'project': models.Project,
+    'project_group': models.ProjectGroup,
+    'story': models.Story,
+    'task': models.Task
+}
+
 
 def subscription_get(subscription_id):
     return api_base.entity_get(models.Subscription, subscription_id)
@@ -30,6 +37,13 @@ def subscription_get_all_by_target(target_type, target_id):
     return api_base.entity_get_all(models.Subscription,
                                    target_type=target_type,
                                    target_id=target_id)
+
+
+def subscription_get_resource(target_type, target_id):
+    if target_type not in SUPPORTED_TYPES:
+        return None
+
+    return api_base.entity_get(SUPPORTED_TYPES[target_type], target_id)
 
 
 def subscription_get_count(**kwargs):

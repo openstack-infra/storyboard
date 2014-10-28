@@ -19,6 +19,7 @@ from storyboard.db.models import AccessToken
 from storyboard.db.models import Project
 from storyboard.db.models import ProjectGroup
 from storyboard.db.models import Story
+from storyboard.db.models import Subscription
 from storyboard.db.models import Task
 from storyboard.db.models import User
 
@@ -42,6 +43,11 @@ def load():
              username='regularuser',
              email='regularuser@example.com',
              full_name='Regular User',
+             is_superuser=False),
+        User(id=3,
+             username='otheruser',
+             email='otheruser@example.com',
+             full_name='Other User',
              is_superuser=False)
     ])
 
@@ -183,6 +189,28 @@ def load():
             assignee_id=1,
             priority='medium'
         )
+    ])
+
+    # Load some subscriptions.
+    load_data([
+        Subscription(
+            id=1,
+            user_id=1,
+            target_type='project',
+            target_id=1
+        ),
+        Subscription(
+            id=2,
+            user_id=1,
+            target_type='project',
+            target_id=3
+        ),
+        Subscription(
+            id=3,
+            user_id=3,
+            target_type='story',
+            target_id=1
+        ),
     ])
 
 

@@ -34,12 +34,12 @@ def handle_timeline_events(event, author_id):
 
         # Handling tasks targeted.
         target_sub = subscriptions_api.subscription_get_all_by_target(
-            'task', task_id)
+            ['task'], task_id)
         target_subs.extend(target_sub)
 
     # Handling stories targeted.
     target_sub = subscriptions_api.subscription_get_all_by_target(
-        'story', story_id)
+        ['story'], story_id)
     target_subs.extend(target_sub)
 
     # Handling projects, project groups targeted for stories without tasks.
@@ -51,14 +51,14 @@ def handle_timeline_events(event, author_id):
 
         # Handling projects targeted.
         target_sub = subscriptions_api.subscription_get_all_by_target(
-            'project', project_id)
+            ['project'], project_id)
         target_subs.extend(target_sub)
 
         # Handling project groups targeted.
         pgs = project_groups_api.project_group_get_all(project_id=project_id)
         for pg in pgs:
             target_sub = subscriptions_api.subscription_get_all_by_target(
-                'project_group', pg.id)
+                ['project_group'], pg.id)
             target_subs.extend(target_sub)
 
     for sub in target_subs:
@@ -88,7 +88,7 @@ def handle_resources(method, resource_id, sub_resource_id, author_id):
 
         # Handling project addition/deletion to/from project_group.
         target_sub = subscriptions_api.subscription_get_all_by_target(
-            'project', sub_resource_id)
+            ['project'], sub_resource_id)
         target_subs.extend(target_sub)
 
         for sub in target_subs:
@@ -117,7 +117,7 @@ def handle_resources(method, resource_id, sub_resource_id, author_id):
         if method == 'DELETE':
             # Handling project_group targeted.
             target_sub = subscriptions_api.subscription_get_all_by_target(
-                'project_group', resource_id)
+                ['project_group'], resource_id)
             target_subs.extend(target_sub)
 
             for sub in target_subs:

@@ -377,6 +377,8 @@ class Subscription(ModelBuilder, Base):
     # Cant use foreign key here as it depends on the type
     target_id = Column(Integer)
 
+    _public_fields = ["id", "target_type", "target_id", "user_id"]
+
 
 class SubscriptionEvents(ModelBuilder, Base):
     __tablename__ = 'subscription_events'
