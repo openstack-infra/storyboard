@@ -146,3 +146,6 @@ def start():
                  {'host': host, 'port': port}))
 
     srv.serve_forever()
+
+if __name__ == '__main__':
+    start()
