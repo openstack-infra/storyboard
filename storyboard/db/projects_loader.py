@@ -122,6 +122,7 @@ def _get_project_group(project_group_name, session):
 
     if not db_project_group:
         db_project_group = ProjectGroup()
+        db_project_group.title = project_group_name
         db_project_group.name = project_group_name
 
         session.add(db_project_group)
