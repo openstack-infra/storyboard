@@ -5,6 +5,42 @@
 Storyboard has two components: this API server, and the
 Javascript-based web client.
 
+Launching the development VM
+============================
+
+StoryBoard has certain server dependencies which are often complicated to
+install on any development environment. To simplify this,
+we've provided a vagrantfile which includes all required services.
+
+1. Install [vagrant](https://www.vagrantup.com/)
+2. Install [VirtualBox](https://www.virtualbox.org/)
+3. Run `vagrant up` in the storyboard root directory.
+
+If you choose to go this route, the appropriate configuration values in
+`storyboard.conf` will be as follows::
+
+    ...
+
+    [notifications]
+    rabbit_host=127.0.0.1
+    rabbit_login_method = AMQPLAIN
+    rabbit_userid = storyboard
+    rabbit_password = storyboard
+    rabbit_port = 5672
+    rabbit_virtual_host = /
+
+    ...
+
+    [database]
+    connection = mysql://storyboard:storyboard@127.0.0.1:3306/storyboard
+
+    ...
+
+Note that the VM will attempt to bind to local ports 3306, 5672,
+and 15672. If those ports are already in use, you will have to modify the
+vagrant file and your configuration to accommodate.
+
+This VM has also been set up for unit tests.
 
 Installing the API server
 =========================
@@ -22,7 +58,7 @@ Installing the API server
     cd storyboard
 
 
-3. Add MySQL user and create database::
+3. Add MySQL user and create database (not necessary if using VM)::
 
     mysql -u $DB_USER -p$DB_PASSWORD -e 'DROP DATABASE IF EXISTS storyboard;'
     mysql -u $DB_USER -p$DB_PASSWORD -e 'CREATE DATABASE storyboard;'
