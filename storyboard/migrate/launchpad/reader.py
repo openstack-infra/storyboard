@@ -25,7 +25,11 @@ class LaunchpadReader(object):
                                                         'production')
         self.project_name = project_name
         self.project = self.lp.projects[project_name]
-        self.tasks = self.project.searchTasks()
+        self.tasks = self.project.searchTasks(
+            status=["New", "Incomplete (with response)",
+                    "Incomplete (without response)", "Invalid", "Won't Fix",
+                    "Confirmed", "Triaged", "Opinion", "Expired",
+                    "In Progress", "Fix Committed", "Fix Released"])
         self.task_iterator = self.tasks.__iter__()
 
     def __iter__(self):
