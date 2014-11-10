@@ -106,7 +106,6 @@ team_membership = Table(
 
 class User(FullText, ModelBuilder, Base):
     __table_args__ = (
-        schema.UniqueConstraint('username', name='uniq_user_username'),
         schema.UniqueConstraint('email', name='uniq_user_email'),
     )
 

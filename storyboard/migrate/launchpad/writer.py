@@ -99,25 +99,26 @@ class LaunchpadWriter(object):
 
         username = lp_user.name
         display_name = lp_user.display_name
+        user_link = lp_user.web_link
 
         # Resolve the openid.
-        if username not in self._openid_map:
+        if user_link not in self._openid_map:
             try:
                 openid_consumer = consumer.Consumer(
                     dict(id=cryptutil.randomString(16, '0123456789abcdef')),
                     None)
-                openid_request = openid_consumer.begin(lp_user.web_link)
+                openid_request = openid_consumer.begin(user_link)
                 openid = openid_request.endpoint.getLocalID()
 
-                self._openid_map[username] = openid
+                self._openid_map[user_link] = openid
             except DiscoveryFailure:
                 # If we encounter a launchpad maintenance user,
                 # give it an invalid openid.
                 print "WARNING: Invalid OpenID for user \'%s\'" % (username,)
-                self._openid_map[username] = \
+                self._openid_map[user_link] = \
                     'http://example.com/invalid/~%s' % (username,)
 
-        openid = self._openid_map[username]
+        openid = self._openid_map[user_link]
 
         # Resolve the user record from the openid.
         if openid not in self._user_map:
@@ -125,7 +126,7 @@ class LaunchpadWriter(object):
             # Check for the user, create if new.
             user = users_api.user_get_by_openid(openid)
             if not user:
-                print "Importing user '%s'" % (username)
+                print "Importing user '%s'" % (user_link)
 
                 # Use a temporary email address, since LP won't give this to
                 # us and it'll be updated on first login anyway.
