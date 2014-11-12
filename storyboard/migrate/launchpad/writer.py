@@ -180,7 +180,8 @@ class LaunchpadWriter(object):
             title = title[:97] + '...'
             description = bug.title + '\n\n' + description
 
-        story = db_api.entity_create(Story, {
+        # Sanity check.
+        story = {
             'id': launchpad_id,
             'description': description,
             'created_at': created_at,
@@ -189,43 +190,76 @@ class LaunchpadWriter(object):
             'title': title,
             'updated_at': updated_at,
             'tags': tags
-        })
+        }
+        duplicate = db_api.entity_get(Story, launchpad_id)
+        if not duplicate:
+            story = db_api.entity_create(Story, story)
+        else:
+            story = db_api.entity_update(Story, launchpad_id, story)
 
-        task = db_api.entity_create(Task, {
-            'title': title,
-            'assignee_id': assignee.id if assignee else None,
-            'project_id': self.project.id,
-            'story_id': launchpad_id,
-            'created_at': created_at,
-            'updated_at': updated_at,
-            'priority': priority,
-            'status': status
-        })
-
-        # Create the creation event for the story manually, so we don't trigger
-        # event notifications.
-        db_api.entity_create(TimeLineEvent, {
-            'story_id': launchpad_id,
-            'author_id': owner.id,
-            'event_type': event_types.STORY_CREATED,
-            'created_at': created_at
-        })
-
-        # Create the creation event for the task.
-        db_api.entity_create(TimeLineEvent, {
-            'story_id': launchpad_id,
-            'author_id': owner.id,
-            'event_type': event_types.TASK_CREATED,
-            'created_at': created_at,
-            'event_info': json.dumps({
-                'task_id': task.id,
-                'task_title': title
+        # Duplicate check- launchpad import creates one task per story,
+        # so if we already have a task on this story, skip it. This is to
+        # properly replay imports in the case where errors occurred during
+        # import.
+        existing_task = db_api.model_query(Task) \
+            .filter(Task.story_id == launchpad_id) \
+            .first()
+        if not existing_task:
+            task = db_api.entity_create(Task, {
+                'title': title,
+                'assignee_id': assignee.id if assignee else None,
+                'project_id': self.project.id,
+                'story_id': launchpad_id,
+                'created_at': created_at,
+                'updated_at': updated_at,
+                'priority': priority,
+                'status': status
             })
-        })
+        else:
+            task = existing_task
 
-        # Create the discussion.
-        comment_count = 0
-        for message in bug.messages:
+        # Duplication Check - If this story already has a creation event,
+        # we don't need to create a new one. Otherwise, create it manually so
+        # we don't trigger event notifications.
+        story_created_event = db_api.model_query(TimeLineEvent) \
+            .filter(TimeLineEvent.story_id == launchpad_id) \
+            .filter(TimeLineEvent.event_type == event_types.STORY_CREATED) \
+            .first()
+        if not story_created_event:
+            db_api.entity_create(TimeLineEvent, {
+                'story_id': launchpad_id,
+                'author_id': owner.id,
+                'event_type': event_types.STORY_CREATED,
+                'created_at': created_at
+            })
+
+        # Create the creation event for the task, assuming it doesn't
+        # exist yet.
+        task_created_event = db_api.model_query(TimeLineEvent) \
+            .filter(TimeLineEvent.story_id == launchpad_id) \
+            .filter(TimeLineEvent.event_type == event_types.TASK_CREATED) \
+            .first()
+        if not task_created_event:
+            db_api.entity_create(TimeLineEvent, {
+                'story_id': launchpad_id,
+                'author_id': owner.id,
+                'event_type': event_types.TASK_CREATED,
+                'created_at': created_at,
+                'event_info': json.dumps({
+                    'task_id': task.id,
+                    'task_title': title
+                })
+            })
+
+        # Create the discussion, loading any existing comments first.
+        current_count = db_api.model_query(TimeLineEvent) \
+            .filter(TimeLineEvent.story_id == launchpad_id) \
+            .filter(TimeLineEvent.event_type == event_types.USER_COMMENT) \
+            .count()
+        desired_count = len(bug.messages)
+        for i in range(current_count, desired_count):
+            print '- Importing comment %s of %s' % (i + 1, desired_count)
+            message = bug.messages[i]
             message_created_at = message.date_created \
                 .strftime('%Y-%m-%d %H:%M:%S')
             message_owner = self.write_user(message.owner)
@@ -242,11 +276,5 @@ class LaunchpadWriter(object):
                 'comment_id': comment.id,
                 'created_at': message_created_at
             })
-
-            comment_count += 1
-            print '- Imported %d comments\r' % (comment_count),
-
-        # Advance the stdout line
-        print ''
 
         return story
