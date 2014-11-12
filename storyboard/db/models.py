@@ -22,6 +22,7 @@ from oslo.db.sqlalchemy import models
 from sqlalchemy import Boolean
 from sqlalchemy import Column
 from sqlalchemy import DateTime
+from sqlalchemy.dialects.mysql import MEDIUMTEXT
 from sqlalchemy import Enum
 from sqlalchemy.ext import declarative
 from sqlalchemy import ForeignKey
@@ -49,6 +50,11 @@ def table_args():
         return {'mysql_engine': cfg.CONF.mysql_engine,
                 'mysql_charset': "utf8"}
     return None
+
+## CUSTOM TYPES
+
+# A mysql medium text type.
+MYSQL_MEDIUM_TEXT = UnicodeText().with_variant(MEDIUMTEXT(), 'mysql')
 
 
 class IdMixin(object):
@@ -361,7 +367,7 @@ class TimeLineEvent(ModelBuilder, Base):
 class Comment(FullText, ModelBuilder, Base):
     __fulltext_columns__ = ['content']
 
-    content = Column(UnicodeText)
+    content = Column(MYSQL_MEDIUM_TEXT)
     is_active = Column(Boolean, default=True)
 
 
