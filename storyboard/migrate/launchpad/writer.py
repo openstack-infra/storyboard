@@ -169,8 +169,6 @@ class LaunchpadWriter(object):
             return
         launchpad_id = int(url_match.groups()[0])
 
-        print "Importing %s" % (bug.self_link,)
-
         # If the title is too long, prepend it to the description and
         # truncate it.
         title = bug.title
@@ -193,18 +191,22 @@ class LaunchpadWriter(object):
         }
         duplicate = db_api.entity_get(Story, launchpad_id)
         if not duplicate:
+            print "Importing Story: %s" % (bug.self_link,)
             story = db_api.entity_create(Story, story)
         else:
-            story = db_api.entity_update(Story, launchpad_id, story)
+            print "Existing Story: %s" % (bug.self_link,)
+            story = duplicate
 
         # Duplicate check- launchpad import creates one task per story,
-        # so if we already have a task on this story, skip it. This is to
-        # properly replay imports in the case where errors occurred during
-        # import.
+        # so if we already have a project task on this story, skip it. This
+        # is to properly replay imports in the case where errors occurred
+        # during import.
         existing_task = db_api.model_query(Task) \
             .filter(Task.story_id == launchpad_id) \
+            .filter(Task.project_id == self.project.id) \
             .first()
         if not existing_task:
+            print "- Adding task in project %s" % (self.project.name,)
             task = db_api.entity_create(Task, {
                 'title': title,
                 'assignee_id': assignee.id if assignee else None,
@@ -216,6 +218,7 @@ class LaunchpadWriter(object):
                 'status': status
             })
         else:
+            print "- Existing task in %s" % (self.project.name,)
             task = existing_task
 
         # Duplication Check - If this story already has a creation event,
@@ -226,6 +229,7 @@ class LaunchpadWriter(object):
             .filter(TimeLineEvent.event_type == event_types.STORY_CREATED) \
             .first()
         if not story_created_event:
+            print "- Generating story creation event"
             db_api.entity_create(TimeLineEvent, {
                 'story_id': launchpad_id,
                 'author_id': owner.id,
@@ -233,13 +237,10 @@ class LaunchpadWriter(object):
                 'created_at': created_at
             })
 
-        # Create the creation event for the task, assuming it doesn't
-        # exist yet.
-        task_created_event = db_api.model_query(TimeLineEvent) \
-            .filter(TimeLineEvent.story_id == launchpad_id) \
-            .filter(TimeLineEvent.event_type == event_types.TASK_CREATED) \
-            .first()
-        if not task_created_event:
+        # Create the creation event for the task, but only if we just created
+        # a new task.
+        if not existing_task:
+            print "- Generating task creation event"
             db_api.entity_create(TimeLineEvent, {
                 'story_id': launchpad_id,
                 'author_id': owner.id,
@@ -257,6 +258,8 @@ class LaunchpadWriter(object):
             .filter(TimeLineEvent.event_type == event_types.USER_COMMENT) \
             .count()
         desired_count = len(bug.messages)
+        print "- %s of %s comments already imported." % (current_count,
+                                                         desired_count)
         for i in range(current_count, desired_count):
             print '- Importing comment %s of %s' % (i + 1, desired_count)
             message = bug.messages[i]
@@ -276,5 +279,3 @@ class LaunchpadWriter(object):
                 'comment_id': comment.id,
                 'created_at': message_created_at
             })
-
-        return story
