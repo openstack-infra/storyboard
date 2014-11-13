@@ -34,22 +34,6 @@ def authorization_code_delete(code):
         api_base.entity_hard_delete(models.AuthorizationCode, del_code.id)
 
 
-def access_token_get(access_token):
-    query = api_base.model_query(models.AccessToken, api_base.get_session())
-    return query.filter_by(access_token=access_token).first()
-
-
-def access_token_save(values):
-    return api_base.entity_create(models.AccessToken, values)
-
-
-def access_token_delete(access_token):
-    del_token = access_token_get(access_token)
-
-    if del_token:
-        api_base.entity_hard_delete(models.AccessToken, del_token.id)
-
-
 def refresh_token_get(refresh_token):
     query = api_base.model_query(models.RefreshToken, api_base.get_session())
     return query.filter_by(refresh_token=refresh_token).first()

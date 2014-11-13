@@ -18,6 +18,7 @@ import datetime
 from oslo.config import cfg
 
 from storyboard.api.auth.token_storage import storage
+from storyboard.db.api import access_tokens as token_api
 from storyboard.db.api import auth as auth_api
 
 
@@ -64,26 +65,26 @@ class DBTokenStorage(storage.StorageBase):
                 seconds=refresh_expires_in),
         }
 
-        auth_api.access_token_save(access_token_values)
+        token_api.access_token_create(access_token_values)
         auth_api.refresh_token_save(refresh_token_values)
 
     def get_access_token_info(self, access_token):
-        return auth_api.access_token_get(access_token)
+        return token_api.access_token_get_by_token(access_token)
 
     def check_access_token(self, access_token):
-        token_info = auth_api.access_token_get(access_token)
+        token_info = token_api.access_token_get_by_token(access_token)
 
         if not token_info:
             return False
 
         if datetime.datetime.now() > token_info.expires_at:
-            auth_api.access_token_delete(access_token)
+            token_api.access_token_delete(access_token)
             return False
 
         return True
 
     def remove_token(self, access_token):
-        auth_api.access_token_delete(access_token)
+        token_api.access_token_delete(access_token)
 
     def check_refresh_token(self, refresh_token):
         refresh_token_entry = auth_api.refresh_token_get(refresh_token)

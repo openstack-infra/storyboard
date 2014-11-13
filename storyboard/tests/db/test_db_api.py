@@ -15,6 +15,7 @@
 
 from datetime import datetime
 
+from storyboard.db.api import access_tokens
 from storyboard.db.api import auth
 from storyboard.db.api import comments
 from storyboard.db.api import projects
@@ -185,14 +186,15 @@ class TokenTest(BaseDbTestCase):
         users.user_create({"fullname": "Test User"})
 
     def test_create_token(self):
-        self._test_create(self.token_01, auth.access_token_save)
+        self._test_create(self.token_01, access_tokens.access_token_create)
 
     def test_delete_token(self):
-        created_token = auth.access_token_save(self.token_01)
+        created_token = access_tokens.access_token_create(self.token_01)
 
         self.assertIsNotNone(created_token, "Could not create a Token")
 
-        auth.access_token_delete(created_token.access_token)
+        access_tokens.access_token_delete_by_token(created_token.access_token)
 
-        fetched_token = auth.access_token_get(created_token.access_token)
+        fetched_token = access_tokens.access_token_get_by_token(
+            created_token.access_token)
         self.assertIsNone(fetched_token, "A deleted token was fetched.")
