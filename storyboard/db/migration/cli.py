@@ -137,5 +137,5 @@ def main():
     # attach the storyboard conf to the Alembic conf
     config.storyboard_config = CONF
 
-    CONF()
+    CONF(project='storyboard')
     CONF.command.func(config, CONF.command.name)
