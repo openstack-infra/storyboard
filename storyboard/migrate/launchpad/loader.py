@@ -12,9 +12,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import shelve
-import tempfile
-
 from storyboard.migrate.launchpad.reader import LaunchpadReader
 from storyboard.migrate.launchpad.writer import LaunchpadWriter
 
@@ -23,45 +20,38 @@ class LaunchpadLoader(object):
     def __init__(self, from_project, to_project):
         """Create a new loader instance from launchpad.org
         """
-        tmp_dir = tempfile.gettempdir()
-        self.cache = shelve.open("%s/launchpad_migrate.db" % (tmp_dir))
         self.writer = LaunchpadWriter(to_project)
         self.reader = LaunchpadReader(from_project)
 
     def run(self):
         for lp_bug in self.reader:
             bug = lp_bug.bug
-            cache_key = str(unicode(bug.self_link))
 
-            if cache_key not in self.cache:
-                # Preload the tags.
-                tags = self.writer.write_tags(bug)
+            # Preload the tags.
+            tags = self.writer.write_tags(bug)
 
-                # Preload the story owner.
-                owner = self.writer.write_user(bug.owner)
+            # Preload the story owner.
+            owner = self.writer.write_user(bug.owner)
 
-                # Preload the story's assignee (stored on lp_bug, not bug).
-                if hasattr(lp_bug, 'assignee') and lp_bug.assignee:
-                    assignee = self.writer.write_user(lp_bug.assignee)
-                else:
-                    assignee = None
+            # Preload the story's assignee (stored on lp_bug, not bug).
+            if hasattr(lp_bug, 'assignee') and lp_bug.assignee:
+                assignee = self.writer.write_user(lp_bug.assignee)
+            else:
+                assignee = None
 
-                # Preload the story discussion participants.
-                for message in bug.messages:
-                    self.writer.write_user(message.owner)
+            # Preload the story discussion participants.
+            for message in bug.messages:
+                self.writer.write_user(message.owner)
 
-                # Write the bug.
-                priority = map_lp_priority(lp_bug.importance)
-                status = map_lp_status(lp_bug.status)
-                story = self.writer.write_bug(bug=bug,
-                                              owner=owner,
-                                              assignee=assignee,
-                                              priority=priority,
-                                              status=status,
-                                              tags=tags)
-
-                # Cache things.
-                self.cache[cache_key] = story.id
+            # Write the bug.
+            priority = map_lp_priority(lp_bug.importance)
+            status = map_lp_status(lp_bug.status)
+            self.writer.write_bug(bug=bug,
+                                  owner=owner,
+                                  assignee=assignee,
+                                  priority=priority,
+                                  status=status,
+                                  tags=tags)
 
 
 def map_lp_priority(lp_priority):
