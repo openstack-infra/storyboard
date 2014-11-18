@@ -20,6 +20,7 @@ from storyboard.api.v1.stories import StoriesController
 from storyboard.api.v1.subscription_events import SubscriptionEventsController
 from storyboard.api.v1.subscriptions import SubscriptionsController
 from storyboard.api.v1.system_info import SystemInfoController
+from storyboard.api.v1.task_statuses import TaskStatusesController
 from storyboard.api.v1.tasks import TasksController
 from storyboard.api.v1.teams import TeamsController
 from storyboard.api.v1.users import UsersController
@@ -33,6 +34,7 @@ class V1Controller(object):
     teams = TeamsController()
     stories = StoriesController()
     tasks = TasksController()
+    task_statuses = TaskStatusesController()
     subscriptions = SubscriptionsController()
     subscription_events = SubscriptionEventsController()
     systeminfo = SystemInfoController()
