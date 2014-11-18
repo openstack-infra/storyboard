@@ -117,12 +117,12 @@ Installing the Javascript-based web client
 
 3. Run a local development server, which uses the localhost API::
 
-    tox -egrunt_no_api server
+    tox -egrunt_no_api serve
 
 
 4. Run a local development server, which uses the production API::
 
-    tox -egrunt_no_api server:prod
+    tox -egrunt_no_api serve:prod
 
 
 Optional steps: Seed database with base data
