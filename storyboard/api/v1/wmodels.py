@@ -309,3 +309,23 @@ class User(base.APIBase):
             is_active=True,
             is_superuser=True,
             last_login=datetime(2014, 1, 1, 16, 42))
+
+
+class AccessToken(base.APIBase):
+    """Represents a user access token."""
+
+    user_id = int
+    """The ID of User to whom this token belongs."""
+
+    access_token = wtypes.text
+    """The access token."""
+
+    expires_in = int
+    """The number of seconds after creation when this token expires."""
+
+    @classmethod
+    def sample(cls):
+        return cls(
+            user_id=1,
+            access_token="a_unique_access_token",
+            expires_in=3600)

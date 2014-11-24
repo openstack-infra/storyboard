@@ -25,6 +25,7 @@ import wsmeext.pecan as wsme_pecan
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1.search import search_engine
 from storyboard.api.v1.user_preferences import UserPreferencesController
+from storyboard.api.v1.user_tokens import UserTokensController
 from storyboard.api.v1 import wmodels
 from storyboard.db.api import users as users_api
 
@@ -39,6 +40,9 @@ class UsersController(rest.RestController):
 
     # Import the user preferences.
     preferences = UserPreferencesController()
+
+    # Import user token management.
+    tokens = UserTokensController()
 
     _custom_actions = {"search": ["GET"]}
 

@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
+
 from oslo.db.sqlalchemy.utils import InvalidSortKey
 from wsme.exc import ClientSideError
 
@@ -70,10 +72,18 @@ def access_token_get_count(**kwargs):
 
 
 def access_token_create(values):
+    # Update the expires_at date.
+    values['created_at'] = datetime.datetime.now()
+    values['expires_at'] = datetime.datetime.now() + datetime.timedelta(
+        seconds=values['expires_in'])
+
     return api_base.entity_create(models.AccessToken, values)
 
 
 def access_token_update(access_token_id, values):
+    values['expires_at'] = values['created_at'] + datetime.timedelta(
+        seconds=values['expires_in'])
+
     return api_base.entity_update(models.AccessToken, access_token_id, values)
 
 
