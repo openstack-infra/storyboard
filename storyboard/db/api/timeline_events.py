@@ -59,24 +59,35 @@ def event_create(values):
     return new_event
 
 
-def story_created_event(story_id, author_id):
+def story_created_event(story_id, author_id, story_title):
+    event_info = {
+        "story_id": story_id,
+        "story_title": story_title
+    }
     return event_create({
         "story_id": story_id,
         "author_id": author_id,
         "event_type": event_types.STORY_CREATED,
+        "event_info": json.dumps(event_info)
     })
 
 
-def story_details_changed_event(story_id, author_id):
+def story_details_changed_event(story_id, author_id, story_title):
+    event_info = {
+        "story_id": story_id,
+        "story_title": story_title
+    }
     return event_create({
         "story_id": story_id,
         "author_id": author_id,
         "event_type": event_types.STORY_DETAILS_CHANGED,
+        "event_info": json.dumps(event_info)
     })
 
 
 def task_created_event(story_id, task_id, task_title, author_id):
     event_info = {
+        "story_id": story_id,
         "task_id": task_id,
         "task_title": task_title
     }
@@ -91,6 +102,7 @@ def task_created_event(story_id, task_id, task_title, author_id):
 def task_status_changed_event(story_id, task_id, task_title, author_id,
                               old_status, new_status):
     event_info = {
+        "story_id": story_id,
         "task_id": task_id,
         "task_title": task_title,
         "old_status": old_status,
@@ -107,6 +119,7 @@ def task_status_changed_event(story_id, task_id, task_title, author_id,
 def task_priority_changed_event(story_id, task_id, task_title, author_id,
                                 old_priority, new_priority):
     event_info = {
+        "story_id": story_id,
         "task_id": task_id,
         "task_title": task_title,
         "old_priority": old_priority,
@@ -123,6 +136,7 @@ def task_priority_changed_event(story_id, task_id, task_title, author_id,
 def task_assignee_changed_event(story_id, task_id, task_title, author_id,
                                 old_assignee_id, new_assignee_id):
     event_info = {
+        "story_id": story_id,
         "task_id": task_id,
         "task_title": task_title,
         "old_assignee_id": old_assignee_id,
@@ -138,6 +152,7 @@ def task_assignee_changed_event(story_id, task_id, task_title, author_id,
 
 def task_details_changed_event(story_id, task_id, task_title, author_id):
     event_info = {
+        "story_id": story_id,
         "task_id": task_id,
         "task_title": task_title
     }
@@ -151,6 +166,7 @@ def task_details_changed_event(story_id, task_id, task_title, author_id):
 
 def task_deleted_event(story_id, task_id, task_title, author_id):
     event_info = {
+        "story_id": story_id,
         "task_id": task_id,
         "task_title": task_title
     }

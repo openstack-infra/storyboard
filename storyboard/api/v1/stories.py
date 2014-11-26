@@ -123,7 +123,7 @@ class StoriesController(rest.RestController):
         story_dict.update({"creator_id": user_id})
         created_story = stories_api.story_create(story_dict)
 
-        events_api.story_created_event(created_story.id, user_id)
+        events_api.story_created_event(created_story.id, user_id, story.title)
 
         return wmodels.Story.from_db_model(created_story)
 
@@ -141,7 +141,8 @@ class StoriesController(rest.RestController):
 
         if updated_story:
             user_id = request.current_user_id
-            events_api.story_details_changed_event(story_id, user_id)
+            events_api.story_details_changed_event(story_id, user_id,
+                story.title)
 
             return wmodels.Story.from_db_model(updated_story)
         else:
