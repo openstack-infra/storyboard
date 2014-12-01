@@ -23,9 +23,9 @@ LOG = log.getLogger(__name__)
 
 CONF = cfg.CONF
 CONF.register_opts([
-    cfg.ListOpt('working_directory',
-                default='~/.storyboard',
-                help='The root path to storyboard\'s working directory.')
+    cfg.StrOpt('working_directory',
+               default='~/.storyboard',
+               help='The root path to storyboard\'s working directory.')
 ])
 
 WORKING_DIRECTORY = None
@@ -39,7 +39,14 @@ def get_working_directory():
 
     if not WORKING_DIRECTORY:
         # Try to resolve the configured directory.
-        conf_path = os.path.realpath(CONF.working_directory)
+        conf_path = CONF.working_directory
+
+        # Expand any users. This is a noop if no ~ references are
+        # found.
+        conf_path = os.path.expanduser(conf_path)
+
+        # Expand backlinks and references
+        conf_path = os.path.realpath(conf_path)
 
         if not os.path.exists(conf_path):
             try:
@@ -59,8 +66,8 @@ def get_working_directory():
                           % (conf_path,))
                 exit(1)
 
-            # We've passed all our checks, let's save our working directory.
-            WORKING_DIRECTORY = conf_path
+        # We've passed all our checks, let's save our working directory.
+        WORKING_DIRECTORY = conf_path
 
     return WORKING_DIRECTORY
 
