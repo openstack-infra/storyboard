@@ -88,3 +88,7 @@ def task_build_query(project_group_id, **kwargs):
                                          **kwargs)
 
     return query
+
+
+def task_get_statuses():
+    return models.Task.TASK_STATUSES

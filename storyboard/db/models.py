@@ -262,12 +262,17 @@ class Story(FullText, ModelBuilder, Base):
 class Task(FullText, ModelBuilder, Base):
     __fulltext_columns__ = ['title']
 
-    _TASK_STATUSES = ('todo', 'inprogress', 'invalid', 'review', 'merged')
+    TASK_STATUSES = {'todo': 'Todo',
+                     'merged': 'Merged',
+                     'invalid': 'Invalid',
+                     'review': 'Review',
+                     'inprogress': 'Progress'}
+
     _TASK_PRIORITIES = ('low', 'medium', 'high')
 
     creator_id = Column(Integer, ForeignKey('users.id'))
     title = Column(Unicode(100), nullable=True)
-    status = Column(Enum(*_TASK_STATUSES), default='todo')
+    status = Column(Enum(*TASK_STATUSES.keys()), default='todo')
     story_id = Column(Integer, ForeignKey('stories.id'))
     project_id = Column(Integer, ForeignKey('projects.id'))
     assignee_id = Column(Integer, ForeignKey('users.id'), nullable=True)

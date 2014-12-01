@@ -329,3 +329,8 @@ class AccessToken(base.APIBase):
             user_id=1,
             access_token="a_unique_access_token",
             expires_in=3600)
+
+
+class TaskStatus(base.APIBase):
+    key = wtypes.text
+    name = wtypes.text
