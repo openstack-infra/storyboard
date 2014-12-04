@@ -100,6 +100,12 @@ class ProjectGroup(base.APIBase):
             title="Awesome projects")
 
 
+class TaskStatusCount(base.APIBase):
+    """Represents a task status and number of occurrences within a story."""
+    key = wtypes.text
+    count = int
+
+
 class Story(base.APIBase):
     """The Story is the main element of StoryBoard. It represents a user story
     (generally a bugfix or a feature) that needs to be implemented. It will be
@@ -119,23 +125,11 @@ class Story(base.APIBase):
     creator_id = int
     """User ID of the Story creator"""
 
-    todo = int
-    """The number of tasks remaining to be worked on."""
-
-    inprogress = int
-    """The number of in-progress tasks for this story."""
-
-    review = int
-    """The number of tasks in review for this story."""
-
-    merged = int
-    """The number of merged tasks for this story."""
-
-    invalid = int
-    """The number of invalid tasks for this story."""
-
     status = unicode
     """The derived status of the story, one of 'active', 'merged', 'invalid'"""
+
+    task_statuses = wtypes.ArrayType(TaskStatusCount)
+    """The summary of each tasks/status."""
 
     @classmethod
     def sample(cls):
@@ -144,11 +138,7 @@ class Story(base.APIBase):
             description="We should use Storyboard to manage Storyboard.",
             is_bug=False,
             creator_id=1,
-            todo=0,
-            inprogress=1,
-            review=1,
-            merged=0,
-            invalid=0,
+            task_statuses=[TaskStatusCount],
             status="active")
 
 

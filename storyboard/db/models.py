@@ -314,42 +314,39 @@ class RefreshToken(ModelBuilder, Base):
 
 
 def _story_build_summary_query():
-    return select([Story,
-                   func.cast(
-                       func.sum(Task.status == 'todo'), Integer
-                   ).label('todo'),
-                   func.cast(
-                       func.sum(Task.status == 'inprogress'), Integer
-                   ).label('inprogress'),
-                   func.cast(
-                       func.sum(Task.status == 'review'), Integer
-                   ).label('review'),
-                   func.cast(
-                       func.sum(Task.status == 'merged'), Integer
-                   ).label('merged'),
-                   func.cast(
-                       func.sum(Task.status == 'invalid'), Integer
-                   ).label('invalid'),
-                   expr.case(
-                       [(func.sum(Task.status.in_(
-                           ['todo', 'inprogress', 'review'])) > 0,
-                         'active'),
-                        ((func.sum(Task.status == 'merged')) > 0, 'merged')],
-                       else_='invalid'
-                   ).label('status')],
-                  None,
-                  expr.Join(Story, Task, onclause=Story.id == Task.story_id,
-                            isouter=True)) \
+    # first create a subquery for task statuses
+    select_items = []
+    select_items.append(Story)
+    select_items.append(
+        expr.case(
+            [(func.sum(Task.status.in_(
+                ['todo', 'inprogress', 'review'])) > 0,
+             'active'),
+             ((func.sum(Task.status == 'merged')) > 0, 'merged')],
+            else_='invalid'
+        ).label('status')
+    )
+    for task_status in Task.TASK_STATUSES:
+        select_items.append(func.cast(
+            func.sum(Task.status == task_status), Integer
+        ).label(task_status))
+    select_items.append(expr.null().label('task_statuses'))
+
+    result = select(select_items, None,
+        expr.Join(Story, Task, onclause=Story.id == Task.story_id,
+            isouter=True)) \
         .group_by(Story.id) \
         .alias('story_summary')
+
+    return result
 
 
 class StorySummary(Base):
     __table__ = _story_build_summary_query()
 
     _public_fields = ["id", "creator_id", "title", "description", "is_bug",
-                      "tasks", "comments", "tags", "todo", "inprogress",
-                      "review", "merged", "invalid", "status"]
+                      "tasks", "comments", "tags", "status",
+                      "task_statuses"]
 
 
 # Time-line models

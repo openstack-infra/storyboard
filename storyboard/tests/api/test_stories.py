@@ -15,6 +15,7 @@
 import json
 from urllib import urlencode
 
+from storyboard.db.api import tasks
 from storyboard.tests import base
 
 
@@ -279,3 +280,49 @@ class TestStorySearch(base.FunctionalTest):
         self.assertEqual(3, result['id'])
         result = results[1]
         self.assertEqual(4, result['id'])
+
+
+class TestStoryStatuses(base.FunctionalTest):
+    def setUp(self):
+        super(TestStoryStatuses, self).setUp()
+        self.resource = '/stories'
+        self.individual_resource = '/stories/1'
+
+        self.default_headers['Authorization'] = 'Bearer valid_superuser_token'
+        self.task_statuses = tasks.task_get_statuses().keys()
+
+    # check if all stories are returning all statuses
+    def test_stories_statuses(self):
+        response = self.get_json(self.resource)
+
+        all_statuses = True
+        for story in response:
+            current_statuses = story.get('task_statuses', [])
+            final_statuses = []
+            for status in current_statuses:
+                final_statuses.append(status['key'])
+            if set(final_statuses) != set(self.task_statuses):
+                all_statuses = False
+                break
+        self.assertTrue(all_statuses)
+
+    # verify that the returned count is real
+    def test_story_count(self):
+        response = self.get_json(self.individual_resource)
+        task_statuses = response.get('task_statuses', [])
+        all_tasks = tasks.task_get_all(story_id=response.get('id', None))
+
+        # get count of all statuses
+        statuses_count = {}
+        for task in all_tasks:
+            current_status = task.status
+            status_count = statuses_count.get(current_status, 0)
+            statuses_count[current_status] = status_count + 1
+
+        count_matches = True
+        for status in task_statuses:
+            status_count = statuses_count.get(status['key'], 0)
+            if status_count != status['count']:
+                count_matches = False
+                break
+        self.assertTrue(count_matches)
