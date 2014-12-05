@@ -27,9 +27,9 @@ Additional resources are linked from the project wiki page:
 Anyone wishing to contribute to an OpenStack project should
 find plenty of helpful resources here:
 
-  https://wiki.openstack.org/wiki/HowToContribute
+  http://docs.openstack.org/infra/manual/developers.html
 
 All OpenStack projects use Gerrit for code reviews.
 A good reference for that is here:
 
-  https://wiki.openstack.org/wiki/GerritWorkflow
+  http://docs.openstack.org/infra/manual/developers.html#development-workflow

@@ -18,7 +18,7 @@ signed OpenStack's contributor's agreement.
 
 .. seealso::
 
-   * http://wiki.openstack.org/HowToContribute
+   * http://docs.openstack.org/infra/manual/developers.html
    * http://wiki.openstack.org/CLA
 
 Project Hosting Details
@@ -43,4 +43,4 @@ Code Review
 
     Please read `GerritWorkflow`_ before sending your first patch for review.
 
-.. _GerritWorkflow: https://wiki.openstack.org/wiki/GerritWorkflow
+.. _GerritWorkflow: http://docs.openstack.org/infra/manual/developers.html#development-workflow
