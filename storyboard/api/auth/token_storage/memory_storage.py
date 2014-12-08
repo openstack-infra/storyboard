@@ -24,7 +24,7 @@ class Token(object):
         self.access_token = access_token
         self.refresh_token = refresh_token
         self.expires_in = expires_in
-        self.expires_at = datetime.datetime.now() + \
+        self.expires_at = datetime.datetime.utcnow() + \
             datetime.timedelta(seconds=expires_in)
         self.user_id = user_id
         self.is_valid = is_valid
@@ -59,7 +59,7 @@ class MemoryTokenStorage(storage.StorageBase):
         if not token_entry:
             return False
 
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
         if now > token_entry.expires_at:
             token_entry.is_valid = False
             return False

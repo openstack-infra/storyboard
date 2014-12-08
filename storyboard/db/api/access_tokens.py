@@ -73,8 +73,8 @@ def access_token_get_count(**kwargs):
 
 def access_token_create(values):
     # Update the expires_at date.
-    values['created_at'] = datetime.datetime.now()
-    values['expires_at'] = datetime.datetime.now() + datetime.timedelta(
+    values['created_at'] = datetime.datetime.utcnow()
+    values['expires_at'] = datetime.datetime.utcnow() + datetime.timedelta(
         seconds=values['expires_in'])
 
     return api_base.entity_create(models.AccessToken, values)
