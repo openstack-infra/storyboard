@@ -48,7 +48,7 @@ class DBTokenStorage(storage.StorageBase):
         access_token_values = {
             "access_token": access_token,
             "expires_in": expires_in,
-            "expires_at": datetime.datetime.now() + datetime.timedelta(
+            "expires_at": datetime.datetime.utcnow() + datetime.timedelta(
                 seconds=expires_in),
             "user_id": user_id
         }
@@ -61,7 +61,7 @@ class DBTokenStorage(storage.StorageBase):
             "refresh_token": refresh_token,
             "user_id": user_id,
             "expires_in": refresh_expires_in,
-            "expires_at": datetime.datetime.now() + datetime.timedelta(
+            "expires_at": datetime.datetime.utcnow() + datetime.timedelta(
                 seconds=refresh_expires_in),
         }
 
@@ -77,7 +77,7 @@ class DBTokenStorage(storage.StorageBase):
         if not token_info:
             return False
 
-        if datetime.datetime.now() > token_info.expires_at:
+        if datetime.datetime.utcnow() > token_info.expires_at:
             token_api.access_token_delete(access_token)
             return False
 
@@ -92,7 +92,7 @@ class DBTokenStorage(storage.StorageBase):
         if not refresh_token_entry:
             return False
 
-        if datetime.datetime.now() > refresh_token_entry.expires_at:
+        if datetime.datetime.utcnow() > refresh_token_entry.expires_at:
             auth_api.refresh_token_delete(refresh_token)
             return False
 

@@ -123,7 +123,7 @@ class SkeletonValidator(RequestValidator):
         email = request._params["openid.sreg.email"]
         full_name = request._params["openid.sreg.fullname"]
         username = request._params["openid.sreg.nickname"]
-        last_login = datetime.now()
+        last_login = datetime.utcnow()
 
         user = user_api.user_get_by_openid(openid)
         user_dict = {"full_name": full_name,

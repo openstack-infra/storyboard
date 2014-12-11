@@ -179,7 +179,7 @@ class TokenTest(BaseDbTestCase):
             "access_token": u'an_access_token',
             "refresh_token": u'a_refresh_token',
             "expires_in": 3600,
-            "expires_at": datetime.now(),
+            "expires_at": datetime.utcnow(),
             "user_id": 1
         }
 

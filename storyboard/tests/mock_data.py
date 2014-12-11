@@ -28,7 +28,7 @@ def load():
     """Load a batch of useful data into the database that our tests can work
     with.
     """
-    now = datetime.datetime.now()
+    now = datetime.datetime.utcnow()
     expires_at = now + datetime.timedelta(seconds=3600)
     expired_at = now + datetime.timedelta(seconds=-3600)
 
