@@ -23,6 +23,7 @@ from storyboard.common.custom_types import NameType
 from storyboard.db.api import base as db_api
 from storyboard.db.models import Project
 from storyboard.db.models import ProjectGroup
+from storyboard.openstack.common.gettextutils import _LW  # noqa
 from storyboard.openstack.common import log
 
 
@@ -99,7 +100,7 @@ def _get_project(project, session):
         validator.validate(name)
     except Exception:
         # Skipping invalid project names
-        LOG.warn("Project %s was not loaded. Validation failed."
+        LOG.warn(_LW("Project %s was not loaded. Validation failed.")
                  % [name, ])
         return None
 

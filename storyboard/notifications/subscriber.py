@@ -22,6 +22,7 @@ from stevedore import enabled
 from storyboard.notifications.conf import NOTIFICATION_OPTS
 from storyboard.notifications.connection_service import ConnectionService
 from storyboard.openstack.common import log
+from storyboard.openstack.common.gettextutils import _, _LW  # noqa
 
 
 CONF = cfg.CONF
@@ -47,7 +48,7 @@ def subscribe():
         (method, properties, body) = subscriber.get()
 
         if not method or not properties:
-            LOG.debug("No messages available, sleeping for 5 seconds.")
+            LOG.debug(_("No messages available, sleeping for 5 seconds."))
             time.sleep(5)
             continue
 
@@ -128,7 +129,7 @@ class Subscriber(ConnectionService):
             return self._channel.basic_get(queue=self._queue_name,
                                            no_ack=False)
         except ConnectionClosed as cc:
-            LOG.warning("Attempted to get message on closed connection.")
+            LOG.warning(_LW("Attempted to get message on closed connection."))
             LOG.debug(cc)
             self._open = False
             self._reconnect()

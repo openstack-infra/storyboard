@@ -25,6 +25,7 @@ from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1.search import search_engine
 from storyboard.api.v1 import wmodels
 from storyboard.db.api import projects as projects_api
+from storyboard.openstack.common.gettextutils import _  # noqa
 
 CONF = cfg.CONF
 
@@ -52,7 +53,7 @@ class ProjectsController(rest.RestController):
         if project:
             return wmodels.Project.from_db_model(project)
         else:
-            raise ClientSideError("Project %s not found" % project_id,
+            raise ClientSideError(_("Project %s not found") % project_id,
                                   status_code=404)
 
     @secure(checks.guest)
@@ -68,7 +69,7 @@ class ProjectsController(rest.RestController):
         if project:
             return wmodels.Project.from_db_model(project)
         else:
-            raise ClientSideError("Project %s not found" % project_name,
+            raise ClientSideError(_("Project %s not found") % project_name,
                                   status_code=404)
 
     @secure(checks.guest)
@@ -140,7 +141,7 @@ class ProjectsController(rest.RestController):
         if result:
             return wmodels.Project.from_db_model(result)
         else:
-            raise ClientSideError("Project %s not found" % project_id,
+            raise ClientSideError(_("Project %s not found") % project_id,
                                   status_code=404)
 
     def _is_int(self, s):

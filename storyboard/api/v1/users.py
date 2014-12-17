@@ -28,6 +28,7 @@ from storyboard.api.v1.user_preferences import UserPreferencesController
 from storyboard.api.v1.user_tokens import UserTokensController
 from storyboard.api.v1 import wmodels
 from storyboard.db.api import users as users_api
+from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 CONF = cfg.CONF
@@ -99,7 +100,7 @@ class UsersController(rest.RestController):
 
         user = users_api.user_get(user_id, filter_non_public)
         if not user:
-            raise ClientSideError("User %s not found" % user_id,
+            raise ClientSideError(_("User %s not found") % user_id,
                                   status_code=404)
         return user
 
@@ -126,14 +127,14 @@ class UsersController(rest.RestController):
 
         if not user or not user.id or not current_user:
             response.status_code = 404
-            response.body = "Not found"
+            response.body = _("Not found")
             return response
 
         # Only owners and superadmins are allowed to modify users.
         if request.current_user_id != user.id \
                 and not current_user.is_superuser:
             response.status_code = 403
-            response.body = "You are not allowed to update this user."
+            response.body = _("You are not allowed to update this user.")
             return response
 
         # Strip out values that you're not allowed to change.

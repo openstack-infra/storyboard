@@ -16,6 +16,7 @@ import abc
 
 import six
 
+from storyboard.openstack.common.gettextutils import _LE  # noqa
 from storyboard.openstack.common import log
 from storyboard.plugin.base import PluginBase
 from storyboard.plugin.base import StoryboardPluginLoader
@@ -49,7 +50,7 @@ def load_preferences(ext, defaults):
     for key in plugin_defaults:
         if key in defaults:
             # Let's not error out here.
-            LOG.error("Duplicate preference key %s found." % (key,))
+            LOG.error(_LE("Duplicate preference key %s found.") % (key,))
         else:
             defaults[key] = plugin_defaults[key]
 

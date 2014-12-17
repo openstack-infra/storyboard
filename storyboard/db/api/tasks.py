@@ -18,6 +18,7 @@ from wsme.exc import ClientSideError
 
 from storyboard.db.api import base as api_base
 from storyboard.db import models
+from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 def task_get(task_id):
@@ -43,7 +44,7 @@ def task_get_all(marker=None, limit=None, sort_field=None, sort_dir=None,
                                         marker=marker,
                                         sort_dir=sort_dir)
     except InvalidSortKey:
-        raise ClientSideError("Invalid sort_field [%s]" % (sort_field,),
+        raise ClientSideError(_("Invalid sort_field [%s]") % (sort_field,),
                               status_code=400)
     except ValueError as ve:
         raise ClientSideError("%s" % (ve,), status_code=400)

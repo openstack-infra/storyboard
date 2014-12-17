@@ -18,6 +18,7 @@ from pecan import request
 
 from storyboard.api.auth.token_storage import storage
 from storyboard.db.api import users as user_api
+from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 def _get_token():
@@ -57,6 +58,6 @@ def superuser():
     user = user_api.user_get(token_info.user_id)
 
     if not user.is_superuser:
-        abort(403, "This action is limited to superusers only.")
+        abort(403, _("This action is limited to superusers only."))
 
     return user.is_superuser

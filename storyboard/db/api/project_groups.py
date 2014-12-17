@@ -20,6 +20,7 @@ from storyboard.common import exception as exc
 from storyboard.db.api import base as api_base
 from storyboard.db.api import projects
 from storyboard.db import models
+from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 def _entity_get(id, session=None):
@@ -65,18 +66,20 @@ def project_group_add_project(project_group_id, project_id):
     with session.begin():
         project_group = _entity_get(project_group_id, session)
         if project_group is None:
-            raise exc.NotFound("%s %s not found"
-                               % ("Project Group", project_group_id))
+            raise exc.NotFound(_("%(name)s %(id)s not found")
+                               % {'name': "Project Group",
+                                  'id': project_group_id})
 
         project = projects.project_get(project_id)
         if project is None:
-            raise exc.NotFound("%s %s not found"
-                               % ("Project", project_id))
+            raise exc.NotFound(_("%(name)s %(id)s not found")
+                               % {'name': "Project", 'id': project_id})
 
         if project_id in [p.id for p in project_group.projects]:
-            raise ClientSideError("The Project %d is already in "
-                                  "Project Group %d" %
-                                  (project_id, project_group_id))
+            raise ClientSideError(_("The Project %(id)d is already in "
+                                  "Project Group %(group_id)d") %
+                                  {'id': project_id,
+                                   'group_id': project_group_id})
 
         project_group.projects.append(project)
         session.add(project_group)
@@ -90,18 +93,21 @@ def project_group_delete_project(project_group_id, project_id):
     with session.begin():
         project_group = _entity_get(project_group_id, session)
         if project_group is None:
-            raise exc.NotFound("%s %s not found"
-                               % ("Project Group", project_group_id))
+            raise exc.NotFound(_("%(name)s %(id)s not found")
+                               % {'name': "Project Group",
+                                  'id': project_group_id})
 
         project = projects.project_get(project_id)
         if project is None:
-            raise exc.NotFound("%s %s not found"
-                               % ("Project", project_id))
+            raise exc.NotFound(_("%(name)s %(id)s not found")
+                               % {'name': "Project",
+                                  'id': project_id})
 
         if project_id not in [p.id for p in project_group.projects]:
-            raise ClientSideError("The Project %d is not in "
-                                  "Project Group %d" %
-                                  (project_id, project_group_id))
+            raise ClientSideError(_("The Project %(id)d is not in "
+                                  "Project Group %(group_id)d") %
+                                  {'id': project_id,
+                                   'group_id': project_group_id})
 
         project_entry = [p for p in project_group.projects
                          if p.id == project_id][0]

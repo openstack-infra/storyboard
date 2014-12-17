@@ -24,6 +24,7 @@ import storyboard.api.auth.authorization_checks as checks
 from storyboard.api.v1 import wmodels
 from storyboard.db.api import project_groups
 from storyboard.db.api import projects
+from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 CONF = cfg.CONF
@@ -45,7 +46,8 @@ class ProjectsSubcontroller(rest.RestController):
         project_group = project_groups.project_group_get(project_group_id)
 
         if not project_group:
-            raise ClientSideError("The requested project group does not exist")
+            raise ClientSideError(_("The requested project "
+                                    "group does not exist"))
 
         return [wmodels.Project.from_db_model(project)
                 for project in project_group.projects]
@@ -89,7 +91,7 @@ class ProjectGroupsController(rest.RestController):
 
         group = project_groups.project_group_get(project_group_id)
         if not group:
-            raise ClientSideError("Project Group %s not found" %
+            raise ClientSideError(_("Project Group %s not found") %
                                   project_group_id,
                                   status_code=404)
 
@@ -139,7 +141,7 @@ class ProjectGroupsController(rest.RestController):
             project_group.as_dict())
 
         if not created_group:
-            raise ClientSideError("Could not create ProjectGroup")
+            raise ClientSideError(_("Could not create ProjectGroup"))
 
         return wmodels.ProjectGroup.from_db_model(created_group)
 
@@ -157,7 +159,7 @@ class ProjectGroupsController(rest.RestController):
             project_group.as_dict(omit_unset=True))
 
         if not updated_group:
-            raise ClientSideError("Could not update group %s" %
+            raise ClientSideError(_("Could not update group %s") %
                                   project_group_id)
 
         return wmodels.ProjectGroup.from_db_model(updated_group)

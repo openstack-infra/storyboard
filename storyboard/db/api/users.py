@@ -18,6 +18,7 @@ from oslo.db import exception as db_exc
 from storyboard.common import exception as exc
 from storyboard.db.api import base as api_base
 from storyboard.db import models
+from storyboard.openstack.common.gettextutils import _  # noqa
 from storyboard.plugin.user_preferences import PREFERENCE_DEFAULTS
 
 
@@ -57,7 +58,7 @@ def user_create(values):
         try:
             user.save(session=session)
         except db_exc.DBDuplicateEntry as e:
-            raise exc.DuplicateEntry("Duplicate entry for User: %s"
+            raise exc.DuplicateEntry(_("Duplicate entry for User: %s")
                                      % e.columns)
 
     return user

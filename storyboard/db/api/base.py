@@ -26,6 +26,7 @@ from wsme.exc import ClientSideError
 
 from storyboard.common import exception as exc
 from storyboard.db import models
+from storyboard.openstack.common.gettextutils import _  # noqa
 from storyboard.openstack.common import log
 
 CONF = cfg.CONF
@@ -144,10 +145,10 @@ def entity_get_all(kls, filter_non_public=False, marker=None, limit=None,
                                marker=marker,
                                sort_dir=sort_dir)
     except InvalidSortKey:
-        raise ClientSideError("Invalid sort_field [%s]" % (sort_field,),
+        raise ClientSideError(_("Invalid sort_field [%s]") % (sort_field,),
                               status_code=400)
     except ValueError as ve:
-        raise ClientSideError("%s" % (ve,), status_code=400)
+        raise ClientSideError(_("%s") % (ve,), status_code=400)
 
     # Execute the query
     entities = query.all()
@@ -194,7 +195,7 @@ def entity_create(kls, values):
         try:
             session.add(entity)
         except db_exc.DBDuplicateEntry:
-            raise exc.DuplicateEntry("Duplicate entry for : %s"
+            raise exc.DuplicateEntry(_("Duplicate entry for : %s")
                                      % kls.__name__)
 
     return entity
@@ -206,7 +207,8 @@ def entity_update(kls, entity_id, values):
     with session.begin():
         entity = __entity_get(kls, entity_id, session)
         if entity is None:
-            raise exc.NotFound("%s %s not found" % (kls.__name__, entity_id))
+            raise exc.NotFound(_("%(name)s %(id)s not found") %
+                               {'name': kls.__name__, 'id': entity_id})
 
         values_copy = values.copy()
         values_copy["id"] = entity_id
@@ -225,6 +227,7 @@ def entity_hard_delete(kls, entity_id):
         query = model_query(kls, session)
         entity = query.filter_by(id=entity_id).first()
         if entity is None:
-            raise exc.NotFound("%s %s not found" % (kls.__name__, entity_id))
+            raise exc.NotFound(_("%(name)s %(id)s not found") %
+                               {'name': kls.__name__, 'id': entity_id})
 
         session.delete(entity)

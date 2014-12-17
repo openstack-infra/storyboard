@@ -21,6 +21,7 @@ from pika.exceptions import ConnectionClosed
 from storyboard.notifications.conf import NOTIFICATION_OPTS
 from storyboard.notifications.connection_service import ConnectionService
 from storyboard.openstack.common import log
+from storyboard.openstack.common.gettextutils import _, _LW, _LE  # noqa
 
 
 CONF = cfg.CONF
@@ -63,19 +64,19 @@ class Publisher(ConnectionService):
 
         :param Payload payload: The payload to send.
         """
-        LOG.debug("Sending message to %s [%s]" % (self._exchange_name,
-                                                  payload.topic))
+        LOG.debug(_("Sending message to %(name)s [%(topic)s]") %
+                  {'name': self._exchange_name, 'topic': payload.topic})
 
         # First check, are we closing?
         if self._closing:
-            LOG.warning("Cannot send message, publisher is closing.")
+            LOG.warning(_LW("Cannot send message, publisher is closing."))
             if payload not in self._pending:
                 self._pending.append(payload)
             return
 
         # Second check, are we open?
         if not self._open:
-            LOG.debug("Cannot send message, publisher is connecting.")
+            LOG.debug(_("Cannot send message, publisher is connecting."))
             if payload not in self._pending:
                 self._pending.append(payload)
             self._reconnect()
@@ -84,7 +85,8 @@ class Publisher(ConnectionService):
         # Third check, are we in a sane state? This should never happen,
         # but just in case...
         if not self._connection or not self._channel:
-            LOG.error("Cannot send message, publisher is an unexpected state.")
+            LOG.error(_LE("Cannot send message, publisher is "
+                          "an unexpected state."))
             if payload not in self._pending:
                 self._pending.append(payload)
             self._reconnect()
@@ -102,7 +104,7 @@ class Publisher(ConnectionService):
                 self._pending.remove(payload)
             return True
         except ConnectionClosed as cc:
-            LOG.warning("Attempted to send message on closed connection.")
+            LOG.warning(_LW("Attempted to send message on closed connection."))
             LOG.debug(cc)
             self._open = False
             if payload not in self._pending:

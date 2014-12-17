@@ -20,6 +20,7 @@ from threading import Timer
 from oslo.config import cfg
 from storyboard.notifications.subscriber import subscribe
 from storyboard.openstack.common import log
+from storyboard.openstack.common.gettextutils import _LI, _LW  # noqa
 
 
 CONF = cfg.CONF
@@ -91,7 +92,7 @@ class DaemonManager():
 
         for process in processes:
             if not process.is_alive():
-                LOG.warning("Dead Process found [exit code:%d]" %
+                LOG.warning(_LW("Dead Process found [exit code:%d]") %
                             (process.exitcode,))
                 dead_processes += 1
                 self._procs.remove(process)
@@ -102,7 +103,8 @@ class DaemonManager():
     def start(self):
         """Start the daemon manager and spawn child processes.
         """
-        LOG.info("Spawning %s child processes" % (self._child_process_count,))
+        LOG.info(_LI("Spawning %s child processes") %
+                 (self._child_process_count,))
         self._timer.start()
         for i in range(self._child_process_count):
             self._add_process()

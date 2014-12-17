@@ -27,6 +27,7 @@ from storyboard.api.auth import authorization_checks as checks
 import storyboard.api.v1.wmodels as wmodels
 import storyboard.db.api.access_tokens as token_api
 import storyboard.db.api.users as user_api
+from storyboard.openstack.common.gettextutils import _  # noqa
 from storyboard.openstack.common import log
 
 
@@ -110,7 +111,7 @@ class UserTokensController(rest.RestController):
         # Token duplication check.
         dupes = token_api.access_token_get_all(access_token=body.access_token)
         if dupes:
-            abort(409, 'This token already exists.')
+            abort(409, _('This token already exists.'))
 
         token = token_api.access_token_create(body.as_dict())
 

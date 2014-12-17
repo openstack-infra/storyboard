@@ -20,6 +20,7 @@ from sqlalchemy.exc import SADeprecationWarning
 
 from storyboard.db.api import base as db_api
 from storyboard.db.models import User
+from storyboard.openstack.common.gettextutils import _  # noqa
 
 warnings.simplefilter("ignore", SADeprecationWarning)
 
@@ -35,7 +36,7 @@ def do_load_models(filename):
         for user in superusers_list:
             openid = user.get("openid")
             if not openid:
-                raise Exception("A superuser is missing an openid field")
+                raise Exception(_("A superuser is missing an openid field"))
 
             email = user.get("email") or "unset"
 

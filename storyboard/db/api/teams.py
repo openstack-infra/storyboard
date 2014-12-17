@@ -20,6 +20,7 @@ from storyboard.common import exception as exc
 from storyboard.db.api import base as api_base
 from storyboard.db.api import users
 from storyboard.db import models
+from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 def _entity_get(id, session=None):
@@ -65,15 +66,16 @@ def team_add_user(team_id, user_id):
     with session.begin():
         team = _entity_get(team_id, session)
         if team is None:
-            raise exc.NotFound("%s %s not found" % ("Team", team_id))
+            raise exc.NotFound(_("Team %s not found") % team_id)
 
         user = users.user_get(user_id)
         if user is None:
-            raise exc.NotFound("%s %s not found" % ("User", user_id))
+            raise exc.NotFound(_("User %s not found") % user_id)
 
         if user_id in [u.id for u in team.users]:
-            raise ClientSideError("The User %d is already in Team %d" %
-                                  (user_id, team_id))
+            raise ClientSideError(_("The User %(user_id)d is already "
+                                    "in Team %(team_id)d") %
+                                  {'user_id': user_id, 'team_id': team_id})
 
         team.users.append(user)
         session.add(team)
@@ -87,15 +89,16 @@ def team_delete_user(team_id, user_id):
     with session.begin():
         team = _entity_get(team_id, session)
         if team is None:
-            raise exc.NotFound("%s %s not found" % ("Team", team_id))
+            raise exc.NotFound(_("Team %s not found") % team_id)
 
         user = users.user_get(user_id)
         if user is None:
-            raise exc.NotFound("%s %s not found" % ("User", user_id))
+            raise exc.NotFound(_("User %s not found") % user_id)
 
         if user_id not in [u.id for u in team.users]:
-            raise ClientSideError("The User %d is not in Team %d" %
-                                  (user_id, team_id))
+            raise ClientSideError(_("The User %(user_id)d is not in "
+                                    "Team %(team_id)d") %
+                                  {'user_id': user_id, 'team_id': team_id})
 
         user_entry = [u for u in team.users if u.id == user_id][0]
         team.users.remove(user_entry)

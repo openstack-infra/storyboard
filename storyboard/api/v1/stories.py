@@ -29,6 +29,7 @@ from storyboard.api.v1.timeline import TimeLineEventsController
 from storyboard.api.v1 import wmodels
 from storyboard.db.api import stories as stories_api
 from storyboard.db.api import timeline_events as events_api
+from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 CONF = cfg.CONF
@@ -53,7 +54,7 @@ class StoriesController(rest.RestController):
         if story:
             return wmodels.Story.from_db_model(story)
         else:
-            raise ClientSideError("Story %s not found" % story_id,
+            raise ClientSideError(_("Story %s not found") % story_id,
                                   status_code=404)
 
     @secure(checks.guest)
@@ -146,7 +147,7 @@ class StoriesController(rest.RestController):
 
             return wmodels.Story.from_db_model(updated_story)
         else:
-            raise ClientSideError("Story %s not found" % story_id,
+            raise ClientSideError(_("Story %s not found") % story_id,
                                   status_code=404)
 
     @secure(checks.superuser)

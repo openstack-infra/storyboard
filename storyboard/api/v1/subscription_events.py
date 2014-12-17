@@ -26,6 +26,7 @@ from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
 from storyboard.db.api import subscription_events as subscription_events_api
 from storyboard.db.api import users as user_api
+from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 CONF = cfg.CONF
@@ -81,7 +82,7 @@ class SubscriptionEventsController(rest.RestController):
         current_user = user_api.user_get(request.current_user_id)
         if current_user.id != subscription_event.subscriber_id and \
                 not current_user.is_superuser:
-            abort(403, "Permission Denied")
+            abort(403, _("Permission Denied"))
 
         return SubscriptionEvent.from_db_model(subscription_event)
 
@@ -110,7 +111,7 @@ class SubscriptionEventsController(rest.RestController):
         current_user = user_api.user_get(request.current_user_id)
         if current_user.id != subscriber_id and \
                 not current_user.is_superuser:
-            abort(403, "Permission Denied")
+            abort(403, _("Permission Denied"))
 
         if marker_sub and marker_sub.user_id != subscriber_id:
             marker_sub = None
@@ -149,7 +150,7 @@ class SubscriptionEventsController(rest.RestController):
         current_user = user_api.user_get(request.current_user_id)
         if current_user.id != subscription_event.subscriber_id and \
                 not current_user.is_superuser:
-            abort(403, "Permission Denied")
+            abort(403, _("Permission Denied"))
 
         subscription_events_api.subscription_events_delete(
             subscription_event_id)

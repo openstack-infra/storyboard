@@ -26,6 +26,7 @@ from storyboard.api.v1.search import search_engine
 from storyboard.api.v1 import wmodels
 from storyboard.db.api import tasks as tasks_api
 from storyboard.db.api import timeline_events as events_api
+from storyboard.openstack.common.gettextutils import _  # noqa
 
 CONF = cfg.CONF
 
@@ -49,7 +50,7 @@ class TasksController(rest.RestController):
         if task:
             return wmodels.Task.from_db_model(task)
         else:
-            raise ClientSideError("Task %s not found" % task_id,
+            raise ClientSideError(_("Task %s not found") % task_id,
                                   status_code=404)
 
     @secure(checks.guest)
@@ -148,7 +149,7 @@ class TasksController(rest.RestController):
             self._post_timeline_events(original_task, updated_task)
             return wmodels.Task.from_db_model(updated_task)
         else:
-            raise ClientSideError("Task %s not found" % task_id,
+            raise ClientSideError(_("Task %s not found") % task_id,
                                   status_code=404)
 
     def _post_timeline_events(self, original_task, updated_task):

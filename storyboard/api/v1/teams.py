@@ -25,6 +25,7 @@ from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import wmodels
 from storyboard.db.api import teams as teams_api
 from storyboard.db.api import users as users_api
+from storyboard.openstack.common.gettextutils import _  # noqa
 
 CONF = cfg.CONF
 
@@ -44,7 +45,7 @@ class UsersSubcontroller(rest.RestController):
         team = teams_api.team_get(team_id)
 
         if not team:
-            raise ClientSideError("The requested team does not exist")
+            raise ClientSideError(_("The requested team does not exist"))
 
         return [wmodels.User.from_db_model(user) for user in team.users]
 
@@ -83,7 +84,7 @@ class TeamsController(rest.RestController):
         if team:
             return wmodels.Team.from_db_model(team)
         else:
-            raise ClientSideError("Team %s not found" % team_id,
+            raise ClientSideError(_("Team %s not found") % team_id,
                                   status_code=404)
 
     @secure(checks.guest)
@@ -99,7 +100,7 @@ class TeamsController(rest.RestController):
         if team:
             return wmodels.Team.from_db_model(team)
         else:
-            raise ClientSideError("Team %s not found" % team_name,
+            raise ClientSideError(_("Team %s not found") % team_name,
                                   status_code=404)
 
     @secure(checks.guest)
@@ -166,7 +167,7 @@ class TeamsController(rest.RestController):
         if result:
             return wmodels.Team.from_db_model(result)
         else:
-            raise ClientSideError("Team %s not found" % team_id,
+            raise ClientSideError(_("Team %s not found") % team_id,
                                   status_code=404)
 
     users = UsersSubcontroller()

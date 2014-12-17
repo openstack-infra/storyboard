@@ -27,6 +27,7 @@ from storyboard.api.v1 import wmodels
 from storyboard.common import event_types
 from storyboard.db.api import comments as comments_api
 from storyboard.db.api import timeline_events as events_api
+from storyboard.openstack.common.gettextutils import _  # noqa
 
 CONF = cfg.CONF
 
@@ -53,7 +54,7 @@ class TimeLineEventsController(rest.RestController):
             wsme_event = wmodels.TimeLineEvent.resolve_event_values(wsme_event)
             return wsme_event
         else:
-            raise ClientSideError("Comment %s not found" % event_id,
+            raise ClientSideError(_("Comment %s not found") % event_id,
                                   status_code=404)
 
     @secure(checks.guest)
@@ -113,7 +114,7 @@ class CommentsController(rest.RestController):
         if comment:
             return wmodels.Comment.from_db_model(comment)
         else:
-            raise ClientSideError("Comment %s not found" % comment_id,
+            raise ClientSideError(_("Comment %s not found") % comment_id,
                                   status_code=404)
 
     @secure(checks.guest)
@@ -201,7 +202,7 @@ class CommentsController(rest.RestController):
             comment_id=comment_id)[0].author_id
         if request.current_user_id != comment_author_id:
             response.status_code = 400
-            response.body = "You are not allowed to update this comment."
+            response.body = _("You are not allowed to update this comment.")
             return response
 
         updated_comment = comments_api.comment_update(comment_id,
@@ -221,7 +222,7 @@ class CommentsController(rest.RestController):
 
         if request.current_user_id != comment.author_id:
             response.status_code = 400
-            response.body = "You are not allowed to delete this comment."
+            response.body = _("You are not allowed to delete this comment.")
             return response
 
         comments_api.comment_delete(comment_id)

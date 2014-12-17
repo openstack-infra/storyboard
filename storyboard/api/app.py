@@ -28,7 +28,7 @@ from storyboard.api.middleware import user_id_hook
 from storyboard.api.v1.search import impls as search_engine_impls
 from storyboard.api.v1.search import search_engine
 from storyboard.notifications.notification_hook import NotificationHook
-from storyboard.openstack.common.gettextutils import _  # noqa
+from storyboard.openstack.common.gettextutils import _LI  # noqa
 from storyboard.openstack.common import log
 from storyboard.plugin.user_preferences import initialize_user_preferences
 
@@ -135,14 +135,14 @@ def start():
 
     srv = simple_server.make_server(host, port, api_root)
 
-    LOG.info(_('Starting server in PID %s') % os.getpid())
-    LOG.info(_("Configuration:"))
+    LOG.info(_LI('Starting server in PID %s') % os.getpid())
+    LOG.info(_LI("Configuration:"))
     if host == '0.0.0.0':
-        LOG.info(_(
+        LOG.info(_LI(
             'serving on 0.0.0.0:%(port)s, view at http://127.0.0.1:%(port)s')
             % ({'port': port}))
     else:
-        LOG.info(_("serving on http://%(host)s:%(port)s") % (
+        LOG.info(_LI("serving on http://%(host)s:%(port)s") % (
                  {'host': host, 'port': port}))
 
     srv.serve_forever()

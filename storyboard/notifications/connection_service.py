@@ -20,6 +20,7 @@ import pika
 from oslo.config import cfg
 
 from storyboard.openstack.common import log
+from storyboard.openstack.common.gettextutils import _, _LI  # noqa
 
 
 CONF = cfg.CONF
@@ -69,21 +70,21 @@ class ConnectionService(object):
 
         # If a timer is set, kill it.
         if self._timer:
-            LOG.debug('Clearing timer...')
+            LOG.debug(_('Clearing timer...'))
             self._timer.cancel()
             self._timer = None
 
         # Create the connection
-        LOG.info('Connecting to %s', self._connection_parameters.host)
+        LOG.info(_LI('Connecting to %s'), self._connection_parameters.host)
         self._connection = pika.BlockingConnection(self._connection_parameters)
 
         # Create a channel
-        LOG.debug('Creating a new channel')
+        LOG.debug(_('Creating a new channel'))
         self._channel = self._connection.channel()
         self._channel.confirm_delivery()
 
         # Declare the exchange
-        LOG.debug('Declaring exchange %s', self._exchange_name)
+        LOG.debug(_('Declaring exchange %s'), self._exchange_name)
         self._channel.exchange_declare(exchange=self._exchange_name,
                                        exchange_type='topic',
                                        durable=True,
@@ -104,13 +105,13 @@ class ConnectionService(object):
         # If a timer is already there, assume it's doing its thing...
         if self._timer:
             return
-        LOG.debug('Scheduling reconnect in 5 seconds...')
+        LOG.debug(_('Scheduling reconnect in 5 seconds...'))
         self._timer = Timer(5, self._connect)
         self._timer.start()
 
     def _close(self):
         """This method closes the connection to RabbitMQ."""
-        LOG.info('Closing connection')
+        LOG.info(_LI('Closing connection'))
         self._open = False
         if self._channel:
             self._channel.close()
@@ -119,7 +120,7 @@ class ConnectionService(object):
             self._connection.close()
             self._connection = None
         self._closing = False
-        LOG.debug('Connection Closed')
+        LOG.debug(_('Connection Closed'))
 
     def _execute_open_hooks(self):
         """Executes all hooks that have been registered to run on open.

@@ -21,6 +21,7 @@ from storyboard.common import exception as exc
 from storyboard.db.api import base as api_base
 from storyboard.db.api import tags
 from storyboard.db import models
+from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 def story_get_simple(story_id, session=None):
@@ -77,10 +78,10 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
                                         marker=marker,
                                         sort_dir=sort_dir)
     except InvalidSortKey:
-        raise ClientSideError("Invalid sort_field [%s]" % (sort_field,),
+        raise ClientSideError(_("Invalid sort_field [%s]") % (sort_field,),
                               status_code=400)
     except ValueError as ve:
-        raise ClientSideError("%s" % (ve,), status_code=400)
+        raise ClientSideError(_("%s") % (ve,), status_code=400)
 
     return query.all()
 
@@ -153,11 +154,13 @@ def story_add_tag(story_id, tag_name):
 
         story = story_get_simple(story_id, session=session)
         if not story:
-            raise exc.NotFound("%s %s not found" % ("Story", story_id))
+            raise exc.NotFound(_("%(name)s %(id)s not found") %
+                               {'name': "Story", 'id': story_id})
 
         if tag_name in [t.name for t in story.tags]:
-            raise ClientSideError("The Story %d already has a tag %s" %
-                                  (story_id, tag_name))
+            raise ClientSideError(_("The Story %(id)d already has "
+                                    "a tag %(tag)s") %
+                                  {'id': story_id, 'tag': tag_name})
 
         story.tags.append(tag)
         session.add(story)
@@ -170,11 +173,13 @@ def story_remove_tag(story_id, tag_name):
 
         story = story_get_simple(story_id, session=session)
         if not story:
-            raise exc.NotFound("%s %s not found" % ("Story", story_id))
+            raise exc.NotFound(_("%(name)s %(id)s not found") %
+                               {'name': "Story", 'id': story_id})
 
         if tag_name not in [t.name for t in story.tags]:
-            raise ClientSideError("The Story %d has no tag %s" %
-                                  (story_id, tag_name))
+            raise ClientSideError(_("The Story %(story_id)d has "
+                                    "no tag %(tag)s") %
+                                  {'story_id': story_id, 'tag': tag_name})
 
         tag = [t for t in story.tags if t.name == tag_name][0]
         story.tags.remove(tag)

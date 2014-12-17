@@ -26,6 +26,7 @@ from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
 from storyboard.db.api import subscriptions as subscription_api
 from storyboard.db.api import users as user_api
+from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 CONF = cfg.CONF
@@ -74,7 +75,7 @@ class SubscriptionsController(rest.RestController):
 
         if subscription.user_id != request.current_user_id \
                 and not current_user.is_superuser:
-            abort(403, "You do not have access to this record.")
+            abort(403, _("You do not have access to this record."))
 
         return Subscription.from_db_model(subscription)
 
@@ -139,8 +140,8 @@ class SubscriptionsController(rest.RestController):
 
         # Data sanity check - are all fields set?
         if not subscription.target_type or not subscription.target_id:
-            abort(400, 'You are missing either the target_type or the'
-                       ' target_id')
+            abort(400, _('You are missing either the target_type or the'
+                         ' target_id'))
 
         # Sanity check on user_id
         current_user = user_api.user_get(request.current_user_id)
@@ -148,14 +149,14 @@ class SubscriptionsController(rest.RestController):
             subscription.user_id = request.current_user_id
         elif subscription.user_id != request.current_user_id \
                 and not current_user.is_superuser:
-            abort(403, "You can only subscribe to resources on your own.")
+            abort(403, _("You can only subscribe to resources on your own."))
 
         # Data sanity check: The resource must exist.
         resource = subscription_api.subscription_get_resource(
             target_type=subscription.target_type,
             target_id=subscription.target_id)
         if not resource:
-            abort(400, 'You cannot subscribe to a nonexistent resource.')
+            abort(400, _('You cannot subscribe to a nonexistent resource.'))
 
         # Data sanity check: The subscription cannot be duplicated for this
         # user.
@@ -165,7 +166,7 @@ class SubscriptionsController(rest.RestController):
             user_id=subscription.user_id)
 
         if existing:
-            abort(409, 'You are already subscribed to this resource.')
+            abort(409, _('You are already subscribed to this resource.'))
 
         result = subscription_api.subscription_create(subscription.as_dict())
         return Subscription.from_db_model(result)
@@ -183,7 +184,7 @@ class SubscriptionsController(rest.RestController):
         current_user = user_api.user_get(request.current_user_id)
         if subscription.user_id != request.current_user_id \
                 and not current_user.is_superuser:
-            abort(403, "You can only remove your own subscriptions.")
+            abort(403, _("You can only remove your own subscriptions."))
 
         subscription_api.subscription_delete(subscription_id)
 
