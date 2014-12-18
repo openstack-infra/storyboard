@@ -23,6 +23,7 @@ from alembic import config as alembic_config
 from alembic import util as alembic_util
 from oslo.config import cfg
 from oslo.db import options
+import six
 
 from storyboard.db import projects_loader
 from storyboard.db import superusers_loader
@@ -37,7 +38,7 @@ def do_alembic_command(config, cmd, *args, **kwargs):
     try:
         getattr(alembic_command, cmd)(config, *args, **kwargs)
     except alembic_util.CommandError as e:
-        alembic_util.err(str(e))
+        alembic_util.err(six.text_type(e))
 
 
 def do_check_migration(config, cmd):
@@ -52,7 +53,7 @@ def do_upgrade_downgrade(config, cmd):
 
     if CONF.command.delta:
         sign = '+' if CONF.command.name == 'upgrade' else '-'
-        revision = sign + str(CONF.command.delta)
+        revision = sign + six.text_type(CONF.command.delta)
     else:
         revision = CONF.command.revision
 

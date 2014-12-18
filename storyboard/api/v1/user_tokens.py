@@ -21,6 +21,7 @@ from pecan import request
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
+import six
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
@@ -105,7 +106,7 @@ class UserTokensController(rest.RestController):
 
         # Generate a random token if one was not provided.
         if not body.access_token:
-            body.access_token = str(uuid.uuid4())
+            body.access_token = six.text_type(uuid.uuid4())
 
         # Token duplication check.
         dupes = token_api.access_token_get_all(access_token=body.access_token)

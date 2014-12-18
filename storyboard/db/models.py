@@ -38,8 +38,8 @@ from sqlalchemy import Unicode
 from sqlalchemy import UnicodeText
 from sqlalchemy_fulltext import FullText
 
+import six
 import six.moves.urllib.parse as urlparse
-
 
 CONF = cfg.CONF
 
@@ -152,7 +152,7 @@ class UserPreference(ModelBuilder, Base):
                 'float': lambda x: float(x),
                 'int': lambda x: int(x),
                 'bool': lambda x: bool(x),
-                'string': lambda x: str(x)
+                'string': lambda x: six.text_type(x)
             }[self.type]
 
             return cast_func(self.value)
@@ -170,7 +170,7 @@ class UserPreference(ModelBuilder, Base):
         else:
             self.type = 'string'
 
-        self.value = str(value)
+        self.value = six.text_type(value)
 
     _public_fields = ["id", "key", "value", "type"]
 

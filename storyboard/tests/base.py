@@ -23,6 +23,7 @@ import fixtures
 from oslo.config import cfg
 import pecan
 import pecan.testing
+import six
 import sqlalchemy
 import testtools
 
@@ -87,7 +88,7 @@ class TestCase(testtools.TestCase):
         test by the fixtures cleanup process.
         """
         group = kw.pop('group', None)
-        for k, v in kw.iteritems():
+        for k, v in six.iteritems(kw):
             CONF.set_override(k, v, group)
 
 
@@ -180,7 +181,7 @@ class FunctionalTest(DbTestCase):
 
         full_path = path_prefix + path
         response = getattr(self.app, "%s_json" % method)(
-            str(full_path),
+            six.text_type(full_path),
             params=params,
             headers=merged_headers,
             status=status,
@@ -261,7 +262,7 @@ class FunctionalTest(DbTestCase):
             merged_headers.update(headers)
 
         full_path = path_prefix + path
-        response = self.app.delete(str(full_path),
+        response = self.app.delete(six.text_type(full_path),
                                    headers=merged_headers,
                                    status=status,
                                    extra_environ=extra_environ,

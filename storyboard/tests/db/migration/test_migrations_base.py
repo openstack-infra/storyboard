@@ -30,6 +30,7 @@ from alembic import command
 from alembic import config as alembic_config
 from alembic import migration
 from oslo.config import cfg
+import six
 import six.moves.urllib.parse as urlparse
 
 from storyboard.db import api as db_api
@@ -391,7 +392,8 @@ class BaseWalkMigrationTestCase(BaseMigrationTestCase):
         should use oslo.config and openstack.commom.db.sqlalchemy.session with
         database functionality (reset default settings and session cleanup).
         """
-        CONF.set_override('connection', str(engine.url), group='database')
+        CONF.set_override('connection', six.text_type(engine.url),
+                          group='database')
         db_api.cleanup()
 
     def _test_mysql_opportunistically(self):
@@ -450,7 +452,8 @@ class BaseWalkMigrationTestCase(BaseMigrationTestCase):
         We should redefine this setting for getting info.
         """
         self.ALEMBIC_CONFIG.stdout = buf = io.StringIO()
-        CONF.set_override('connection', str(engine.url), group='database')
+        CONF.set_override('connection', six.text_type(engine.url),
+                          group='database')
         db_api.cleanup()
         getattr(command, alembic_command)(*args, **kwargs)
         res = buf.getvalue().strip()

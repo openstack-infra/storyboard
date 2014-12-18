@@ -15,6 +15,7 @@
 
 from oslo.config import cfg
 import requests
+import six
 
 from storyboard.api.auth import utils
 from storyboard.openstack.common import log
@@ -39,11 +40,13 @@ class OpenIdClient(object):
         response.status_code = 303
 
         return_params = {
-            "scope": str(request.params.get("scope")),
-            "state": str(request.params.get("state")),
-            "client_id": str(request.params.get("client_id")),
-            "response_type": str(request.params.get("response_type")),
-            "sb_redirect_uri": str(request.params.get("redirect_uri"))
+            "scope": six.text_type(request.params.get("scope")),
+            "state": six.text_type(request.params.get("state")),
+            "client_id": six.text_type(request.params.get("client_id")),
+            "response_type": six.text_type(request.params.get(
+                "response_type")),
+            "sb_redirect_uri": six.text_type(request.params.get(
+                "redirect_uri"))
         }
 
         #TODO(krotscheck): URI base should be fully inferred from the request.

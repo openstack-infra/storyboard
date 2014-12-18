@@ -19,6 +19,7 @@ import pecan
 from pecan import request
 from pecan import response
 from pecan import rest
+import six
 
 from storyboard.api.auth.oauth_validator import SERVER
 from storyboard.api.auth.openid_client import client as openid_client
@@ -64,7 +65,7 @@ class AuthController(rest.RestController):
             headers=request.headers)
 
         response.headers = dict((str(k), str(v))
-                                for k, v in headers.iteritems())
+                                for k, v in six.iteritems(headers))
         response.status_code = code
         response.body = body or ''
 
@@ -80,7 +81,7 @@ class AuthController(rest.RestController):
             body=request.body,
             headers=request.headers)
         response.headers = dict((str(k), str(v))
-                                for k, v in headers.iteritems())
+                                for k, v in six.iteritems(headers))
         response.status_code = code
         json_body = json.loads(body)
 
@@ -104,7 +105,7 @@ class AuthController(rest.RestController):
             body=request.body,
             headers=request.headers)
         response.headers = dict((str(k), str(v))
-                                for k, v in headers.iteritems())
+                                for k, v in six.iteritems(headers))
         response.status_code = code
         json_body = json.loads(body)
 
