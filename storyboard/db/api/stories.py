@@ -17,6 +17,7 @@ from oslo.db.sqlalchemy.utils import InvalidSortKey
 from sqlalchemy.orm import subqueryload
 from wsme.exc import ClientSideError
 
+from storyboard.api.v1 import wmodels
 from storyboard.common import exception as exc
 from storyboard.db.api import base as api_base
 from storyboard.db.api import tags
@@ -30,6 +31,18 @@ def story_get_simple(story_id, session=None):
         .filter_by(id=story_id).first()
 
 
+def summarize_task_statuses(story_summary):
+    task_statuses = []
+    for task_status in models.Task.TASK_STATUSES:
+        task_count = wmodels.TaskStatusCount(
+            key=task_status, count=getattr(
+                story_summary, task_status))
+        task_statuses.append(task_count)
+        delattr(story_summary, task_status)
+    story_summary.task_statuses = task_statuses
+    return story_summary
+
+
 def story_get(story_id, session=None):
     story_summary_query = api_base.model_query(models.StorySummary, session)
     story_summary = story_summary_query.filter_by(id=story_id).first()
@@ -37,7 +50,7 @@ def story_get(story_id, session=None):
     simple = story_get_simple(story_id)
     if simple and story_summary:
         story_summary.tags = simple.tags
-        return story_summary
+        return summarize_task_statuses(story_summary)
     else:
         return simple
 
@@ -83,7 +96,9 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
     except ValueError as ve:
         raise ClientSideError(_("%s") % (ve,), status_code=400)
 
-    return query.all()
+    raw_stories = query.all()
+    stories = map(summarize_task_statuses, raw_stories)
+    return stories
 
 
 def story_get_count(title=None, description=None, status=None,
