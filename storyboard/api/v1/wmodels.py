@@ -71,12 +71,16 @@ class Project(base.APIBase):
     is_active = bool
     """Is this an active project, or has it been deleted?"""
 
+    repo_url = wtypes.text
+    """This is a repo link for this project"""
+
     @classmethod
     def sample(cls):
         return cls(
             name="StoryBoard",
             description="This is an awesome project.",
-            is_active=True)
+            is_active=True,
+            repo_url="git://git.openstack.org/openstack-infra/storyboard.git")
 
 
 class ProjectGroup(base.APIBase):

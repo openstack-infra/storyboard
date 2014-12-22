@@ -214,11 +214,12 @@ class Project(FullText, ModelBuilder, Base):
     team_id = Column(Integer, ForeignKey('teams.id'))
     team = relationship(Team, primaryjoin=team_id == Team.id)
     tasks = relationship('Task', backref='project')
+    repo_url = Column(String(255), default=None)
     is_active = Column(Boolean, default=True)
     project_groups = relationship("ProjectGroup",
                                   secondary="project_group_mapping")
 
-    _public_fields = ["id", "name", "description", "tasks"]
+    _public_fields = ["id", "name", "description", "tasks", "repo_url"]
 
 
 class ProjectGroup(ModelBuilder, Base):
