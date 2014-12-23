@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from oslo.config import cfg
+from pecan import abort
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
@@ -22,6 +23,7 @@ import wsmeext.pecan as wsme_pecan
 
 import storyboard.api.auth.authorization_checks as checks
 from storyboard.api.v1 import wmodels
+import storyboard.common.exception as exc
 from storyboard.db.api import project_groups
 from storyboard.db.api import projects
 from storyboard.openstack.common.gettextutils import _  # noqa
@@ -165,13 +167,18 @@ class ProjectGroupsController(rest.RestController):
         return wmodels.ProjectGroup.from_db_model(updated_group)
 
     @secure(checks.superuser)
-    @wsme_pecan.wsexpose(wmodels.ProjectGroup, int)
+    @wsme_pecan.wsexpose(None, int)
     def delete(self, project_group_id):
         """Delete this project group.
 
         :param project_group_id: An ID of the project group.
         """
-        project_groups.project_group_delete(project_group_id)
+        try:
+            project_groups.project_group_delete(project_group_id)
+        except exc.NotFound as not_found_exc:
+            abort(404, not_found_exc.message)
+        except exc.NotEmpty as not_empty_exc:
+            abort(400, not_empty_exc.message)
 
         response.status_code = 204
 

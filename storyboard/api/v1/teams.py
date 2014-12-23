@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from oslo.config import cfg
+from pecan import abort
 from pecan.decorators import expose
 from pecan import response
 from pecan import rest
@@ -23,6 +24,7 @@ import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import wmodels
+from storyboard.common import exception as exc
 from storyboard.db.api import teams as teams_api
 from storyboard.db.api import users as users_api
 from storyboard.openstack.common.gettextutils import _  # noqa
@@ -197,3 +199,19 @@ class TeamsController(rest.RestController):
 
         # Use default routing for all other requests
         return super(TeamsController, self)._route(args, request)
+
+    @secure(checks.superuser)
+    @wsme_pecan.wsexpose(None, int)
+    def delete(self, team_id):
+        """Delete this team.
+
+        :param team_id: An ID of the team.
+        """
+        try:
+            teams_api.team_delete(team_id)
+        except exc.NotFound as not_found_exc:
+            abort(404, not_found_exc.message)
+        except exc.NotEmpty as not_empty_exc:
+            abort(400, not_empty_exc.message)
+
+        response.status_code = 204

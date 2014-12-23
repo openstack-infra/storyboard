@@ -120,5 +120,10 @@ def project_group_delete_project(project_group_id, project_id):
 def project_group_delete(project_group_id):
     project_group = project_group_get(project_group_id)
 
-    if project_group:
-        api_base.entity_hard_delete(models.ProjectGroup, project_group_id)
+    if not project_group:
+        raise exc.NotFound(_('Project group not found.'))
+
+    if len(project_group.projects) > 0:
+        raise exc.NotEmpty(_('Project group must be empty.'))
+
+    api_base.entity_hard_delete(models.ProjectGroup, project_group_id)
