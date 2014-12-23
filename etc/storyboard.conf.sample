@@ -54,6 +54,12 @@ lock_path = $state_path/lock
 # and subscriptions.
 # enable_notifications = True
 
+[cron]
+# Storyboard's cron management configuration
+
+# Enable or disable cron (Default disabled)
+# enable = true
+
 [cors]
 # W3C CORS configuration. For more information, see http://www.w3.org/TR/cors/
 

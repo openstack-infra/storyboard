@@ -30,6 +30,7 @@ from storyboard.api.v1.search import search_engine
 from storyboard.notifications.notification_hook import NotificationHook
 from storyboard.openstack.common.gettextutils import _LI  # noqa
 from storyboard.openstack.common import log
+from storyboard.plugin.cron import load_crontab
 from storyboard.plugin.user_preferences import initialize_user_preferences
 
 CONF = cfg.CONF
@@ -94,6 +95,9 @@ def setup_app(pecan_config=None):
 
     # Load user preference plugins
     initialize_user_preferences()
+
+    # Initialize crontab
+    load_crontab()
 
     # Setup notifier
     if CONF.enable_notifications:

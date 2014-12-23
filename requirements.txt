@@ -18,3 +18,5 @@ sqlalchemy-migrate>=0.8.2,!=0.8.4
 SQLAlchemy-FullText-Search
 eventlet>=0.13.0
 stevedore>=1.0.0
+python-crontab>=1.8.1
+tzlocal>=1.1.2
