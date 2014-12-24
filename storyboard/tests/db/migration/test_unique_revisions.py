@@ -17,6 +17,7 @@ import imp
 import os
 
 from alembic.script import ScriptDirectory
+import six
 import testtools
 
 from storyboard.db.migration.cli import get_alembic_config
@@ -39,7 +40,7 @@ class UniqueRevisionsTestCase(testtools.TestCase):
                 continue
 
             module_path = os.path.join(versions_path, f)
-            module = imp.load_source('module', str(module_path))
+            module = imp.load_source('module', six.text_type(module_path))
             revision_id = module.revision
 
             self.assertFalse(revision_id in revisions,

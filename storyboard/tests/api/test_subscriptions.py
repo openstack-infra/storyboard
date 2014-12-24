@@ -14,6 +14,8 @@
 
 import json
 
+import six
+
 from storyboard.tests import base
 
 
@@ -74,7 +76,8 @@ class TestSubscriptionsAsUser(base.FunctionalTest):
         search_response_1 = self.get_json(self.resource)
         self.assertEqual(1, len(search_response_1))
 
-        response2 = self.delete(self.resource + '/' + str(subscription['id']),
+        response2 = self.delete(self.resource + '/' +
+                                six.text_type(subscription['id']),
                                 expect_errors=True)
         self.assertEqual(204, response2.status_code)
 
@@ -215,7 +218,8 @@ class TestSubscriptionsAsSuperuser(base.FunctionalTest):
         search_response_1 = self.get_json(self.resource + '?user_id=3')
         self.assertEqual(2, len(search_response_1))
 
-        response2 = self.delete(self.resource + '/' + str(subscription['id']),
+        response2 = self.delete(self.resource + '/' +
+                                six.text_type(subscription['id']),
                                 expect_errors=True)
         self.assertEqual(204, response2.status_code)
 

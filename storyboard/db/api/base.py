@@ -57,7 +57,7 @@ def apply_query_filters(query, model, **kwargs):
     which should be filtered as ==, and which should be filtered as LIKE
     """
 
-    for k, v in kwargs.iteritems():
+    for k, v in six.iteritems(kwargs):
         if v and hasattr(model, k):
             column = getattr(model, k)
             if column.is_attribute:

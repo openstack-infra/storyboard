@@ -12,6 +12,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import six
+
 from storyboard.tests import base
 
 
@@ -56,7 +58,7 @@ class TestUserTokensAsUser(base.FunctionalTest):
         self.assertIsNotNone(response.json['id'])
 
         read_response = self.get_json(self.resource + '/' +
-                                      str(response.json['id']))
+                                      six.text_type(response.json['id']))
 
         self.assertEqual(response.json['user_id'],
                          read_response['user_id'])
@@ -114,7 +116,8 @@ class TestUserTokensAsUser(base.FunctionalTest):
 
         new_record['expires_in'] = 3601
 
-        updated = self.put_json(self.resource + '/' + str(response.json['id']),
+        updated = self.put_json(self.resource + '/' +
+                                six.text_type(response.json['id']),
                                 new_record, expect_errors=True)
 
         self.assertEqual(updated.json['expires_in'], 3601)
@@ -131,7 +134,8 @@ class TestUserTokensAsUser(base.FunctionalTest):
         self.assertIsNotNone(response.json['access_token'])
         self.assertIsNotNone(response.json['id'])
 
-        response = self.delete(self.resource + '/' + str(response.json['id']),
+        response = self.delete(self.resource + '/' +
+                               six.text_type(response.json['id']),
                                expect_errors=True)
         self.assertEqual(200, response.status_code)
 
