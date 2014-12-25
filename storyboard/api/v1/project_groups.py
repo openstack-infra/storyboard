@@ -21,6 +21,7 @@ from wsme.exc import ClientSideError
 import wsmeext.pecan as wsme_pecan
 
 import storyboard.api.auth.authorization_checks as checks
+from storyboard.api.v1 import validations
 from storyboard.api.v1 import wmodels
 from storyboard.db.api import project_groups
 from storyboard.db.api import projects
@@ -80,6 +81,9 @@ class ProjectGroupsController(rest.RestController):
     The nested fields (projects) should be updated using requests to a
     /projects subcontroller
     """
+
+    validation_post_schema = validations.PROJECT_GROUPS_POST_SCHEMA
+    validation_put_schema = validations.PROJECT_GROUPS_PUT_SCHEMA
 
     @secure(checks.guest)
     @wsme_pecan.wsexpose(wmodels.ProjectGroup, int)

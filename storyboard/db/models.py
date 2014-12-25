@@ -57,6 +57,16 @@ def table_args():
 MYSQL_MEDIUM_TEXT = UnicodeText().with_variant(MEDIUMTEXT(), 'mysql')
 
 
+class CommonLength:
+    top_large_length = 255
+    top_middle_length = 100
+    top_short_length = 50
+    lower_large_length = 5
+    lower_middle_length = 3
+    lower_short_length = 1
+    name_length = 30
+
+
 class IdMixin(object):
     id = Column(Integer, primary_key=True)
 
@@ -117,10 +127,10 @@ class User(FullText, ModelBuilder, Base):
 
     __fulltext_columns__ = ['username', 'full_name', 'email']
 
-    username = Column(Unicode(30))
-    full_name = Column(Unicode(255), nullable=True)
-    email = Column(String(255))
-    openid = Column(String(255))
+    username = Column(Unicode(CommonLength.name_length))
+    full_name = Column(Unicode(CommonLength.top_large_length), nullable=True)
+    email = Column(String(CommonLength.top_large_length))
+    openid = Column(String(CommonLength.top_large_length))
     is_staff = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
     is_superuser = Column(Boolean, default=False)
@@ -141,8 +151,8 @@ class UserPreference(ModelBuilder, Base):
     _TASK_TYPES = ('string', 'int', 'bool', 'float')
 
     user_id = Column(Integer, ForeignKey('users.id'))
-    key = Column(Unicode(100))
-    value = Column(Unicode(255))
+    key = Column(Unicode(CommonLength.top_middle_length))
+    value = Column(Unicode(CommonLength.top_large_length))
     type = Column(Enum(*_TASK_TYPES), default='string')
 
     @property
@@ -179,7 +189,7 @@ class Team(ModelBuilder, Base):
     __table_args__ = (
         schema.UniqueConstraint('name', name='uniq_team_name'),
     )
-    name = Column(Unicode(255))
+    name = Column(Unicode(CommonLength.top_large_length))
     users = relationship("User", secondary="team_membership")
     permissions = relationship("Permission", secondary="team_permissions")
 
@@ -195,8 +205,8 @@ class Permission(ModelBuilder, Base):
     __table_args__ = (
         schema.UniqueConstraint('name', name='uniq_permission_name'),
     )
-    name = Column(Unicode(50))
-    codename = Column(Unicode(255))
+    name = Column(Unicode(CommonLength.top_short_length))
+    codename = Column(Unicode(CommonLength.top_large_length))
 
 
 # TODO(mordred): Do we really need name and title?
@@ -209,7 +219,7 @@ class Project(FullText, ModelBuilder, Base):
 
     __fulltext_columns__ = ['name', 'description']
 
-    name = Column(String(50))
+    name = Column(String(CommonLength.top_short_length))
     description = Column(UnicodeText())
     team_id = Column(Integer, ForeignKey('teams.id'))
     team = relationship(Team, primaryjoin=team_id == Team.id)
@@ -228,8 +238,8 @@ class ProjectGroup(ModelBuilder, Base):
         schema.UniqueConstraint('name', name='uniq_group_name'),
     )
 
-    name = Column(String(50))
-    title = Column(Unicode(255))
+    name = Column(String(CommonLength.top_short_length))
+    title = Column(Unicode(CommonLength.top_large_length))
     projects = relationship("Project", secondary="project_group_mapping")
 
     _public_fields = ["id", "name", "title", "projects"]
@@ -249,7 +259,7 @@ class Story(FullText, ModelBuilder, Base):
 
     creator_id = Column(Integer, ForeignKey('users.id'))
     creator = relationship(User, primaryjoin=creator_id == User.id)
-    title = Column(Unicode(255))
+    title = Column(Unicode(CommonLength.top_large_length))
     description = Column(UnicodeText())
     is_bug = Column(Boolean, default=True)
     tasks = relationship('Task', backref='story')
@@ -272,7 +282,7 @@ class Task(FullText, ModelBuilder, Base):
     _TASK_PRIORITIES = ('low', 'medium', 'high')
 
     creator_id = Column(Integer, ForeignKey('users.id'))
-    title = Column(Unicode(255), nullable=True)
+    title = Column(Unicode(CommonLength.top_large_length), nullable=True)
     status = Column(Enum(*TASK_STATUSES.keys()), default='todo')
     story_id = Column(Integer, ForeignKey('stories.id'))
     project_id = Column(Integer, ForeignKey('projects.id'))
@@ -288,28 +298,30 @@ class StoryTag(ModelBuilder, Base):
     __table_args__ = (
         schema.UniqueConstraint('name', name='uniq_story_tags_name'),
     )
-    name = Column(String(50))
+    name = Column(String(CommonLength.top_short_length))
     stories = relationship('StoryTag', secondary='story_storytags')
 
 
 # Authorization models
 
 class AuthorizationCode(ModelBuilder, Base):
-    code = Column(Unicode(100), nullable=False)
-    state = Column(Unicode(100), nullable=False)
+    code = Column(Unicode(CommonLength.top_middle_length), nullable=False)
+    state = Column(Unicode(CommonLength.top_middle_length), nullable=False)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
 
 
 class AccessToken(ModelBuilder, Base):
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    access_token = Column(Unicode(100), nullable=False)
+    access_token = Column(Unicode(CommonLength.top_middle_length),
+                          nullable=False)
     expires_in = Column(Integer, nullable=False)
     expires_at = Column(DateTime, nullable=False)
 
 
 class RefreshToken(ModelBuilder, Base):
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    refresh_token = Column(Unicode(100), nullable=False)
+    refresh_token = Column(Unicode(CommonLength.top_middle_length),
+                           nullable=False)
     expires_in = Column(Integer, nullable=False)
     expires_at = Column(DateTime, nullable=False)
 
@@ -359,7 +371,8 @@ class TimeLineEvent(ModelBuilder, Base):
     comment_id = Column(Integer, ForeignKey('comments.id'), nullable=True)
     author_id = Column(Integer, ForeignKey('users.id'), nullable=True)
 
-    event_type = Column(Unicode(100), nullable=False)
+    event_type = Column(Unicode(CommonLength.top_middle_length),
+                        nullable=False)
 
     # this info field should contain additional fields to describe the event
     # ex. {'old_status': 'Todo', 'new_status': 'In progress'}
@@ -393,5 +406,6 @@ class SubscriptionEvents(ModelBuilder, Base):
 
     subscriber_id = Column(Integer, ForeignKey('users.id'))
     author_id = Column(Integer, ForeignKey('users.id'))
-    event_type = Column(Unicode(100), nullable=False)
+    event_type = Column(Unicode(CommonLength.top_middle_length),
+                        nullable=False)
     event_info = Column(UnicodeText(), nullable=True)

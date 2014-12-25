@@ -22,10 +22,11 @@ from wsme.exc import ClientSideError
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
+from storyboard.api.v1 import validations
 from storyboard.api.v1 import wmodels
 from storyboard.db.api import teams as teams_api
 from storyboard.db.api import users as users_api
-from storyboard.openstack.common.gettextutils import _  # noqa
+from storyboard.openstack.common.gettextutils import _  # noqas
 
 CONF = cfg.CONF
 
@@ -33,7 +34,6 @@ CONF = cfg.CONF
 class UsersSubcontroller(rest.RestController):
     """This controller should be used to list, add or remove users from a Team.
     """
-
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.User], int)
     def get(self, team_id):
@@ -70,6 +70,9 @@ class UsersSubcontroller(rest.RestController):
 
 class TeamsController(rest.RestController):
     """REST controller for Teams."""
+
+    validation_post_schema = validations.TEAMS_POST_SCHEMA
+    validation_put_schema = validations.TEAMS_PUT_SCHEMA
 
     @secure(checks.guest)
     @wsme_pecan.wsexpose(wmodels.Team, int)

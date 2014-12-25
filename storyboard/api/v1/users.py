@@ -26,6 +26,7 @@ from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1.search import search_engine
 from storyboard.api.v1.user_preferences import UserPreferencesController
 from storyboard.api.v1.user_tokens import UserTokensController
+from storyboard.api.v1 import validations
 from storyboard.api.v1 import wmodels
 from storyboard.db.api import users as users_api
 from storyboard.openstack.common.gettextutils import _  # noqa
@@ -46,6 +47,9 @@ class UsersController(rest.RestController):
     tokens = UserTokensController()
 
     _custom_actions = {"search": ["GET"]}
+
+    validation_post_schema = validations.USERS_POST_SCHEMA
+    validation_put_schema = validations.USERS_PUT_SCHEMA
 
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.User], int, int, unicode, unicode, unicode,
