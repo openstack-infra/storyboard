@@ -14,8 +14,6 @@
 
 # Default allowed headers
 
-import six
-
 ALLOWED_HEADERS = [
     'origin',
     'authorization',
@@ -68,7 +66,7 @@ class CORSMiddleware(object):
         self.allowed_methods = ','.join(allowed_methods or ALLOWED_METHODS)
 
         # Cache age.
-        self.max_age = six.text_type(max_age)
+        self.max_age = str(max_age)
 
     def __call__(self, env, start_response):
         """Serve an application request.
