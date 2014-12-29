@@ -90,7 +90,7 @@ class UserTokensController(rest.RestController):
         self._assert_can_access(user_id, access_token)
 
         if not access_token:
-            abort(404)
+            abort(404, _("Token not found."))
 
         return wmodels.AccessToken.from_db_model(access_token)
 
@@ -112,7 +112,7 @@ class UserTokensController(rest.RestController):
         # Token duplication check.
         dupes = token_api.access_token_get_all(access_token=body.access_token)
         if dupes:
-            abort(409, _('This token already exists.'))
+            abort(409, _('This token already exist.'))
 
         token = token_api.access_token_create(body.as_dict())
 
@@ -135,7 +135,7 @@ class UserTokensController(rest.RestController):
         self._assert_can_access(user_id, target_token)
 
         if not target_token:
-            abort(404)
+            abort(404, _("Token not found."))
 
         # We only allow updating the expiration date.
         target_token.expires_in = body.expires_in
@@ -158,7 +158,7 @@ class UserTokensController(rest.RestController):
         self._assert_can_access(user_id, access_token)
 
         if not access_token:
-            abort(404)
+            abort(404, _("Token not found."))
 
         token_api.access_token_delete(access_token_id)
 
@@ -168,18 +168,18 @@ class UserTokensController(rest.RestController):
         current_user = user_api.user_get(request.current_user_id)
 
         if not user_id:
-            abort(400)
+            abort(400, _("user_id is missing."))
 
         # The user must be logged in.
         if not current_user:
-            abort(401)
+            abort(401, _("You must log in to do this."))
 
         # If the impacted user is not the current user, the current user must
         # be an admin.
         if not current_user.is_superuser and current_user.id != user_id:
-            abort(403)
+            abort(403, _("You are not admin and can't do this."))
 
         # The path-based impacted user and the user found in the entity must
         # be identical. No PUT /users/1/tokens { user_id: 2 }
         if token_entity and token_entity.user_id != user_id:
-            abort(403)
+            abort(403, _("token_entity.user_id or user_id is wrong."))

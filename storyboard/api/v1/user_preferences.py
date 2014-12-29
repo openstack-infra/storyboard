@@ -23,6 +23,7 @@ import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
 import storyboard.db.api.users as user_api
+from storyboard.openstack.common.gettextutils import _  # noqa
 from storyboard.openstack.common import log
 
 
@@ -37,7 +38,7 @@ class UserPreferencesController(rest.RestController):
         """Return all preferences for the current user.
         """
         if request.current_user_id != user_id:
-            abort(403)
+            abort(403, _("You can't read preferences of other users."))
             return
 
         return user_api.user_get_preferences(user_id)
@@ -53,6 +54,6 @@ class UserPreferencesController(rest.RestController):
         :param body A dictionary of preference values.
         """
         if request.current_user_id != user_id:
-            abort(403)
+            abort(403, _("You can't change preferences of other users."))
 
         return user_api.user_update_preferences(user_id, body)
