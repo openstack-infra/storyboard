@@ -228,7 +228,7 @@ class ProjectGroup(ModelBuilder, Base):
     )
 
     name = Column(String(50))
-    title = Column(Unicode(100))
+    title = Column(Unicode(255))
     projects = relationship("Project", secondary="project_group_mapping")
 
     _public_fields = ["id", "name", "title", "projects"]
@@ -248,7 +248,7 @@ class Story(FullText, ModelBuilder, Base):
 
     creator_id = Column(Integer, ForeignKey('users.id'))
     creator = relationship(User, primaryjoin=creator_id == User.id)
-    title = Column(Unicode(100))
+    title = Column(Unicode(255))
     description = Column(UnicodeText())
     is_bug = Column(Boolean, default=True)
     tasks = relationship('Task', backref='story')
@@ -271,7 +271,7 @@ class Task(FullText, ModelBuilder, Base):
     _TASK_PRIORITIES = ('low', 'medium', 'high')
 
     creator_id = Column(Integer, ForeignKey('users.id'))
-    title = Column(Unicode(100), nullable=True)
+    title = Column(Unicode(255), nullable=True)
     status = Column(Enum(*TASK_STATUSES.keys()), default='todo')
     story_id = Column(Integer, ForeignKey('stories.id'))
     project_id = Column(Integer, ForeignKey('projects.id'))
