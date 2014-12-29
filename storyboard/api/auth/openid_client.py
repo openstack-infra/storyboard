@@ -24,19 +24,10 @@ LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 
 
-OPENID_OPTS = [
-    cfg.StrOpt('openid_url',
-               default='https://login.launchpad.net/+openid',
-               help='OpenId Authentication endpoint')
-]
-
-CONF.register_opts(OPENID_OPTS)
-
-
 class OpenIdClient(object):
 
     def send_openid_redirect(self, request, response):
-        redirect_location = CONF.openid_url
+        redirect_location = CONF.oauth.openid_url
         response.status_code = 303
 
         return_params = {
@@ -91,7 +82,8 @@ class OpenIdClient(object):
         verify_params = dict(request.params.copy())
         verify_params["openid.mode"] = "check_authentication"
 
-        verify_response = requests.post(CONF.openid_url, data=verify_params)
+        verify_response = requests.post(CONF.oauth.openid_url,
+                                        data=verify_params)
         verify_data_tokens = verify_response.content.split()
         verify_dict = dict((token.split(":")[0], token.split(":")[1])
                            for token in verify_data_tokens)

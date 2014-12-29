@@ -37,6 +37,17 @@ lock_path = $state_path/lock
 # Port the bind the API server to
 # bind_port = 8080
 
+# List paging configuration options.
+# page_size_maximum = 500
+# page_size_default = 20
+
+# Enable notifications. This feature drives deferred processing, reporting,
+# and subscriptions.
+# enable_notifications = True
+
+[oauth]
+# StoryBoard's oauth configuration.
+
 # OpenId Authentication endpoint
 # openid_url = https://login.launchpad.net/+openid
 
@@ -45,14 +56,6 @@ lock_path = $state_path/lock
 
 # Time in seconds before an refresh_token expires
 # refresh_token_ttl = 604800
-
-# List paging configuration options.
-# page_size_maximum = 500
-# page_size_default = 20
-
-# Enable notifications. This feature drives deferred processing, reporting,
-# and subscriptions.
-# enable_notifications = True
 
 [cron]
 # Storyboard's cron management configuration
@@ -137,3 +140,8 @@ lock_path = $state_path/lock
 
 # If set, use this value for pool_timeout with sqlalchemy
 # pool_timeout = 10
+
+[plugin_token_cleaner]
+# Enable/Disable the token cleaning cron plugin. This requires cron
+# management to be enabled.
+# enable = True

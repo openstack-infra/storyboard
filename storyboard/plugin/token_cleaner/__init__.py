@@ -16,18 +16,10 @@ from oslo.config import cfg
 
 CONF = cfg.CONF
 
-OAUTH_OPTS = [
-    cfg.StrOpt('openid_url',
-               default='https://login.launchpad.net/+openid',
-               help='OpenId Authentication endpoint'),
-
-    cfg.IntOpt("access_token_ttl",
-               default=60 * 60,  # One hour
-               help="Time in seconds before an access_token expires"),
-
-    cfg.IntOpt("refresh_token_ttl",
-               default=60 * 60 * 24 * 7,  # One week
-               help="Time in seconds before an refresh_token expires")
+PLUGIN_OPTS = [
+    cfg.BoolOpt("enable",
+                default=False,  # By default, we don't scrub old oauth tokens.
+                help="Enable, or disable, the oauth token cleaner")
 ]
 
-CONF.register_opts(OAUTH_OPTS, "oauth")
+CONF.register_opts(PLUGIN_OPTS, "plugin_token_cleaner")

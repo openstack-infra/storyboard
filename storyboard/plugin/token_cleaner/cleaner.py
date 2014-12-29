@@ -31,7 +31,9 @@ class TokenCleaner(CronPluginBase):
         """Indicate whether this plugin is enabled. This indicates whether
         this plugin alone is runnable, as opposed to the entire cron system.
         """
-        return True
+        if 'plugin_token_cleaner' in self.config:
+            return self.config.plugin_token_cleaner.enable or False
+        return False
 
     def interval(self):
         """This plugin executes on startup, and once every hour after that.

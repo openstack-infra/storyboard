@@ -18,7 +18,7 @@ from datetime import timedelta
 from oslo.config import cfg
 import storyboard.db.api.base as db_api
 from storyboard.db.models import AccessToken
-from storyboard.plugin.oauth.cleaner import TokenCleaner
+from storyboard.plugin.token_cleaner.cleaner import TokenCleaner
 import storyboard.tests.base as base
 from storyboard.tests.mock_data import load_data
 
@@ -36,11 +36,18 @@ class TestTokenCleaner(base.FunctionalTest):
         super(TestTokenCleaner, self).tearDown()
 
     def test_enabled(self):
-        """This plugin must always be enabled. The only time it's not enabled
-        is when cron has been disabled.
+        """Assert that this plugin responds to the flag set in our
+        oauth configuration block.
         """
+        CONF.set_override('enable', False, 'plugin_token_cleaner')
+        plugin = TokenCleaner(CONF)
+        self.assertFalse(plugin.enabled())
+
+        CONF.set_override('enable', True, 'plugin_token_cleaner')
         plugin = TokenCleaner(CONF)
         self.assertTrue(plugin.enabled())
+
+        CONF.clear_override('enable', 'plugin_token_cleaner')
 
     def test_interval(self):
         """Assert that the cron manager runs every 5 minutes."""
