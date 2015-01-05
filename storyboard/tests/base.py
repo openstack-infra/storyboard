@@ -61,6 +61,13 @@ class TestCase(testtools.TestCase):
         if test_timeout > 0:
             self.useFixture(fixtures.Timeout(test_timeout, gentle=True))
 
+        env_test_db = os.environ.get('STORYBOARD_TEST_DB')
+        if env_test_db is not None:
+            self.test_connection = env_test_db
+        else:
+            self.test_connection = ("mysql://openstack_citest:openstack_citest"
+                                    "@127.0.0.1:3306")
+
         self.useFixture(fixtures.NestedTempfile())
         self.useFixture(fixtures.TempHomeDir())
 
@@ -104,14 +111,14 @@ class DbTestCase(TestCase):
 
         # The engine w/o db name
         engine = sqlalchemy.create_engine(
-            "mysql://openstack_citest:openstack_citest@127.0.0.1:3306")
+            self.test_connection)
         engine.execute("CREATE DATABASE %s" % self.db_name)
 
         alembic_config = get_alembic_config()
         alembic_config.storyboard_config = CONF
         CONF.set_override(
             "connection",
-            "mysql://openstack_citest:openstack_citest@127.0.0.1:3306/%s"
+            self.test_connection + "/%s"
             % self.db_name,
             group="database")
 
@@ -120,7 +127,7 @@ class DbTestCase(TestCase):
 
     def _drop_db(self):
         engine = sqlalchemy.create_engine(
-            "mysql://openstack_citest:openstack_citest@127.0.0.1:3306")
+            self.test_connection)
         engine.execute("DROP DATABASE %s" % self.db_name)
         db_api_base.cleanup()
 
