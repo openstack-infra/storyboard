@@ -75,7 +75,9 @@ def handle_event(ext, body):
                           resource=payload['resource'] or None,
                           resource_id=payload['resource_id'] or None,
                           sub_resource=payload['sub_resource'] or None,
-                          sub_resource_id=payload['sub_resource_id'] or None)
+                          sub_resource_id=payload['sub_resource_id'] or None,
+                          resource_before=payload['resource_before'] or None,
+                          resource_after=payload['resource_after'] or None)
 
 
 def check_enabled(ext):

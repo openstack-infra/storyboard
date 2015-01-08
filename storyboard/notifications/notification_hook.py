@@ -77,6 +77,10 @@ class NotificationHook(hooks.PecanHook):
             else:
                 resource_id = None
 
+        # Get a copy of the resource post-modification. Will return None in
+        # the case of a DELETE.
+        new_resource = self.map_resource(resource, resource_id)
+
         # Build the payload. Use of None is included to ensure that we don't
         # accidentally blow up the API call, but we don't anticipate it
         # happening.
@@ -87,7 +91,9 @@ class NotificationHook(hooks.PecanHook):
                 resource=resource,
                 resource_id=resource_id,
                 sub_resource=subresource,
-                sub_resource_id=subresource_id)
+                sub_resource_id=subresource_id,
+                resource_before=state.old_entity_values,
+                resource_after=new_resource)
 
     def get_original_resource(self, resource, resource_id):
         """Given a resource name and ID, will load that resource and map it

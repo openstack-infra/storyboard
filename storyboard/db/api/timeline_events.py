@@ -17,7 +17,9 @@ import json
 from oslo.config import cfg
 from pecan import request
 from pecan import response
+from wsme.rest.json import tojson
 
+from storyboard.api.v1.wmodels import TimeLineEvent
 from storyboard.common import event_types
 from storyboard.db.api import base as api_base
 from storyboard.db import models
@@ -52,12 +54,16 @@ def event_create(values):
         # Build the payload. Use of None is included to ensure that we don't
         # accidentally blow up the API call, but we don't anticipate it
         # happening.
+        event_dict = tojson(TimeLineEvent,
+                            TimeLineEvent.from_db_model(new_event))
+
         publish(author_id=request.current_user_id or None,
                 method="POST",
                 path=request.path or None,
                 status=response.status_code or None,
                 resource="timeline_event",
-                resource_id=new_event.id or None)
+                resource_id=new_event.id or None,
+                resource_after=event_dict or None)
 
     return new_event
 

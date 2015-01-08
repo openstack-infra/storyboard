@@ -132,7 +132,8 @@ class Payload(object):
 
 
 def publish(resource, author_id=None, method=None, path=None, status=None,
-            resource_id=None, sub_resource=None, sub_resource_id=None):
+            resource_id=None, sub_resource=None, sub_resource_id=None,
+            resource_before=None, resource_after=None):
     """Send a message for an API event to the storyboard exchange. The message
     will be automatically JSON encoded.
 
@@ -144,6 +145,8 @@ def publish(resource, author_id=None, method=None, path=None, status=None,
     :param resource_id: The ID of the resource.
     :param sub_resource: The extracted subresource (user_token, etc)
     :param sub_resource_id: THe ID of the subresource.
+    :param resource_before: The resource state before this event occurred.
+    :param resource_after: The resource state after this event occurred.
     """
     global PUBLISHER
 
@@ -160,7 +163,9 @@ def publish(resource, author_id=None, method=None, path=None, status=None,
         "resource": resource,
         "resource_id": resource_id,
         "sub_resource": sub_resource,
-        "sub_resource_id": sub_resource_id
+        "sub_resource_id": sub_resource_id,
+        "resource_before": resource_before,
+        "resource_after": resource_after
     }
 
     if resource:

@@ -34,7 +34,8 @@ class WorkerTaskBase(object):
 
     @abc.abstractmethod
     def handle(self, author_id, method, path, status, resource, resource_id,
-               sub_resource=None, sub_resource_id=None):
+               sub_resource=None, sub_resource_id=None,
+               resource_before=None, resource_after=None):
         """Handle an event.
 
         :param author_id: ID of the author's user record.
@@ -45,4 +46,6 @@ class WorkerTaskBase(object):
         :param resource_id: The ID of the resource.
         :param sub_resource: The subresource type.
         :param sub_resource_id: The ID of the subresource.
+        :param resource_before: The resource state before this event occurred.
+        :param resource_after: The resource state after this event occurred.
         """
