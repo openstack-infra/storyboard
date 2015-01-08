@@ -131,13 +131,19 @@ class Payload(object):
         self.payload = payload
 
 
-def publish(topic, payload):
-    """Send a message with a given topic and payload to the storyboard
-    exchange. The message will be automatically JSON encoded.
+def publish(resource, author_id=None, method=None, path=None, status=None,
+            resource_id=None, sub_resource=None, sub_resource_id=None):
+    """Send a message for an API event to the storyboard exchange. The message
+    will be automatically JSON encoded.
 
-    :param topic: The RabbitMQ topic.
-    :param payload: The JSON-serializable payload.
-    :return:
+    :param resource: The extrapolated resource type (project, story, etc).
+    :param author_id: The ID of the author who performed this action.
+    :param method: The HTTP Method used.
+    :param path: The HTTP Path used.
+    :param status: The HTTP Status code of the response.
+    :param resource_id: The ID of the resource.
+    :param sub_resource: The extracted subresource (user_token, etc)
+    :param sub_resource_id: THe ID of the subresource.
     """
     global PUBLISHER
 
@@ -146,4 +152,18 @@ def publish(topic, payload):
         PUBLISHER = Publisher(CONF.notifications)
         PUBLISHER.start()
 
-    PUBLISHER.publish_message(topic, payload)
+    payload = {
+        "author_id": author_id,
+        "method": method,
+        "path": path,
+        "status": status,
+        "resource": resource,
+        "resource_id": resource_id,
+        "sub_resource": sub_resource,
+        "sub_resource_id": sub_resource_id
+    }
+
+    if resource:
+        PUBLISHER.publish_message(resource, payload)
+    else:
+        LOG.warning("Attempted to send payload with no destination resource.")

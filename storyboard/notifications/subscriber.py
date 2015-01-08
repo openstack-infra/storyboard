@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import time
 
 from oslo.config import cfg
@@ -65,7 +66,15 @@ def handle_event(ext, body):
     :param body: The body of the event.
     :return: The result of the handler.
     """
-    return ext.obj.handle(body)
+    payload = json.loads(body)
+    return ext.obj.handle(author_id=payload['author_id'] or None,
+                          method=payload['method'] or None,
+                          path=payload['path'] or None,
+                          status=payload['status'] or None,
+                          resource=payload['resource'] or None,
+                          resource_id=payload['resource_id'] or None,
+                          sub_resource=payload['sub_resource'] or None,
+                          sub_resource_id=payload['sub_resource_id'] or None)
 
 
 def check_enabled(ext):
