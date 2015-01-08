@@ -17,9 +17,11 @@ import json
 
 from storyboard.db.api import comments as comments_api
 from storyboard.db.api import project_groups as project_groups_api
+from storyboard.db.api import stories as story_api
 from storyboard.db.api import subscription_events as sub_events_api
 from storyboard.db.api import subscriptions as subscriptions_api
 from storyboard.db.api import tasks as tasks_api
+from storyboard.db.api import timeline_events as timeline_api
 
 
 def handle_timeline_events(event, author_id):
@@ -150,8 +152,21 @@ def handle_deletions(resource_name, resource_id):
 
 
 def resolve_comments(event):
-    comment_id = event.comment_id
-    comment = comments_api.comment_get(comment_id)
-    comment_content = comment.content
-    return json.dumps({'comment_id': comment_id, 'comment_content':
-                      comment_content})
+    event_info = {
+        'comment_id': event.comment_id or None,
+    }
+
+    # Retrieve the content of the comment.
+    comment = comments_api.comment_get(event.comment_id)
+    event_info['comment_content'] = comment.content
+
+    # Retrieve the story ID of the comment.
+    timeline_events = timeline_api.events_get_all(comment_id=event.comment_id)
+    if timeline_events:
+        story = story_api.story_get(timeline_events[0].story_id)
+
+        if story:
+            event_info['story_id'] = story.id
+            event_info['story_title'] = story.title
+
+    return json.dumps(event_info)
