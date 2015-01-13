@@ -55,7 +55,7 @@ class DBTokenStorage(storage.StorageBase):
 
         # Oauthlib does not provide a separate expiration time for a
         # refresh_token so taking it from config directly.
-        refresh_expires_in = CONF.refresh_token_ttl
+        refresh_expires_in = CONF.oauth.refresh_token_ttl
 
         refresh_token_values = {
             "refresh_token": refresh_token,

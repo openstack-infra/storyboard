@@ -26,18 +26,6 @@ from storyboard.openstack.common import log
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
-TOKEN_OPTS = [
-    cfg.IntOpt("access_token_ttl",
-               default=60 * 60,  # One hour
-               help="Time in seconds before an access_token expires"),
-
-    cfg.IntOpt("refresh_token_ttl",
-               default=60 * 60 * 24 * 7,  # One week
-               help="Time in seconds before an refresh_token expires")
-]
-
-CONF.register_opts(TOKEN_OPTS)
-
 
 class SkeletonValidator(RequestValidator):
     """This is oauth skeleton for handling all kind of validations and storage
@@ -259,7 +247,7 @@ class SkeletonValidator(RequestValidator):
 class OpenIdConnectServer(WebApplicationServer):
 
     def __init__(self, request_validator):
-        access_token_ttl = CONF.access_token_ttl
+        access_token_ttl = CONF.oauth.access_token_ttl
         super(OpenIdConnectServer, self).__init__(
             request_validator,
             token_expires_in=access_token_ttl)

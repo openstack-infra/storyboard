@@ -245,8 +245,8 @@ class TestCronManager(base.TestCase):
         manager = cronmanager.CronManager(CONF, tabfile=self.tabfile)
         manager.execute()
 
-        # We're expecting 2 in-branch plugins.
-        self.assertCronLength(2, command='storyboard-cron')
+        # We're expecting 1 enabled in-branch plugins.
+        self.assertCronLength(1, command='storyboard-cron')
 
     def test_execute_update(self):
         """Test that execute() method updates plugins."""
@@ -312,7 +312,7 @@ class TestCronManager(base.TestCase):
 
         # Check a new crontab to see what we find.
         self.assertCronLength(0, command=plugin_command)
-        self.assertCronLength(2, command='storyboard-cron')
+        self.assertCronLength(1, command='storyboard-cron')
 
         # Cleanup after ourselves.
         manager.remove()
@@ -343,7 +343,7 @@ class TestCronManager(base.TestCase):
         manager.execute()
 
         # Check a new crontab to see what we find.
-        self.assertCronLength(2, command='storyboard-cron')
+        self.assertCronLength(1, command='storyboard-cron')
 
         # Cleanup after ourselves.
         manager.remove()
