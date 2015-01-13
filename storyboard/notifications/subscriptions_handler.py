@@ -16,57 +16,15 @@
 import json
 
 from storyboard.db.api import comments as comments_api
-from storyboard.db.api import project_groups as project_groups_api
 from storyboard.db.api import stories as story_api
 from storyboard.db.api import subscription_events as sub_events_api
 from storyboard.db.api import subscriptions as subscriptions_api
-from storyboard.db.api import tasks as tasks_api
 from storyboard.db.api import timeline_events as timeline_api
 
 
-def handle_timeline_events(event, author_id):
+def handle_timeline_events(event, author_id, subscribers):
 
-    target_subs = []
-    user_ids = set()
-
-    story_id = event.story_id
-    if event.event_info:
-        event_info = json.loads(event.event_info)
-        task_id = event_info.get("task_id")
-
-        # Handling tasks targeted.
-        target_sub = subscriptions_api.subscription_get_all_by_target(
-            ['task'], task_id)
-        target_subs.extend(target_sub)
-
-    # Handling stories targeted.
-    target_sub = subscriptions_api.subscription_get_all_by_target(
-        ['story'], story_id)
-    target_subs.extend(target_sub)
-
-    # Handling projects, project groups targeted for stories without tasks.
-
-    tasks = tasks_api.task_get_all(story_id=story_id)
-
-    for task in tasks:
-        project_id = task.project_id
-
-        # Handling projects targeted.
-        target_sub = subscriptions_api.subscription_get_all_by_target(
-            ['project'], project_id)
-        target_subs.extend(target_sub)
-
-        # Handling project groups targeted.
-        pgs = project_groups_api.project_group_get_all(project_id=project_id)
-        for pg in pgs:
-            target_sub = subscriptions_api.subscription_get_all_by_target(
-                ['project_group'], pg.id)
-            target_subs.extend(target_sub)
-
-    for sub in target_subs:
-        user_ids.add(sub.user_id)
-
-    for user_id in user_ids:
+    for user_id in subscribers:
         if event.event_type == 'user_comment':
             event_info = resolve_comments(event)
 
@@ -81,22 +39,12 @@ def handle_timeline_events(event, author_id):
         })
 
 
-def handle_resources(method, resource_id, sub_resource_id, author_id):
-
-    target_subs = []
-    user_ids = set()
+def handle_resources(method, resource_id, sub_resource_id, author_id,
+                     subscribers):
 
     if sub_resource_id:
 
-        # Handling project addition/deletion to/from project_group.
-        target_sub = subscriptions_api.subscription_get_all_by_target(
-            ['project'], sub_resource_id)
-        target_subs.extend(target_sub)
-
-        for sub in target_subs:
-            user_ids.add(sub.user_id)
-
-        for user_id in user_ids:
+        for user_id in subscribers:
 
             if method == 'DELETE':
                 event_type = 'project removed from project_group'
@@ -118,14 +66,7 @@ def handle_resources(method, resource_id, sub_resource_id, author_id):
     else:
         if method == 'DELETE':
             # Handling project_group targeted.
-            target_sub = subscriptions_api.subscription_get_all_by_target(
-                ['project_group'], resource_id)
-            target_subs.extend(target_sub)
-
-            for sub in target_subs:
-                user_ids.add(sub.user_id)
-
-            for user_id in user_ids:
+            for user_id in subscribers:
                 sub_events_api.subscription_events_create({
                     "author_id": author_id,
                     "subscriber_id": user_id,
@@ -135,7 +76,6 @@ def handle_resources(method, resource_id, sub_resource_id, author_id):
 
 
 def handle_deletions(resource_name, resource_id):
-
     target_subs = []
     sub_ids = set()
     resource_name = resource_name[:-1]

@@ -196,7 +196,7 @@ def load():
         Subscription(
             id=1,
             user_id=1,
-            target_type='project',
+            target_type='project_group',
             target_id=1
         ),
         Subscription(

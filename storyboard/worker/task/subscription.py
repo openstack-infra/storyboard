@@ -14,6 +14,7 @@
 
 import json
 
+from storyboard.db.api import subscriptions
 from storyboard.db.api import timeline_events
 from storyboard.notifications.subscriptions_handler import handle_deletions
 from storyboard.notifications.subscriptions_handler import handle_resources
@@ -31,23 +32,22 @@ class Subscription(WorkerTaskBase):
         :return:
         """
         body_dict = json.loads(body)
+        subscribers = subscriptions.subscription_get_all_subscriber_ids(
+            body_dict['resource'], body_dict['resource_id']
+        )
+
         if 'event_id' in body_dict:
             event_id = body_dict['event_id']
             event = timeline_events.event_get(event_id)
-            handle_timeline_events(event, body_dict['author_id'])
+            handle_timeline_events(event, body_dict['author_id'], subscribers)
 
-        else:
-            if body_dict['resource'] == 'project_groups':
-                if 'sub_resource_id' in body_dict:
-                    handle_resources(method=body_dict['method'],
-                                     resource_id=body_dict['resource_id'],
-                                     sub_resource_id=body_dict[
-                                         'sub_resource_id'],
-                                     author_id=body_dict['author_id'])
-                else:
-                    handle_resources(method=body_dict['method'],
-                                     resource_id=body_dict['resource_id'],
-                                     author_id=body_dict['author_id'])
+        elif body_dict['resource'] == 'project_groups':
+            handle_resources(method=body_dict['method'],
+                             resource_id=body_dict['resource_id'],
+                             sub_resource_id=getattr(body_dict,
+                                                     'sub_resource_id', None),
+                             author_id=body_dict['author_id'],
+                             subscribers=subscribers)
 
         if body_dict['method'] == 'DELETE':
             resource_name = body_dict['resource']
