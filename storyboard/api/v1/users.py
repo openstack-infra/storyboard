@@ -19,6 +19,7 @@ from pecan import request
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
+import six
 from wsme.exc import ClientSideError
 import wsmeext.pecan as wsme_pecan
 
@@ -129,28 +130,23 @@ class UsersController(rest.RestController):
         """
         current_user = users_api.user_get(request.current_user_id)
 
-        if not user or not user.id or not current_user:
-            response.status_code = 404
-            response.body = _("Not found")
-            return response
-
         # Only owners and superadmins are allowed to modify users.
-        if request.current_user_id != user.id \
+        if request.current_user_id != user_id \
                 and not current_user.is_superuser:
             response.status_code = 403
             response.body = _("You are not allowed to update this user.")
             return response
 
         # Strip out values that you're not allowed to change.
-        user_dict = user.as_dict()
-
-        # You cannot modify the openid field.
-        del user_dict['openid']
+        user_dict = user.as_dict(omit_unset=True)
 
         if not current_user.is_superuser:
             # Only superuser may create superusers or modify login permissions.
-            del user_dict['enable_login']
-            del user_dict['is_superuser']
+            if 'enable_login' in six.iterkeys(user_dict):
+                del user_dict['enable_login']
+
+            if 'is_superuser' in six.iterkeys(user_dict):
+                del user_dict['is_superuser']
 
         updated_user = users_api.user_update(user_id, user_dict)
         return wmodels.User.from_db_model(updated_user)
