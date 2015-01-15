@@ -105,3 +105,15 @@ def team_delete_user(team_id, user_id):
         session.add(team)
 
     return team
+
+
+def team_delete(team_id):
+    team = team_get(team_id)
+
+    if not team:
+        raise exc.NotFound(_('Team not found.'))
+
+    if len(team.users) > 0:
+        raise exc.NotEmpty(_('Team must be empty.'))
+
+    api_base.entity_hard_delete(models.Team, team_id)

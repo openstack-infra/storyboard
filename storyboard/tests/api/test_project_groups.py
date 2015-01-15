@@ -99,6 +99,36 @@ class TestProjectGroups(base.FunctionalTest):
         # check for a too short name
         self.assertRaises(AppError, self.put_json, url, delta)
 
+    def test_delete_invalid(self):
+        # try to delete project group with projects
+        # she can't be deleted, because
+        # only empty project groups can be deleted
+
+        response = self.delete(self.resource + '/2', expect_errors=True)
+        self.assertEqual(400, response.status_code)
+
+    def test_delete(self):
+        # create new empty project group with name 'testProjectGroup'
+        response = self.post_json(self.resource,
+                                  {'name': 'testProjectGroup',
+                                   'title': 'testProjectGroupTitle'})
+        body = json.loads(response.body)
+        self.assertEqual('testProjectGroup', body['name'])
+        self.assertEqual('testProjectGroupTitle', body['title'])
+
+        # delete project group with name 'testProjectGroup'
+        # project group with name 'testProjectGroup' can be deleted, because
+        # she is empty
+        # only empty project groups can be deleted
+        resource = (self.resource + '/%d') % body['id']
+        response = self.delete(resource)
+        self.assertEqual(204, response.status_code)
+
+        # check that project group with name 'testProjectGroup'
+        # doesn't exist now
+        response = self.get_json(resource, expect_errors=True)
+        self.assertEqual(404, response.status_code)
+
 
 class TestProjectGroupSearch(base.FunctionalTest):
     def setUp(self):

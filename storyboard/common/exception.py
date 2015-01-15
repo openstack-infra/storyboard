@@ -46,3 +46,11 @@ class DuplicateEntry(StoryboardException):
     def __init__(self, message=None):
         if message:
             self.message = message
+
+
+class NotEmpty(StoryboardException):
+    message = _("Database object must be empty")
+
+    def __init__(self, message=None):
+        if message:
+            self.message = message
