@@ -40,8 +40,15 @@ def _get_facade_instance():
     """Generate an instance of the DB Facade.
     """
     global _FACADE
-    if _FACADE is None:
-        _FACADE = db_session.EngineFacade.from_config(CONF)
+
+    try:
+        if _FACADE is None:
+            _FACADE = db_session.EngineFacade.from_config(CONF)
+    except db_exc.DBConnectionError:
+        raise exc.DBConnectionError()
+    except db_exc.DBDeadlock:
+        raise exc.DBDeadLock()
+
     return _FACADE
 
 
@@ -77,21 +84,37 @@ def get_engine():
     """Returns the global instance of our database engine.
     """
     facade = _get_facade_instance()
-    return facade.get_engine(use_slave=True)
+
+    try:
+        return facade.get_engine(use_slave=True)
+    except db_exc.DBConnectionError:
+        raise exc.DBConnectionError()
+    except db_exc.DBDeadlock:
+        raise exc.DBDeadLock()
 
 
 def get_session(autocommit=True, expire_on_commit=False, **kwargs):
     """Returns a database session from our facade.
     """
     facade = _get_facade_instance()
-    return facade.get_session(autocommit=autocommit,
-                              expire_on_commit=expire_on_commit, **kwargs)
+    try:
+        return facade.get_session(autocommit=autocommit,
+                                  expire_on_commit=expire_on_commit, **kwargs)
+    except db_exc.DBConnectionError:
+        raise exc.DBConnectionError()
+    except db_exc.DBDeadlock:
+        raise exc.DBDeadLock()
 
 
 def cleanup():
     """Manually clean up our database engine.
     """
-    _destroy_facade_instance()
+    try:
+        _destroy_facade_instance()
+    except db_exc.DBConnectionError:
+        raise exc.DBConnectionError()
+    except db_exc.DBDeadlock:
+        raise exc.DBDeadLock()
 
 
 def model_query(model, session=None):
@@ -100,13 +123,32 @@ def model_query(model, session=None):
     :param model: base model to query
     """
     session = session or get_session()
-    query = session.query(model)
+
+    try:
+        query = session.query(model)
+    except db_exc.DBConnectionError:
+        raise exc.DBConnectionError()
+    except db_exc.ColumnError:
+        raise exc.ColumnError()
+    except db_exc.DBDeadlock:
+        raise exc.DBDeadLock()
+    except db_exc.DBInvalidUnicodeParameter:
+        raise exc.DBInvalidUnicodeParameter()
     return query
 
 
 def __entity_get(kls, entity_id, session):
-    query = model_query(kls, session)
-    return query.filter_by(id=entity_id).first()
+    try:
+        query = model_query(kls, session)
+        return query.filter_by(id=entity_id).first()
+    except db_exc.DBConnectionError:
+        raise exc.DBConnectionError()
+    except db_exc.ColumnError:
+        raise exc.ColumnError()
+    except db_exc.DBDeadlock:
+        raise exc.DBDeadLock()
+    except db_exc.DBInvalidUnicodeParameter:
+        raise exc.DBInvalidUnicodeParameter()
 
 
 def entity_get(kls, entity_id, filter_non_public=False, session=None):
@@ -123,7 +165,6 @@ def entity_get(kls, entity_id, filter_non_public=False, session=None):
 
 def entity_get_all(kls, filter_non_public=False, marker=None, limit=None,
                    sort_field='id', sort_dir='asc', **kwargs):
-
     # Sanity checks, in case someone accidentally explicitly passes in 'None'
     if not sort_field:
         sort_field = 'id'
@@ -144,14 +185,21 @@ def entity_get_all(kls, filter_non_public=False, marker=None, limit=None,
                                sort_keys=[sort_field],
                                marker=marker,
                                sort_dir=sort_dir)
+
+        # Execute the query
+        entities = query.all()
     except InvalidSortKey:
-        raise ClientSideError(_("Invalid sort_field [%s]") % (sort_field,),
-                              status_code=400)
+        raise exc.DBInvalidSortKey(_("Invalid sort_field [%s]") %
+                                   (sort_field,))
+    except db_exc.DBConnectionError:
+        raise exc.DBConnectionError()
+    except db_exc.DBDeadlock:
+        raise exc.DBDeadLock()
+    except db_exc.DBInvalidUnicodeParameter:
+        raise exc.DBInvalidUnicodeParameter()
     except ValueError as ve:
         raise ClientSideError(_("%s") % (ve,), status_code=400)
 
-    # Execute the query
-    entities = query.all()
     if len(entities) > 0 and filter_non_public:
         sample_entity = entities[0] if len(entities) > 0 else None
         public_fields = getattr(sample_entity, "_public_fields", [])
@@ -169,13 +217,21 @@ def entity_get_count(kls, **kwargs):
     # Sanity check on input parameters
     query = apply_query_filters(query=query, model=kls, **kwargs)
 
-    count = query.count()
+    try:
+        count = query.count()
+    except db_exc.DBConnectionError:
+        raise exc.DBConnectionError()
+    except db_exc.DBDeadlock:
+        raise exc.DBDeadLock()
+    except db_exc.DBInvalidUnicodeParameter:
+        raise exc.DBInvalidUnicodeParameter()
 
     return count
 
 
 def _filter_non_public_fields(entity, public_list=list()):
     ent_copy = copy.copy(entity)
+
     for attr_name, val in six.iteritems(entity.__dict__):
         if attr_name.startswith("_"):
             continue
@@ -191,12 +247,25 @@ def entity_create(kls, values):
     entity.update(values.copy())
 
     session = get_session()
-    with session.begin():
-        try:
+
+    try:
+        with session.begin():
             session.add(entity)
-        except db_exc.DBDuplicateEntry:
-            raise exc.DuplicateEntry(_("Duplicate entry for : %s")
-                                     % kls.__name__)
+
+    except db_exc.DBDuplicateEntry as de:
+        raise exc.DBDuplicateEntry(object_name=kls.__name__,
+                                   value=de.value)
+    except db_exc.DBReferenceError as re:
+        raise exc.DBReferenceError(object_name=kls.__name__,
+                                   value=re.constraint, key=re.key)
+    except db_exc.DBConnectionError:
+        raise exc.DBConnectionError()
+    except db_exc.ColumnError:
+        raise exc.ColumnError()
+    except db_exc.DBDeadlock:
+        raise exc.DBDeadLock()
+    except db_exc.DBInvalidUnicodeParameter:
+        raise exc.DBInvalidUnicodeParameter
 
     return entity
 
@@ -204,16 +273,32 @@ def entity_create(kls, values):
 def entity_update(kls, entity_id, values):
     session = get_session()
 
-    with session.begin():
-        entity = __entity_get(kls, entity_id, session)
-        if entity is None:
-            raise exc.NotFound(_("%(name)s %(id)s not found") %
-                               {'name': kls.__name__, 'id': entity_id})
+    try:
+        with session.begin():
+            entity = __entity_get(kls, entity_id, session)
+            if entity is None:
+                raise exc.NotFound(_("%(name)s %(id)s not found") %
+                                   {'name': kls.__name__, 'id': entity_id})
 
-        values_copy = values.copy()
-        values_copy["id"] = entity_id
-        entity.update(values_copy)
-        session.add(entity)
+            values_copy = values.copy()
+            values_copy["id"] = entity_id
+            entity.update(values_copy)
+            session.add(entity)
+
+    except db_exc.DBDuplicateEntry as de:
+        raise exc.DBDuplicateEntry(object_name=kls.__name__,
+                                   value=de.value)
+    except db_exc.DBReferenceError as re:
+        raise exc.DBReferenceError(object_name=kls.__name__,
+                                   value=re.constraint, key=re.key)
+    except db_exc.DBConnectionError:
+        raise exc.DBConnectionError()
+    except db_exc.ColumnError:
+        raise exc.ColumnError()
+    except db_exc.DBDeadlock:
+        raise exc.DBDeadLock()
+    except db_exc.DBInvalidUnicodeParameter:
+        raise exc.DBInvalidUnicodeParameter
 
     session = get_session()
     entity = __entity_get(kls, entity_id, session)
@@ -223,11 +308,25 @@ def entity_update(kls, entity_id, values):
 
 def entity_hard_delete(kls, entity_id):
     session = get_session()
-    with session.begin():
-        query = model_query(kls, session)
-        entity = query.filter_by(id=entity_id).first()
-        if entity is None:
-            raise exc.NotFound(_("%(name)s %(id)s not found") %
-                               {'name': kls.__name__, 'id': entity_id})
 
-        session.delete(entity)
+    try:
+        with session.begin():
+            query = model_query(kls, session)
+            entity = query.filter_by(id=entity_id).first()
+            if entity is None:
+                raise exc.NotFound(_("%(name)s %(id)s not found") %
+                                   {'name': kls.__name__, 'id': entity_id})
+
+            session.delete(entity)
+
+    except db_exc.DBReferenceError as re:
+        raise exc.DBReferenceError(object_name=kls.__name__,
+                                   value=re.constraint, key=re.key)
+    except db_exc.DBConnectionError:
+        raise exc.DBConnectionError()
+    except db_exc.ColumnError:
+        raise exc.ColumnError()
+    except db_exc.DBDeadlock:
+        raise exc.DBDeadLock()
+    except db_exc.DBInvalidUnicodeParameter:
+        raise exc.DBInvalidUnicodeParameter()

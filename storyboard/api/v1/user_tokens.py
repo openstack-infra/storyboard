@@ -26,6 +26,7 @@ import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
 import storyboard.api.v1.wmodels as wmodels
+from storyboard.common import decorators
 import storyboard.db.api.access_tokens as token_api
 import storyboard.db.api.users as user_api
 from storyboard.openstack.common.gettextutils import _  # noqa
@@ -37,6 +38,7 @@ LOG = log.getLogger(__name__)
 
 
 class UserTokensController(rest.RestController):
+    @decorators.db_exceptions
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose([wmodels.AccessToken], int, int, int, unicode,
                          unicode)
@@ -77,6 +79,7 @@ class UserTokensController(rest.RestController):
 
         return [wmodels.AccessToken.from_db_model(t) for t in tokens]
 
+    @decorators.db_exceptions
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wmodels.AccessToken, int, int)
     def get(self, user_id, access_token_id):
@@ -94,6 +97,7 @@ class UserTokensController(rest.RestController):
 
         return wmodels.AccessToken.from_db_model(access_token)
 
+    @decorators.db_exceptions
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wmodels.AccessToken, int, body=wmodels.AccessToken)
     def post(self, user_id, body):
@@ -118,6 +122,7 @@ class UserTokensController(rest.RestController):
 
         return wmodels.AccessToken.from_db_model(token)
 
+    @decorators.db_exceptions
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wmodels.AccessToken, int, int,
                          body=wmodels.AccessToken)
@@ -145,6 +150,7 @@ class UserTokensController(rest.RestController):
 
         return wmodels.AccessToken.from_db_model(result_token)
 
+    @decorators.db_exceptions
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wmodels.AccessToken, int, int)
     def delete(self, user_id, access_token_id):

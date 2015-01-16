@@ -28,6 +28,7 @@ from storyboard.api.v1.timeline import CommentsController
 from storyboard.api.v1.timeline import TimeLineEventsController
 from storyboard.api.v1 import validations
 from storyboard.api.v1 import wmodels
+from storyboard.common import decorators
 from storyboard.db.api import stories as stories_api
 from storyboard.db.api import timeline_events as events_api
 from storyboard.openstack.common.gettextutils import _  # noqa
@@ -46,6 +47,7 @@ class StoriesController(rest.RestController):
     validation_post_schema = validations.STORIES_POST_SCHEMA
     validation_put_schema = validations.STORIES_PUT_SCHEMA
 
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose(wmodels.Story, int)
     def get_one(self, story_id):
@@ -61,6 +63,7 @@ class StoriesController(rest.RestController):
             raise ClientSideError(_("Story %s not found") % story_id,
                                   status_code=404)
 
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Story], unicode, unicode, [unicode], int,
                          int, int, int, int, unicode, unicode)
@@ -115,6 +118,7 @@ class StoriesController(rest.RestController):
 
         return [wmodels.Story.from_db_model(s) for s in stories]
 
+    @decorators.db_exceptions
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wmodels.Story, body=wmodels.Story)
     def post(self, story):
@@ -132,6 +136,7 @@ class StoriesController(rest.RestController):
 
         return wmodels.Story.from_db_model(created_story)
 
+    @decorators.db_exceptions
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wmodels.Story, int, body=wmodels.Story)
     def put(self, story_id, story):
@@ -154,6 +159,7 @@ class StoriesController(rest.RestController):
             raise ClientSideError(_("Story %s not found") % story_id,
                                   status_code=404)
 
+    @decorators.db_exceptions
     @secure(checks.superuser)
     @wsme_pecan.wsexpose(wmodels.Story, int)
     def delete(self, story_id):
@@ -168,6 +174,7 @@ class StoriesController(rest.RestController):
     comments = CommentsController()
     events = TimeLineEventsController()
 
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Story], unicode, unicode, int, int)
     def search(self, q="", marker=None, limit=None):

@@ -25,6 +25,7 @@ from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1.search import search_engine
 from storyboard.api.v1 import validations
 from storyboard.api.v1 import wmodels
+from storyboard.common import decorators
 from storyboard.db.api import tasks as tasks_api
 from storyboard.db.api import timeline_events as events_api
 from storyboard.openstack.common.gettextutils import _  # noqa
@@ -42,6 +43,7 @@ class TasksController(rest.RestController):
     validation_post_schema = validations.TASKS_POST_SCHEMA
     validation_put_schema = validations.TASKS_PUT_SCHEMA
 
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose(wmodels.Task, int)
     def get_one(self, task_id):
@@ -57,6 +59,7 @@ class TasksController(rest.RestController):
             raise ClientSideError(_("Task %s not found") % task_id,
                                   status_code=404)
 
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Task], unicode, int, int, int, int,
                          [unicode], [unicode], int, int, unicode, unicode)
@@ -116,6 +119,7 @@ class TasksController(rest.RestController):
 
         return [wmodels.Task.from_db_model(s) for s in tasks]
 
+    @decorators.db_exceptions
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wmodels.Task, body=wmodels.Task)
     def post(self, task):
@@ -136,6 +140,7 @@ class TasksController(rest.RestController):
 
         return wmodels.Task.from_db_model(created_task)
 
+    @decorators.db_exceptions
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wmodels.Task, int, body=wmodels.Task)
     def put(self, task_id, task):
@@ -200,6 +205,7 @@ class TasksController(rest.RestController):
                 task_title=original_task.title,
                 author_id=author_id)
 
+    @decorators.db_exceptions
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wmodels.Task, int)
     def delete(self, task_id):
@@ -219,6 +225,7 @@ class TasksController(rest.RestController):
 
         response.status_code = 204
 
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Task], unicode, unicode, int, int)
     def search(self, q="", marker=None, limit=None):

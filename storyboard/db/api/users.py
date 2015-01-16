@@ -73,8 +73,8 @@ def user_update_preferences(user_id, preferences):
     for key in preferences:
         value = preferences[key]
         prefs = api_base.entity_get_all(models.UserPreference,
-                                       user_id=user_id,
-                                       key=key)
+                                        user_id=user_id,
+                                        key=key)
 
         if prefs:
             pref = prefs[0]
