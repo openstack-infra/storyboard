@@ -13,12 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo.db import exception as db_exc
-
-from storyboard.common import exception as exc
 from storyboard.db.api import base as api_base
 from storyboard.db import models
-from storyboard.openstack.common.gettextutils import _  # noqa
 from storyboard.plugin.user_preferences import PREFERENCE_DEFAULTS
 
 
@@ -50,18 +46,7 @@ def user_get_by_openid(openid):
 
 
 def user_create(values):
-    user = models.User()
-    user.update(values.copy())
-
-    session = api_base.get_session()
-    with session.begin():
-        try:
-            user.save(session=session)
-        except db_exc.DBDuplicateEntry as e:
-            raise exc.DuplicateEntry(_("Duplicate entry for User: %s")
-                                     % e.columns)
-
-    return user
+    return api_base.entity_create(models.User, values)
 
 
 def user_update(user_id, values):
