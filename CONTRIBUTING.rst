@@ -38,8 +38,10 @@ Code Hosting
 
     * https://git.openstack.org/cgit/openstack-infra/storyboard-webclient
 
+    * https://git.openstack.org/cgit/openstack-infra/python-storyboardclient
+
 Code Review
-    https://review.openstack.org/#/q/status:open+AND+(project:openstack-infra/storyboard+OR+project:openstack-infra/storyboard-webclient),n,z
+    https://review.openstack.org/#/q/status:open+AND+(project:openstack-infra/storyboard+OR+project:openstack-infra/storyboard-webclient+OR+project:openstack-infra/python-storyboardclient),n,z
 
     Please read `GerritWorkflow`_ before sending your first patch for review.
 
