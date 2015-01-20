@@ -35,8 +35,14 @@ def authorization_code_delete(code):
 
 
 def refresh_token_get(refresh_token):
-    query = api_base.model_query(models.RefreshToken, api_base.get_session())
-    return query.filter_by(refresh_token=refresh_token).first()
+    try:
+        query = api_base.model_query(models.RefreshToken,
+                                     api_base.get_session())
+        return query.filter_by(refresh_token=refresh_token).first()
+    except Exception:
+        # If anything goes wrong while fetching a token None will be returned
+        # anyway.
+        return None
 
 
 def refresh_token_save(values):
