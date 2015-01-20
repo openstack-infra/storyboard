@@ -20,6 +20,7 @@ from oslo.db import exception as db_exc
 from oslo.db.sqlalchemy import session as db_session
 from oslo.db.sqlalchemy.utils import InvalidSortKey
 from oslo.db.sqlalchemy.utils import paginate_query
+from oslo_log import log
 import six
 import sqlalchemy.types as types
 from wsme.exc import ClientSideError
@@ -27,7 +28,6 @@ from wsme.exc import ClientSideError
 from storyboard.common import exception as exc
 from storyboard.db import models
 from storyboard.openstack.common.gettextutils import _  # noqa
-from storyboard.openstack.common import log
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)

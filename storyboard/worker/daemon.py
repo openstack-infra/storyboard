@@ -15,11 +15,11 @@
 import signal
 
 from multiprocessing import Process
+from oslo_log import log
 from threading import Timer
 
 from oslo.config import cfg
 from storyboard.notifications.subscriber import subscribe
-from storyboard.openstack.common import log
 from storyboard.openstack.common.gettextutils import _LI, _LW  # noqa
 
 
@@ -39,8 +39,9 @@ def run():
     """
     global MANAGER
 
-    log.setup('storyboard')
     CONF.register_cli_opts(IMPORT_OPTS)
+    log.register_options(CONF)
+    log.setup(CONF, 'storyboard')
     CONF(project='storyboard')
 
     signal.signal(signal.SIGTERM, terminate)

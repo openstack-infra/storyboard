@@ -16,6 +16,7 @@
 import uuid
 
 from oslo.config import cfg
+from oslo_log import log
 from pecan import abort
 from pecan import request
 from pecan import response
@@ -29,7 +30,6 @@ import storyboard.api.v1.wmodels as wmodels
 import storyboard.db.api.access_tokens as token_api
 import storyboard.db.api.users as user_api
 from storyboard.openstack.common.gettextutils import _  # noqa
-from storyboard.openstack.common import log
 
 
 CONF = cfg.CONF

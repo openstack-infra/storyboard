@@ -14,11 +14,11 @@
 # limitations under the License.
 
 from oslo.config import cfg
+from oslo_log import log
 import requests
 import six
 
 from storyboard.api.auth import utils
-from storyboard.openstack.common import log
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF

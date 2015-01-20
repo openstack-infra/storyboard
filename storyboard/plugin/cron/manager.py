@@ -14,8 +14,8 @@
 
 from crontab import CronTab
 from oslo.config import cfg
+from oslo_log import log
 
-from storyboard.openstack.common import log
 from storyboard.plugin.base import StoryboardPluginLoader
 from storyboard.plugin.cron.base import CronPluginBase
 

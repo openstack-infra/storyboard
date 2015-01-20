@@ -20,8 +20,9 @@ import os
 import pytz
 import six
 
+from oslo_log import log
+
 from storyboard.common.working_dir import get_working_directory
-from storyboard.openstack.common import log
 import storyboard.plugin.base as plugin_base
 
 

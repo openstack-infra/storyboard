@@ -18,10 +18,10 @@ from datetime import datetime
 from oauthlib.oauth2 import RequestValidator
 from oauthlib.oauth2 import WebApplicationServer
 from oslo.config import cfg
+from oslo_log import log
 
 from storyboard.api.auth.token_storage import storage
 from storyboard.db.api import users as user_api
-from storyboard.openstack.common import log
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)

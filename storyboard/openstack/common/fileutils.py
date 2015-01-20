@@ -18,8 +18,9 @@ import errno
 import os
 import tempfile
 
+from oslo_log import log as logging
+
 from storyboard.openstack.common import excutils
-from storyboard.openstack.common import log as logging
 
 LOG = logging.getLogger(__name__)
 

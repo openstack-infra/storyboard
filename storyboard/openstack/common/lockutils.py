@@ -27,10 +27,10 @@ import time
 import weakref
 
 from oslo.config import cfg
+from oslo_log import log as logging
 
 from storyboard.openstack.common import fileutils
 from storyboard.openstack.common.gettextutils import _, _LE, _LI
-from storyboard.openstack.common import log as logging
 
 
 LOG = logging.getLogger(__name__)
