@@ -12,8 +12,6 @@
 # implied. See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-
 from storyboard.db.api import subscriptions
 from storyboard.db.api import timeline_events
 from storyboard.notifications.subscriptions_handler import handle_deletions
@@ -24,36 +22,38 @@ from storyboard.worker.task.base import WorkerTaskBase
 
 
 class Subscription(WorkerTaskBase):
-    def handle(self, body):
+    def handle(self, author_id, method, path, status, resource, resource_id,
+               sub_resource=None, sub_resource_id=None):
         """This worker handles API events and attempts to determine whether
         they correspond to user subscriptions.
 
-        :param body: The event message body.
-        :return:
+        :param author_id: ID of the author's user record.
+        :param method: The HTTP Method.
+        :param path: The full HTTP Path requested.
+        :param status: The returned HTTP Status of the response.
+        :param resource: The resource type.
+        :param resource_id: The ID of the resource.
+        :param sub_resource: The subresource type.
+        :param sub_resource_id: The ID of the subresource.
         """
-        body_dict = json.loads(body)
+
         subscribers = subscriptions.subscription_get_all_subscriber_ids(
-            body_dict['resource'], body_dict['resource_id']
+            resource, resource_id
         )
 
-        if 'event_id' in body_dict:
-            event_id = body_dict['event_id']
-            event = timeline_events.event_get(event_id)
-            handle_timeline_events(event, body_dict['author_id'], subscribers)
+        if resource == 'timeline_events':
+            event = timeline_events.event_get(resource_id)
+            handle_timeline_events(event, author_id, subscribers)
 
-        elif body_dict['resource'] == 'project_groups':
-            handle_resources(method=body_dict['method'],
-                             resource_id=body_dict['resource_id'],
-                             sub_resource_id=getattr(body_dict,
-                                                     'sub_resource_id', None),
-                             author_id=body_dict['author_id'],
+        elif resource == 'project_groups':
+            handle_resources(method=method,
+                             resource_id=resource_id,
+                             sub_resource_id=sub_resource_id,
+                             author_id=author_id,
                              subscribers=subscribers)
 
-        if body_dict['method'] == 'DELETE':
-            resource_name = body_dict['resource']
-            resource_id = body_dict['resource_id']
-            if 'sub_resource_id' not in body_dict:
-                handle_deletions(resource_name, resource_id)
+        if method == 'DELETE' and not sub_resource_id:
+            handle_deletions(resource, resource_id)
 
     def enabled(self):
         return True

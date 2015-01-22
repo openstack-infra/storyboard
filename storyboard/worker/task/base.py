@@ -33,5 +33,16 @@ class WorkerTaskBase(object):
         """
 
     @abc.abstractmethod
-    def handle(self, body):
-        """Handle an event."""
+    def handle(self, author_id, method, path, status, resource, resource_id,
+               sub_resource=None, sub_resource_id=None):
+        """Handle an event.
+
+        :param author_id: ID of the author's user record.
+        :param method: The HTTP Method.
+        :param path: The full HTTP Path requested.
+        :param status: The returned HTTP Status of the response.
+        :param resource: The resource type.
+        :param resource_id: The ID of the resource.
+        :param sub_resource: The subresource type.
+        :param sub_resource_id: The ID of the subresource.
+        """

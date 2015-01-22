@@ -16,6 +16,7 @@
 import json
 from oslo.config import cfg
 from pecan import request
+from pecan import response
 
 from storyboard.common import event_types
 from storyboard.db.api import base as api_base
@@ -48,13 +49,15 @@ def event_create(values):
     new_event = api_base.entity_create(models.TimeLineEvent, values)
 
     if CONF.enable_notifications:
-        payload = {
-            "author_id": request.current_user_id,
-            "method": "POST",
-            "resource": "timeline_events",
-            "event_id": new_event.id
-        }
-        publish("timeline_events", payload)
+        # Build the payload. Use of None is included to ensure that we don't
+        # accidentally blow up the API call, but we don't anticipate it
+        # happening.
+        publish(author_id=request.current_user_id or None,
+                method="POST",
+                path=request.path or None,
+                status=response.status_code or None,
+                resource="timeline_events",
+                resource_id=new_event.id or None)
 
     return new_event
 

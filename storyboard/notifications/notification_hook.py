@@ -31,52 +31,41 @@ class NotificationHook(hooks.PecanHook):
             return
 
         request = state.request
-        req_method = request.method
-        req_author_id = request.current_user_id
-        req_path = request.path
-        req_resource_grp = self._parse(req_path)
+        response = state.response
 
-        if not req_resource_grp:
+        # Attempt to determine the type of the payload. This checks for
+        # nested paths.
+        (resource, resource_id, subresource, subresource_id) \
+            = self._parse(request.path)
+        if not resource:
             return
 
-        resource = req_resource_grp[0]
-
-        if req_resource_grp[1]:
-            resource_id = req_resource_grp[1]
-        else:
+        if state.request.method == 'POST':
             # When a resource is created..
-            response_str = state.response.body
-            response = json.loads(response_str)
-            if response:
-                resource_id = response.get('id')
+            response_body = json.loads(response.body)
+            if response_body:
+                resource_id = response_body.get('id')
             else:
                 resource_id = None
 
-        # when adding/removing projects to project_groups..
-        if req_resource_grp[3]:
-            sub_resource_id = req_resource_grp[3]
-            payload = {
-                "author_id": req_author_id,
-                "method": req_method,
-                "resource": resource,
-                "resource_id": resource_id,
-                "sub_resource_id": sub_resource_id
-            }
-
-        else:
-            payload = {
-                "author_id": req_author_id,
-                "method": req_method,
-                "resource": resource,
-                "resource_id": resource_id
-            }
-
-        publish(resource, payload)
+        # Build the payload. Use of None is included to ensure that we don't
+        # accidentally blow up the API call, but we don't anticipate it
+        # happening.
+        publish(author_id=request.current_user_id,
+                method=request.method,
+                path=request.path,
+                status=response.status_code,
+                resource=resource,
+                resource_id=resource_id,
+                sub_resource=subresource,
+                sub_resource_id=subresource_id)
 
     def _parse(self, s):
         url_pattern = re.match("^\/v1\/([a-z_]+)\/?([0-9]+)?"
                                "\/?([a-z]+)?\/?([0-9]+)?$", s)
-        if url_pattern and url_pattern.groups()[0] != "openid":
-            return url_pattern.groups()
-        else:
-            return
+        if not url_pattern or url_pattern.groups()[0] == "openid":
+            return None, None, None, None
+
+        groups = url_pattern.groups()
+
+        return groups[0], groups[1], groups[2], groups[3]
