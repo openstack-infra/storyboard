@@ -52,6 +52,35 @@ class TestUsersAsUser(base.FunctionalTest):
         user = user_api.user_get(user_id=2)
         self.assertTrue(user.enable_login)
 
+    def test_malicious_update(self):
+        # Preload the admin user.
+        old_admin = self.get_json('/users/1')
+
+        # Here we are posting to /user/2 with {id: 1, email:
+        # 'omg@example.com'} to see if it allows us to update.
+        response = self.put_json('/users/2',
+                                 {
+                                     'id': 1,
+                                     'full_name': 'omg'
+                                 },
+                                 expect_errors=True)
+
+        # Assert that the post was successful and that the PATH user was
+        # updated.
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(2, response.json['id'])
+        self.assertEqual('omg', response.json['full_name'])
+
+        # Load the user which we've maliciously attempted to update.
+        admin = self.get_json('/users/1')
+        # Make certain that this user was not updated.
+        self.assertEqual(old_admin, admin)
+
+        # Load the user we should have actually updated.
+        real_user = self.get_json('/users/2')
+        # Make certain that this user was not updated.
+        self.assertEqual(response.json, real_user)
+
 
 class TestSearchUsers(base.FunctionalTest):
     def setUp(self):
