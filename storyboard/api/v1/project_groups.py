@@ -24,6 +24,7 @@ import wsmeext.pecan as wsme_pecan
 import storyboard.api.auth.authorization_checks as checks
 from storyboard.api.v1 import validations
 from storyboard.api.v1 import wmodels
+from storyboard.common import decorators
 import storyboard.common.exception as exc
 from storyboard.db.api import project_groups
 from storyboard.db.api import projects
@@ -38,6 +39,7 @@ class ProjectsSubcontroller(rest.RestController):
     Project Group.
     """
 
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Project], int)
     def get(self, project_group_id):
@@ -55,6 +57,7 @@ class ProjectsSubcontroller(rest.RestController):
         return [wmodels.Project.from_db_model(project)
                 for project in project_group.projects]
 
+    @decorators.db_exceptions
     @secure(checks.superuser)
     @wsme_pecan.wsexpose(wmodels.Project, int, int)
     def put(self, project_group_id, project_id):
@@ -65,6 +68,7 @@ class ProjectsSubcontroller(rest.RestController):
 
         return wmodels.Project.from_db_model(projects.project_get(project_id))
 
+    @decorators.db_exceptions
     @secure(checks.superuser)
     @wsme_pecan.wsexpose(None, int, int)
     def delete(self, project_group_id, project_id):
@@ -87,6 +91,7 @@ class ProjectGroupsController(rest.RestController):
     validation_post_schema = validations.PROJECT_GROUPS_POST_SCHEMA
     validation_put_schema = validations.PROJECT_GROUPS_PUT_SCHEMA
 
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose(wmodels.ProjectGroup, int)
     def get_one(self, project_group_id):
@@ -103,6 +108,7 @@ class ProjectGroupsController(rest.RestController):
 
         return wmodels.ProjectGroup.from_db_model(group)
 
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.ProjectGroup], int, int, unicode, unicode,
                          unicode, unicode)
@@ -135,6 +141,7 @@ class ProjectGroupsController(rest.RestController):
 
         return [wmodels.ProjectGroup.from_db_model(group) for group in groups]
 
+    @decorators.db_exceptions
     @secure(checks.superuser)
     @wsme_pecan.wsexpose(wmodels.ProjectGroup, body=wmodels.ProjectGroup)
     def post(self, project_group):
@@ -151,6 +158,7 @@ class ProjectGroupsController(rest.RestController):
 
         return wmodels.ProjectGroup.from_db_model(created_group)
 
+    @decorators.db_exceptions
     @secure(checks.superuser)
     @wsme_pecan.wsexpose(wmodels.ProjectGroup, int, body=wmodels.ProjectGroup)
     def put(self, project_group_id, project_group):
@@ -170,6 +178,7 @@ class ProjectGroupsController(rest.RestController):
 
         return wmodels.ProjectGroup.from_db_model(updated_group)
 
+    @decorators.db_exceptions
     @secure(checks.superuser)
     @wsme_pecan.wsexpose(None, int)
     def delete(self, project_group_id):

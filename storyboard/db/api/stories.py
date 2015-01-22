@@ -91,8 +91,8 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
                                         marker=marker,
                                         sort_dir=sort_dir)
     except InvalidSortKey:
-        raise ClientSideError(_("Invalid sort_field [%s]") % (sort_field,),
-                              status_code=400)
+        raise exc.DBInvalidSortKey(
+            _("Invalid sort_field [%s]") % (sort_field,))
     except ValueError as ve:
         raise ClientSideError(_("%s") % (ve,), status_code=400)
 

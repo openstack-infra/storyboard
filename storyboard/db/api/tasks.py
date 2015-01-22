@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#    http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,6 +16,7 @@
 from oslo.db.sqlalchemy.utils import InvalidSortKey
 from wsme.exc import ClientSideError
 
+from storyboard.common import exception as exc
 from storyboard.db.api import base as api_base
 from storyboard.db import models
 from storyboard.openstack.common.gettextutils import _  # noqa
@@ -44,8 +45,8 @@ def task_get_all(marker=None, limit=None, sort_field=None, sort_dir=None,
                                         marker=marker,
                                         sort_dir=sort_dir)
     except InvalidSortKey:
-        raise ClientSideError(_("Invalid sort_field [%s]") % (sort_field,),
-                              status_code=400)
+        raise exc.DBInvalidSortKey(
+            _("Invalid sort_field [%s]") % (sort_field,))
     except ValueError as ve:
         raise ClientSideError("%s" % (ve,), status_code=400)
 

@@ -24,6 +24,7 @@ import wsmeext.pecan as wsme_pecan
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1.search import search_engine
 from storyboard.api.v1 import wmodels
+from storyboard.common import decorators
 from storyboard.common import event_types
 from storyboard.db.api import comments as comments_api
 from storyboard.db.api import timeline_events as events_api
@@ -37,6 +38,7 @@ SEARCH_ENGINE = search_engine.get_engine()
 class TimeLineEventsController(rest.RestController):
     """Manages comments."""
 
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose(wmodels.TimeLineEvent, int, int)
     def get_one(self, story_id, event_id):
@@ -57,6 +59,7 @@ class TimeLineEventsController(rest.RestController):
             raise ClientSideError(_("Comment %s not found") % event_id,
                                   status_code=404)
 
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.TimeLineEvent], int, int, int, unicode,
                          unicode)
@@ -99,6 +102,7 @@ class TimeLineEventsController(rest.RestController):
 class CommentsController(rest.RestController):
     """Manages comments."""
 
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose(wmodels.Comment, int, int)
     def get_one(self, story_id, comment_id):
@@ -117,6 +121,7 @@ class CommentsController(rest.RestController):
             raise ClientSideError(_("Comment %s not found") % comment_id,
                                   status_code=404)
 
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Comment], int, int, int, unicode, unicode)
     def get_all(self, story_id=None, marker=None, limit=None, sort_field='id',
@@ -166,6 +171,7 @@ class CommentsController(rest.RestController):
 
         return [wmodels.Comment.from_db_model(comment) for comment in comments]
 
+    @decorators.db_exceptions
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wmodels.TimeLineEvent, int, body=wmodels.Comment)
     def post(self, story_id, comment):
@@ -188,6 +194,7 @@ class CommentsController(rest.RestController):
         event = wmodels.TimeLineEvent.resolve_event_values(event)
         return event
 
+    @decorators.db_exceptions
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wmodels.Comment, int, int, body=wmodels.Comment)
     def put(self, story_id, comment_id, comment_body):
@@ -210,6 +217,7 @@ class CommentsController(rest.RestController):
 
         return wmodels.Comment.from_db_model(updated_comment)
 
+    @decorators.db_exceptions
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wmodels.Comment, int, int)
     def delete(self, story_id, comment_id):
@@ -230,6 +238,7 @@ class CommentsController(rest.RestController):
         response.status_code = 204
         return response
 
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Comment], unicode, unicode, int, int)
     def search(self, q="", marker=None, limit=None):

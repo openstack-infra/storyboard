@@ -25,8 +25,10 @@ from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1.search import search_engine
 from storyboard.api.v1 import validations
 from storyboard.api.v1 import wmodels
+from storyboard.common import decorators
 from storyboard.db.api import projects as projects_api
 from storyboard.openstack.common.gettextutils import _  # noqa
+
 
 CONF = cfg.CONF
 
@@ -44,6 +46,7 @@ class ProjectsController(rest.RestController):
     validation_post_schema = validations.PROJECTS_POST_SCHEMA
     validation_put_schema = validations.PROJECTS_PUT_SCHEMA
 
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose(wmodels.Project, int)
     def get_one_by_id(self, project_id):
@@ -60,6 +63,7 @@ class ProjectsController(rest.RestController):
             raise ClientSideError(_("Project %s not found") % project_id,
                                   status_code=404)
 
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose(wmodels.Project, unicode)
     def get_one_by_name(self, project_name):
@@ -76,6 +80,7 @@ class ProjectsController(rest.RestController):
             raise ClientSideError(_("Project %s not found") % project_name,
                                   status_code=404)
 
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Project], int, int, unicode, unicode, int,
                          unicode, unicode)
@@ -121,6 +126,7 @@ class ProjectsController(rest.RestController):
 
         return [wmodels.Project.from_db_model(p) for p in projects]
 
+    @decorators.db_exceptions
     @secure(checks.superuser)
     @wsme_pecan.wsexpose(wmodels.Project, body=wmodels.Project)
     def post(self, project):
@@ -128,9 +134,11 @@ class ProjectsController(rest.RestController):
 
         :param project: a project within the request body.
         """
+
         result = projects_api.project_create(project.as_dict())
         return wmodels.Project.from_db_model(result)
 
+    @decorators.db_exceptions
     @secure(checks.superuser)
     @wsme_pecan.wsexpose(wmodels.Project, int, body=wmodels.Project)
     def put(self, project_id, project):
@@ -155,6 +163,7 @@ class ProjectsController(rest.RestController):
         except ValueError:
             return False
 
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Project], unicode, unicode, int, int)
     def search(self, q="", marker=None, limit=None):

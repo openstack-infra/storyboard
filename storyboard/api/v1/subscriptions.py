@@ -24,6 +24,7 @@ import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
+from storyboard.common import decorators
 from storyboard.db.api import subscriptions as subscription_api
 from storyboard.db.api import users as user_api
 from storyboard.openstack.common.gettextutils import _  # noqa
@@ -62,6 +63,7 @@ class SubscriptionsController(rest.RestController):
     Provides Create, Delete, and search methods for resource subscriptions.
     """
 
+    @decorators.db_exceptions
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(Subscription, int)
     def get_one(self, subscription_id):
@@ -79,6 +81,7 @@ class SubscriptionsController(rest.RestController):
 
         return Subscription.from_db_model(subscription)
 
+    @decorators.db_exceptions
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose([Subscription], int, int, [unicode], int, int,
                          unicode, unicode)
@@ -130,6 +133,7 @@ class SubscriptionsController(rest.RestController):
 
         return [Subscription.from_db_model(s) for s in subscriptions]
 
+    @decorators.db_exceptions
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(Subscription, body=Subscription)
     def post(self, subscription):
@@ -171,6 +175,7 @@ class SubscriptionsController(rest.RestController):
         result = subscription_api.subscription_create(subscription.as_dict())
         return Subscription.from_db_model(result)
 
+    @decorators.db_exceptions
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(None, int)
     def delete(self, subscription_id):

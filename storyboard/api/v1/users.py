@@ -29,6 +29,7 @@ from storyboard.api.v1.user_preferences import UserPreferencesController
 from storyboard.api.v1.user_tokens import UserTokensController
 from storyboard.api.v1 import validations
 from storyboard.api.v1 import wmodels
+from storyboard.common import decorators
 from storyboard.db.api import users as users_api
 from storyboard.openstack.common.gettextutils import _  # noqa
 
@@ -52,6 +53,7 @@ class UsersController(rest.RestController):
     validation_post_schema = validations.USERS_POST_SCHEMA
     validation_put_schema = validations.USERS_PUT_SCHEMA
 
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.User], int, int, unicode, unicode, unicode,
                          unicode)
@@ -91,6 +93,7 @@ class UsersController(rest.RestController):
 
         return [wmodels.User.from_db_model(u) for u in users]
 
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose(wmodels.User, int)
     def get_one(self, user_id):
@@ -109,6 +112,7 @@ class UsersController(rest.RestController):
                                   status_code=404)
         return user
 
+    @decorators.db_exceptions
     @secure(checks.superuser)
     @wsme_pecan.wsexpose(wmodels.User, body=wmodels.User)
     def post(self, user):
@@ -120,6 +124,7 @@ class UsersController(rest.RestController):
         created_user = users_api.user_create(user.as_dict())
         return wmodels.User.from_db_model(created_user)
 
+    @decorators.db_exceptions
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wmodels.User, int, body=wmodels.User)
     def put(self, user_id, user):
@@ -151,6 +156,7 @@ class UsersController(rest.RestController):
         updated_user = users_api.user_update(user_id, user_dict)
         return wmodels.User.from_db_model(updated_user)
 
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.User], unicode, int, int)
     def search(self, q="", marker=None, limit=None):

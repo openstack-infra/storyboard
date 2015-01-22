@@ -24,6 +24,7 @@ import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import validations
+from storyboard.common import decorators
 import storyboard.db.api.users as user_api
 from storyboard.openstack.common.gettextutils import _  # noqa
 
@@ -35,6 +36,7 @@ LOG = log.getLogger(__name__)
 class UserPreferencesController(rest.RestController):
     validation_post_schema = validations.USER_PREFERENCES_POST_SCHEMA
 
+    @decorators.db_exceptions
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(types.DictType(unicode, unicode), int)
     def get_all(self, user_id):
@@ -46,6 +48,7 @@ class UserPreferencesController(rest.RestController):
 
         return user_api.user_get_preferences(user_id)
 
+    @decorators.db_exceptions
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(types.DictType(unicode, unicode), int,
                          body=types.DictType(unicode, unicode))

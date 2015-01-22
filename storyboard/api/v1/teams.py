@@ -25,6 +25,7 @@ import wsmeext.pecan as wsme_pecan
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import validations
 from storyboard.api.v1 import wmodels
+from storyboard.common import decorators
 from storyboard.common import exception as exc
 from storyboard.db.api import teams as teams_api
 from storyboard.db.api import users as users_api
@@ -36,6 +37,7 @@ CONF = cfg.CONF
 class UsersSubcontroller(rest.RestController):
     """This controller should be used to list, add or remove users from a Team.
     """
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.User], int)
     def get(self, team_id):
@@ -51,6 +53,7 @@ class UsersSubcontroller(rest.RestController):
 
         return [wmodels.User.from_db_model(user) for user in team.users]
 
+    @decorators.db_exceptions
     @secure(checks.superuser)
     @wsme_pecan.wsexpose(wmodels.User, int, int)
     def put(self, team_id, user_id):
@@ -61,6 +64,7 @@ class UsersSubcontroller(rest.RestController):
 
         return wmodels.User.from_db_model(user)
 
+    @decorators.db_exceptions
     @secure(checks.superuser)
     @wsme_pecan.wsexpose(None, int, int)
     def delete(self, team_id, user_id):
@@ -76,6 +80,7 @@ class TeamsController(rest.RestController):
     validation_post_schema = validations.TEAMS_POST_SCHEMA
     validation_put_schema = validations.TEAMS_PUT_SCHEMA
 
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose(wmodels.Team, int)
     def get_one_by_id(self, team_id):
@@ -92,6 +97,7 @@ class TeamsController(rest.RestController):
             raise ClientSideError(_("Team %s not found") % team_id,
                                   status_code=404)
 
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose(wmodels.Team, unicode)
     def get_one_by_name(self, team_name):
@@ -108,6 +114,7 @@ class TeamsController(rest.RestController):
             raise ClientSideError(_("Team %s not found") % team_name,
                                   status_code=404)
 
+    @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Team], int, int, unicode, unicode, unicode,
                          unicode)
@@ -148,6 +155,7 @@ class TeamsController(rest.RestController):
 
         return [wmodels.Team.from_db_model(t) for t in teams]
 
+    @decorators.db_exceptions
     @secure(checks.superuser)
     @wsme_pecan.wsexpose(wmodels.Team, body=wmodels.Team)
     def post(self, team):
@@ -158,6 +166,7 @@ class TeamsController(rest.RestController):
         result = teams_api.team_create(team.as_dict())
         return wmodels.Team.from_db_model(result)
 
+    @decorators.db_exceptions
     @secure(checks.superuser)
     @wsme_pecan.wsexpose(wmodels.Team, int, body=wmodels.Team)
     def put(self, team_id, team):
@@ -203,6 +212,7 @@ class TeamsController(rest.RestController):
         # Use default routing for all other requests
         return super(TeamsController, self)._route(args, request)
 
+    @decorators.db_exceptions
     @secure(checks.superuser)
     @wsme_pecan.wsexpose(None, int)
     def delete(self, team_id):
