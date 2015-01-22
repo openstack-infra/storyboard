@@ -13,10 +13,10 @@
 # under the License.
 
 from oslo.config import cfg
+from oslo_log import log
 
 from storyboard.db.api import base as db_api
 from storyboard.migrate.launchpad.loader import LaunchpadLoader
-from storyboard.openstack.common import log
 
 IMPORT_OPTS = [
     cfg.StrOpt("from-project",
@@ -38,8 +38,9 @@ LOG = log.getLogger(__name__)
 
 
 def main():
-    log.setup('storyboard')
     CONF.register_cli_opts(IMPORT_OPTS)
+    log.register_options(CONF)
+    log.setup(CONF, 'storyboard')
     CONF(project='storyboard')
 
     # If the user requested an autoincrement value, set that before we start

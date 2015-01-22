@@ -14,8 +14,9 @@
 
 import atexit
 
+from oslo_log import log
+
 from oslo.config import cfg
-from storyboard.openstack.common import log
 from storyboard.plugin.base import StoryboardPluginLoader
 from storyboard.plugin.cron.manager import CronManager
 
@@ -35,8 +36,9 @@ def main():
     crontab to target different plugins on different execution intervals.
     """
     CONF.register_cli_opts(CRON_OPTS)
+    log.register_options(CONF)
     CONF(project='storyboard')
-    log.setup('storyboard')
+    log.setup(CONF, 'storyboard')
 
     loader = StoryboardPluginLoader(namespace="storyboard.plugin.cron")
 

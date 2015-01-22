@@ -16,6 +16,8 @@
 import os
 
 from oslo.config import cfg
+from oslo_log import _options
+from oslo_log import log
 import pecan
 from wsgiref import simple_server
 
@@ -30,7 +32,6 @@ from storyboard.api.v1.search import impls as search_engine_impls
 from storyboard.api.v1.search import search_engine
 from storyboard.notifications.notification_hook import NotificationHook
 from storyboard.openstack.common.gettextutils import _LI  # noqa
-from storyboard.openstack.common import log
 from storyboard.plugin.cron import load_crontab
 from storyboard.plugin.user_preferences import initialize_user_preferences
 
@@ -38,6 +39,7 @@ CONF = cfg.CONF
 
 LOG = log.getLogger(__name__)
 
+log.register_options(CONF)
 API_OPTS = [
     cfg.StrOpt('bind_host',
                default='0.0.0.0',
@@ -72,13 +74,13 @@ def setup_app(pecan_config=None):
         pecan_config = get_pecan_config()
 
     # Setup logging
-    cfg.set_defaults(log.log_opts,
+    cfg.set_defaults(_options.log_opts,
                      default_log_levels=[
                          'storyboard=INFO',
                          'storyboard.openstack.common.db=WARN',
                          'sqlalchemy=WARN'
                      ])
-    log.setup('storyboard')
+    log.setup(CONF, 'storyboard')
 
     hooks = [
         user_id_hook.UserIdHook(),

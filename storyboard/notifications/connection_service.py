@@ -18,8 +18,8 @@ from threading import Timer
 import pika
 
 from oslo.config import cfg
+from oslo_log import log
 
-from storyboard.openstack.common import log
 from storyboard.openstack.common.gettextutils import _, _LI  # noqa
 
 

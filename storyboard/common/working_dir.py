@@ -16,8 +16,7 @@
 import os
 
 from oslo.config import cfg
-
-from storyboard.openstack.common import log
+from oslo_log import log
 
 LOG = log.getLogger(__name__)
 

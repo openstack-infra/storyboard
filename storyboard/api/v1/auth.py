@@ -15,6 +15,7 @@
 
 import json
 
+from oslo_log import log
 import pecan
 from pecan import request
 from pecan import response
@@ -24,7 +25,6 @@ import six
 from storyboard.api.auth.oauth_validator import SERVER
 from storyboard.api.auth.openid_client import client as openid_client
 from storyboard.api.auth.token_storage import storage
-from storyboard.openstack.common import log
 
 LOG = log.getLogger(__name__)
 

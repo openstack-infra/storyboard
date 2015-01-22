@@ -17,6 +17,7 @@ import warnings
 import yaml
 
 from oslo.config import cfg
+from oslo_log import log
 from sqlalchemy.exc import SADeprecationWarning
 
 from storyboard.common.custom_types import NameType
@@ -24,7 +25,6 @@ from storyboard.db.api import base as db_api
 from storyboard.db.models import Project
 from storyboard.db.models import ProjectGroup
 from storyboard.openstack.common.gettextutils import _LW  # noqa
-from storyboard.openstack.common import log
 
 
 warnings.simplefilter("ignore", SADeprecationWarning)

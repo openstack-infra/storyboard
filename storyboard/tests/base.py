@@ -21,6 +21,7 @@ import uuid
 from alembic import command
 import fixtures
 from oslo.config import cfg
+from oslo_log import log as logging
 import pecan
 import pecan.testing
 import six
@@ -30,7 +31,6 @@ import testtools
 from storyboard.db.api import base as db_api_base
 from storyboard.db.migration.cli import get_alembic_config
 from storyboard.openstack.common import lockutils
-from storyboard.openstack.common import log as logging
 import storyboard.tests.mock_data as mock_data
 
 
@@ -41,7 +41,8 @@ _TRUE_VALUES = ('true', '1', 'yes')
 
 _DB_CACHE = None
 
-logging.setup('storyboard')
+logging.register_options(CONF)
+logging.setup(CONF, 'storyboard')
 
 
 class TestCase(testtools.TestCase):

@@ -26,10 +26,10 @@ import signal
 
 from eventlet.green import subprocess
 from eventlet import greenthread
+from oslo_log import log as logging
 import six
 
 from storyboard.openstack.common.gettextutils import _
-from storyboard.openstack.common import log as logging
 
 
 LOG = logging.getLogger(__name__)

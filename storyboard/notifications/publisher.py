@@ -16,11 +16,11 @@
 import json
 
 from oslo.config import cfg
+from oslo_log import log
 from pika.exceptions import ConnectionClosed
 
 from storyboard.notifications.conf import NOTIFICATION_OPTS
 from storyboard.notifications.connection_service import ConnectionService
-from storyboard.openstack.common import log
 from storyboard.openstack.common.gettextutils import _, _LW, _LE  # noqa
 
 

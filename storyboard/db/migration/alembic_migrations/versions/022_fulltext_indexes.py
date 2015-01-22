@@ -25,8 +25,7 @@ down_revision = '021'
 
 
 from alembic import op
-
-from storyboard.openstack.common import log
+from oslo_log import log
 
 LOG = log.getLogger(__name__)
 
