@@ -340,7 +340,7 @@ def _story_build_summary_query():
         ).label('status')
     )
     for task_status in Task.TASK_STATUSES:
-        select_items.append(func.cast(
+        select_items.append(expr.cast(
             func.sum(Task.status == task_status), Integer
         ).label(task_status))
     select_items.append(expr.null().label('task_statuses'))

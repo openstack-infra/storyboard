@@ -13,9 +13,9 @@ python-openid
 PyYAML>=3.1.0
 requests>=1.1
 six>=1.7.0
-SQLAlchemy>=0.8,<=0.8.99
+SQLAlchemy>=0.9.7,<=0.9.99
 WSME>=0.6
-sqlalchemy-migrate>=0.8.2,!=0.8.4
+sqlalchemy-migrate>=0.9.1,!=0.9.2
 SQLAlchemy-FullText-Search
 eventlet>=0.13.0
 stevedore>=1.0.0
