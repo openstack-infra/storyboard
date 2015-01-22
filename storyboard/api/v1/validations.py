@@ -16,6 +16,7 @@
 import copy
 
 from storyboard.db.models import CommonLength
+from storyboard.db.models import Task
 
 
 USERS_PUT_SCHEMA = {
@@ -28,20 +29,29 @@ USERS_PUT_SCHEMA = {
             "maxLength": CommonLength.name_length
         },
         "full_name": {
-            "type": ["string"],
+            "type": "string",
             "minLength": CommonLength.lower_middle_length,
             "maxLength": CommonLength.top_large_length
         },
         "email": {
-            "type": ["string"],
+            "type": "string",
             "minLength": CommonLength.lower_large_length,
             "maxLength": CommonLength.top_large_length
         },
-        "openid": {
-            "type": ["string", "null"],
-            "maxLength": CommonLength.top_large_length
+        "is_staff": {
+            "type": ["boolean", "null"]
+        },
+        "is_active": {
+            "type": ["boolean", "null"]
+        },
+        "is_superuser": {
+            "type": ["boolean", "null"]
+        },
+        "enable_login": {
+            "type": ["boolean", "null"]
         }
-    }
+    },
+    "additionalProperties": False
 }
 
 USERS_POST_SCHEMA = copy.deepcopy(USERS_PUT_SCHEMA)
@@ -52,7 +62,7 @@ USER_PREFERENCES_POST_SCHEMA = {
     "type": "object",
     "patternProperties": {
         "^.{3,100}$": {
-            "type": ["string", "boolean", "number", "null"],
+            "type": ["string", "boolean", "number"],
             "minLength": CommonLength.lower_short_length,
             "maxLength": CommonLength.top_large_length
         }
@@ -69,7 +79,8 @@ TEAMS_PUT_SCHEMA = {
             "minLength": CommonLength.lower_middle_length,
             "maxLength": CommonLength.top_large_length
         }
-    }
+    },
+    "additionalProperties": False
 }
 
 TEAMS_POST_SCHEMA = copy.deepcopy(TEAMS_PUT_SCHEMA)
@@ -91,7 +102,8 @@ PERMISSIONS_PUT_SCHEMA = {
             "type": "string",
             "maxLength": CommonLength.top_large_length
         }
-    }
+    },
+    "additionalProperties": False
 }
 
 PERMISSIONS_POST_SCHEMA = copy.deepcopy(PERMISSIONS_PUT_SCHEMA)
@@ -106,11 +118,18 @@ PROJECTS_PUT_SCHEMA = {
             "minLength": CommonLength.lower_large_length,
             "maxLength": CommonLength.top_short_length
         },
+        "description": {
+            "type": ["string", "null"]
+        },
         "repo_url": {
             "type": ["string", "null"],
             "maxLength": CommonLength.top_large_length
+        },
+        "is_active": {
+            "type": ["boolean", "null"]
         }
-    }
+    },
+    "additionalProperties": False
 }
 
 PROJECTS_POST_SCHEMA = copy.deepcopy(PROJECTS_PUT_SCHEMA)
@@ -130,7 +149,8 @@ PROJECT_GROUPS_PUT_SCHEMA = {
             "minLength": CommonLength.lower_middle_length,
             "maxLength": CommonLength.top_large_length
         }
-    }
+    },
+    "additionalProperties": False
 }
 
 PROJECT_GROUPS_POST_SCHEMA = copy.deepcopy(PROJECT_GROUPS_PUT_SCHEMA)
@@ -144,8 +164,15 @@ STORIES_PUT_SCHEMA = {
             "type": "string",
             "minLength": CommonLength.lower_large_length,
             "maxLength": CommonLength.top_large_length,
+        },
+        "description": {
+            "type": ["string", "null"]
+        },
+        "is_bug": {
+            "type": ["boolean", "null"]
         }
-    }
+    },
+    "additionalProperties": False
 }
 
 STORIES_POST_SCHEMA = copy.deepcopy(STORIES_PUT_SCHEMA)
@@ -159,12 +186,30 @@ TASKS_PUT_SCHEMA = {
             "type": "string",
             "minLength": CommonLength.lower_middle_length,
             "maxLength": CommonLength.top_large_length
+        },
+        "status": {
+            "type": ["string", "null"],
+            "enum": Task.TASK_STATUSES.keys() + [None]
+        },
+        "priority": {
+            "type": ["string", "null"],
+            "enum": [key for key in Task._TASK_PRIORITIES] + [None]
+        },
+        "story_id": {
+            "type": "integer"
+        },
+        "project_id": {
+            "type": "integer"
+        },
+        "assignee_id": {
+            "type": ["integer", "null"]
         }
-    }
+    },
+    "additionalProperties": False
 }
 
 TASKS_POST_SCHEMA = copy.deepcopy(TASKS_PUT_SCHEMA)
-TASKS_POST_SCHEMA["required"] = ["title"]
+TASKS_POST_SCHEMA["required"] = ["title", "story_id", "project_id"]
 
 STORY_TAGS_PUT_SCHEMA = {
     "name": "storyTag_schema",
@@ -175,7 +220,8 @@ STORY_TAGS_PUT_SCHEMA = {
             "minLength": CommonLength.lower_middle_length,
             "maxLength": CommonLength.top_short_length
         }
-    }
+    },
+    "additionalProperties": False
 }
 
 STORY_TAGS_POST_SCHEMA = copy.deepcopy(STORY_TAGS_PUT_SCHEMA)

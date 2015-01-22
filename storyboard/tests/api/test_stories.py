@@ -51,7 +51,6 @@ class TestStories(base.FunctionalTest):
         original = json.loads(response.body)
 
         delta = {
-            'id': original['id'],
             'title': 'new title',
             'description': 'new description'
         }

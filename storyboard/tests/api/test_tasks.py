@@ -25,7 +25,8 @@ class TestTasks(base.FunctionalTest):
         self.task_01 = {
             'title': 'StoryBoard',
             'status': 'todo',
-            'story_id': 1
+            'story_id': 1,
+            'project_id': 1
         }
         self.default_headers['Authorization'] = 'Bearer valid_superuser_token'
 
@@ -37,7 +38,8 @@ class TestTasks(base.FunctionalTest):
         result = self.post_json(self.resource, {
             'title': 'StoryBoard',
             'status': 'todo',
-            'story_id': 1
+            'story_id': 1,
+            'project_id': 1
         })
 
         # Retrieve the created task
