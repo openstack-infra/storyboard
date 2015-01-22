@@ -12,7 +12,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import unittest
 
 from storyboard.db.api import users as user_api
 from storyboard.tests import base
@@ -24,7 +23,6 @@ class TestUsersAsSuperuser(base.FunctionalTest):
         self.resource = '/users'
         self.default_headers['Authorization'] = 'Bearer valid_superuser_token'
 
-    @unittest.skip("Method put in UsersController must be modified.")
     def test_update_enable_login(self):
         path = self.resource + '/2'
 
@@ -32,9 +30,7 @@ class TestUsersAsSuperuser(base.FunctionalTest):
         self.assertIsNotNone(jenkins)
 
         # Try to modify the enable_login field
-        jenkins['enable_login'] = False
-
-        self.put_json(path, jenkins)
+        self.put_json(path, {'enable_login': False})
         user = user_api.user_get(user_id=2)
         self.assertFalse(user.enable_login)
 
@@ -52,9 +48,7 @@ class TestUsersAsUser(base.FunctionalTest):
         self.assertIsNotNone(jenkins)
 
         # Try to modify the enable_login field
-        jenkins['enable_login'] = False
-
-        self.put_json(path, jenkins)
+        self.put_json(path, {'enable_login': False})
         user = user_api.user_get(user_id=2)
         self.assertTrue(user.enable_login)
 

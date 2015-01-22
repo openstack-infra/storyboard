@@ -14,7 +14,6 @@
 
 import json
 import six
-import unittest
 
 from storyboard.tests import base
 
@@ -95,7 +94,6 @@ class TestUsers(base.FunctionalTest):
         }
 
         self.put_user_01 = {
-            'id': 2,
             'full_name': 'new full_name of regular User'
         }
 
@@ -115,12 +113,10 @@ class TestUsers(base.FunctionalTest):
         create_invalid_length(self, self.user_03, self.resource, 'full_name')
         create_invalid_required(self, self.user_04, self.resource, 'username')
 
-    @unittest.skip("Method put in UsersController must be modified.")
     def test_update(self):
         resource = "".join([self.resource, "/2"])
         update(self, self.put_user_01, resource)
 
-    @unittest.skip("Method put in UsersController must be modified.")
     def test_update_invalid(self):
         resource = "".join([self.resource, "/2"])
         update_invalid(self, self.put_user_02, resource, 'full_name')
