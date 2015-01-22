@@ -105,6 +105,10 @@ PROJECTS_PUT_SCHEMA = {
             "type": "string",
             "minLength": CommonLength.lower_large_length,
             "maxLength": CommonLength.top_short_length
+        },
+        "repo_url": {
+            "type": ["string", "null"],
+            "maxLength": CommonLength.top_large_length
         }
     }
 }
