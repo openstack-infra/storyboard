@@ -15,8 +15,11 @@
 
 import os
 
+import six
+
 from oslo.config import cfg
 from oslo_log import log
+
 
 LOG = log.getLogger(__name__)
 
@@ -37,36 +40,33 @@ def get_working_directory():
     global WORKING_DIRECTORY
 
     if not WORKING_DIRECTORY:
-        # Try to resolve the configured directory.
-        conf_path = CONF.working_directory
 
-        # Expand any users. This is a noop if no ~ references are
-        # found.
-        conf_path = os.path.expanduser(conf_path)
+        # Expand users, backlinks, and references.
+        path = os.path.expanduser(CONF.working_directory)
+        path = os.path.realpath(path)
 
-        # Expand backlinks and references
-        conf_path = os.path.realpath(conf_path)
+        try:
+            # Make sure the directory exists (this will noop if it already
+            # exists.
+            os.makedirs(path)
 
-        if not os.path.exists(conf_path):
-            try:
-                os.makedirs(conf_path)
-            except Exception:
-                # Hard exit, we need this.
-                LOG.error("Cannot create working directory: %s" % (conf_path,))
-                exit(1)
+            # Now that we know it exists, assert that it's a directory
+            if not os.path.isdir(path):
+                raise Exception("%s is not a directory." % (path,))
 
-            if not os.path.isdir(conf_path):
-                LOG.error("Configured working directory is not a directory: %s"
-                          % (conf_path,))
-                exit(1)
+            # Make sure we can write to it.
+            if not os.access(path, os.W_OK):
+                raise Exception("%s is not writeable." % (path,))
 
-            if not os.access(conf_path, os.W_OK):
-                LOG.error("Cannot write to working directory: %s"
-                          % (conf_path,))
-                exit(1)
+        except (OSError, Exception) as e:
+            # We're expecting OSError or Exception here. Recast and resend,
+            # so that any part of the application can respond.
+            message = six.text_type(e)
+            LOG.error("Cannot create working directory: " % (message))
+            raise IOError(message)
 
-        # We've passed all our checks, let's save our working directory.
-        WORKING_DIRECTORY = conf_path
+        # Use this directory and return.
+        WORKING_DIRECTORY = path
 
     return WORKING_DIRECTORY
 
