@@ -66,7 +66,6 @@ class TestProjectGroups(base.FunctionalTest):
         original = json.loads(response.body)
 
         delta = {
-            'id': original['id'],
             'name': 'new-name',
             'title': 'new title'
         }
@@ -85,7 +84,6 @@ class TestProjectGroups(base.FunctionalTest):
         original = json.loads(response.body)
 
         delta = {
-            'id': original['id'],
             'name': 'new-name is invalid!',
         }
 

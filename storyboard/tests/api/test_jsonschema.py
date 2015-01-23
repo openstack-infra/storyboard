@@ -44,6 +44,15 @@ def create_invalid_required(test_class, entity, resource, field=""):
                            field, response_body["message"])
 
 
+def create_invalid_wrong_field(test_class, entity, resource, field=""):
+    response = test_class.post_json(resource, entity, expect_errors=True)
+    response_body = json.loads(response.body)
+    test_class.assertEqual(400, response.status_code)
+    test_class.assertEqual(six.text_type('Additional properties are not '
+                                         'allowed (u\'%s\' was unexpected)') %
+                           field, response_body["message"])
+
+
 def update(test_class, entity, resource):
     response = test_class.put_json(resource, entity)
     response_body = json.loads(response.body)
@@ -70,27 +79,30 @@ class TestUsers(base.FunctionalTest):
             'username': 'jsonschema_test_user1',
             'full_name': 'jsonschema_test_user1',
             'email': 'jsonschema_test_user1@test.ru',
-            'openid': 'qwerty'
         }
 
         self.user_02 = {
             'username': 't2',
             'full_name': 'jsonschema_test_user2',
             'email': 'jsonschema_test_user2@test.ru',
-            'openid': 'qwertyu'
         }
 
         self.user_03 = {
             'username': 'jsonschema_test_user3',
             'full_name': LONG_STRING,
             'email': 'jsonschema_test_user3@test.ru',
-            'openid': 'qwertyui'
         }
 
         self.user_04 = {
             'full_name': 'jsonschema_test_user4',
             'email': 'jsonschema_test_user4@test.ru',
-            'openid': 'qwertyuio'
+        }
+
+        self.user_05 = {
+            'username': 'jsonschema_test_user5',
+            'full_name': 'jsonschema_test_user5',
+            'email': 'jsonschema_test_user5@test.ru',
+            'openid': 'qwerty'
         }
 
         self.put_user_01 = {
@@ -112,6 +124,7 @@ class TestUsers(base.FunctionalTest):
         create_invalid_length(self, self.user_02, self.resource, 'username')
         create_invalid_length(self, self.user_03, self.resource, 'full_name')
         create_invalid_required(self, self.user_04, self.resource, 'username')
+        create_invalid_wrong_field(self, self.user_05, self.resource, 'openid')
 
     def test_update(self):
         resource = "".join([self.resource, "/2"])
@@ -149,8 +162,13 @@ class TestProjects(base.FunctionalTest):
             'description': 'jsonschema_description_04'
         }
 
+        self.project_05 = {
+            'name': 'jsonschema-project-05',
+            'description': 'jsonschema_description_05',
+            'id': 2
+        }
+
         self.put_project_01 = {
-            'id': 2,
             'description': 'jsonschema_put_description_01'
         }
 
@@ -169,6 +187,7 @@ class TestProjects(base.FunctionalTest):
         create_invalid_length(self, self.project_02, self.resource, 'name')
         create_invalid_length(self, self.project_03, self.resource, 'name')
         create_invalid_required(self, self.project_04, self.resource, 'name')
+        create_invalid_wrong_field(self, self.project_05, self.resource, 'id')
 
     def test_update(self):
         resource = "".join([self.resource, "/2"])
@@ -199,6 +218,10 @@ class TestUserPreferences(base.FunctionalTest):
             'stringPref': LONG_STRING
         }
 
+        self.preferences_04 = {
+            'stringPref': None
+        }
+
     def test_create(self):
         create(self, self.preferences_01, self.resource)
 
@@ -206,6 +229,8 @@ class TestUserPreferences(base.FunctionalTest):
         create_invalid_length(self, self.preferences_02, self.resource,
                               'stringPref')
         create_invalid_length(self, self.preferences_03, self.resource,
+                              'stringPref')
+        create_invalid_length(self, self.preferences_04, self.resource,
                               'stringPref')
 
 
@@ -231,6 +256,11 @@ class TestTeams(base.FunctionalTest):
         self.team_04 = {
         }
 
+        self.team_05 = {
+            'name': 'jsonschema-team-01',
+            'id': 1
+        }
+
     def test_create(self):
         create(self, self.team_01, self.resource)
 
@@ -240,6 +270,7 @@ class TestTeams(base.FunctionalTest):
         create_invalid_length(self, self.team_03, self.resource,
                               'name')
         create_invalid_required(self, self.team_04, self.resource, 'name')
+        create_invalid_wrong_field(self, self.team_05, self.resource, 'id')
 
 
 class TestProjectGroups(base.FunctionalTest):
@@ -268,6 +299,12 @@ class TestProjectGroups(base.FunctionalTest):
             'name': 'jsonschema-project-group-04',
         }
 
+        self.project_group_05 = {
+            'name': 'jsonschema-project-group-05',
+            'title': 'jsonschema_project_group_title_05',
+            'id': 1
+        }
+
         self.put_project_group_01 = {
             'title': 'put_project_group_01'
         }
@@ -290,6 +327,8 @@ class TestProjectGroups(base.FunctionalTest):
                               'title')
         create_invalid_required(self, self.project_group_04, self.resource,
                                 'title')
+        create_invalid_wrong_field(self, self.project_group_05, self.resource,
+                                   'id')
 
     def test_update(self):
         resource = "".join([self.resource, "/2"])
@@ -327,6 +366,12 @@ class TestStories(base.FunctionalTest):
             'description': 'jsonschema_story_description_04'
         }
 
+        self.story_05 = {
+            'title': 'jsonschema_story_05',
+            'description': 'jsonschema_story_description_05',
+            'id': 1
+        }
+
         self.put_story_01 = {
             'title': 'put_story_01'
         }
@@ -349,6 +394,7 @@ class TestStories(base.FunctionalTest):
                               'title')
         create_invalid_required(self, self.story_04, self.resource,
                                 'title')
+        create_invalid_wrong_field(self, self.story_05, self.resource, 'id')
 
     def test_update(self):
         resource = "".join([self.resource, "/2"])
@@ -369,21 +415,50 @@ class TestTasks(base.FunctionalTest):
 
         self.task_01 = {
             'title': 'jsonschema_task_01',
-            'story_id': 1
+            'story_id': 1,
+            'project_id': 1,
+            'priority': "low",
+            'status': 'todo'
         }
 
         self.task_02 = {
             'title': 'ts',
-            'story_id': 1
+            'story_id': 1,
+            'project_id': 1,
         }
 
         self.task_03 = {
             'title': LONG_STRING,
-            'story_id': 1
+            'story_id': 1,
+            'project_id': 1,
         }
 
         self.task_04 = {
-            'story_id': 1
+            'story_id': 1,
+            'project_id': 1,
+        }
+
+        self.task_05 = {
+            'title': 'jsonschema_task_05',
+            'story_id': 1,
+            'project_id': 1,
+            'priority': 'unknown_priority'
+        }
+
+        self.task_06 = {
+            'title': 'jsonschema_task_06',
+            'story_id': 1,
+            'project_id': 1,
+            'status': 'unknown_status'
+        }
+
+        self.task_07 = {
+            'title': 'jsonschema_task_01',
+            'story_id': 1,
+            'project_id': 1,
+            'priority': 'low',
+            'status': 'merged',
+            'id': 1
         }
 
         self.put_task_01 = {
@@ -408,6 +483,11 @@ class TestTasks(base.FunctionalTest):
                               'title')
         create_invalid_required(self, self.task_04, self.resource,
                                 'title')
+        create_invalid_length(self, self.task_05, self.resource,
+                              'priority')
+        create_invalid_length(self, self.task_06, self.resource,
+                              'status')
+        create_invalid_wrong_field(self, self.task_07, self.resource, 'id')
 
     def test_update(self):
         resource = "".join([self.resource, "/2"])
