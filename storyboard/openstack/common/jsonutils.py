@@ -37,12 +37,12 @@ import inspect
 import itertools
 import json
 
+from oslo.utils import importutils
+from oslo.utils import timeutils
 import six
 import six.moves.xmlrpc_client as xmlrpclib
 
 from storyboard.openstack.common import gettextutils
-from storyboard.openstack.common import importutils
-from storyboard.openstack.common import timeutils
 
 netaddr = importutils.try_import("netaddr")
 
