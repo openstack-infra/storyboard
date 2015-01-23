@@ -29,13 +29,8 @@ def access_token_get(access_token_id):
 
 
 def access_token_get_by_token(access_token):
-    results = api_base.entity_get_all(models.AccessToken,
-                                      access_token=access_token)
-
-    if not results:
-        return None
-    else:
-        return results[0]
+    return api_base.model_query(models.AccessToken)\
+        .filter_by(access_token=access_token).first()
 
 
 def access_token_get_all(marker=None, limit=None, sort_field=None,

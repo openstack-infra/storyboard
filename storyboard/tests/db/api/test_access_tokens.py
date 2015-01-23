@@ -35,6 +35,19 @@ class TokenTest(base.BaseDbTestCase):
 
         users.user_create({"fullname": "Test User"})
 
+    def test_get_existing_token(self):
+        self.assertIsNotNone(
+            access_tokens.access_token_get_by_token("valid_user_token"))
+
+    def test_get_by_prefix(self):
+        # This test checks that a token is not fetch by LIKE comparison
+        self.assertIsNone(
+            access_tokens.access_token_get_by_token("valid_user_t"))
+
+    def test_get_not_existing(self):
+        self.assertIsNone(
+            access_tokens.access_token_get_by_token("not_a_token"))
+
     def test_create_token(self):
         self._test_create(self.token_01, access_tokens.access_token_create)
 
