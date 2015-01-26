@@ -69,6 +69,20 @@ class TestUserPreferencesAsUser(base.FunctionalTest):
         self.assertTrue('oh hai', response['stringPref'])
         self.assertTrue('bar', response['foo'])
 
+        self.post_json(self.resource, {
+            'foo': 'fizz',
+            'intPref': None,
+            'boolPref': None,
+            'stringPref': None,
+            'floatPref': None
+        })
+
+        response = self.get_json(self.resource)
+        self.assertEqual('fizz', response['foo'])
+        self.assertFalse(hasattr(response, 'intPref'))
+        self.assertFalse(hasattr(response, 'stringPref'))
+        self.assertFalse(hasattr(response, 'boolPref'))
+
     def test_get_unauthorized(self):
         """This test asserts that the preferences controller comes back with
         'something'. Individual plugins should make sure that their own
