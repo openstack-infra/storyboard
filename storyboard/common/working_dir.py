@@ -62,7 +62,7 @@ def get_working_directory():
             # We're expecting OSError or Exception here. Recast and resend,
             # so that any part of the application can respond.
             message = six.text_type(e)
-            LOG.error("Cannot create working directory: " % (message))
+            LOG.error("Cannot create working directory: %s" % (message,))
             raise IOError(message)
 
         # Use this directory and return.
