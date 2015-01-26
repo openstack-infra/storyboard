@@ -36,7 +36,7 @@ class NotificationHook(hooks.PecanHook):
         # Attempt to determine the type of the payload. This checks for
         # nested paths.
         (resource, resource_id, subresource, subresource_id) \
-            = self._parse(request.path)
+            = self.parse(request.path)
         if not resource:
             return
 
@@ -60,12 +60,42 @@ class NotificationHook(hooks.PecanHook):
                 sub_resource=subresource,
                 sub_resource_id=subresource_id)
 
-    def _parse(self, s):
+    def parse(self, s):
         url_pattern = re.match("^\/v1\/([a-z_]+)\/?([0-9]+)?"
                                "\/?([a-z]+)?\/?([0-9]+)?$", s)
         if not url_pattern or url_pattern.groups()[0] == "openid":
             return None, None, None, None
 
         groups = url_pattern.groups()
+        resource = self.singularize_resource(groups[0])
+        sub_resource = self.singularize_resource(groups[2])
 
-        return groups[0], groups[1], groups[2], groups[3]
+        return resource, groups[1], sub_resource, groups[3]
+
+    def singularize_resource(self, resource_name):
+        """Convert a resource name into its singular version."""
+
+        resource_naming_dict = {
+
+            # Top level resources
+            'stories': 'story',
+            'projects': 'project',
+            'project_groups': 'project_group',
+            'tasks': 'task',
+            'timeline_events': 'timeline_event',
+            'users': 'user',
+            'teams': 'team',
+            'tags': 'tag',
+            'task_statuses': 'task_status',
+            'subscriptions': 'subscription',
+            'subscription_events': 'subscription_event',
+            'systeminfo': 'systeminfo',
+            'openid': 'openid',
+
+            # Second level resources
+            'comments': 'comment'
+        }
+
+        if not resource_name or resource_name not in resource_naming_dict:
+            return None
+        return resource_naming_dict.get(resource_name)

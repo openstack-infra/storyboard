@@ -96,8 +96,8 @@ class Subscriber(ConnectionService):
         super(Subscriber, self).__init__(conf)
 
         self._queue_name = conf.rabbit_event_queue_name
-        self._binding_keys = ['tasks', 'stories', 'projects', 'project_groups',
-                              'timeline_events']
+        self._binding_keys = ['task', 'story', 'project', 'project_group',
+                              'timeline_event']
         self.add_open_hook(self._declare_queue)
 
     def _declare_queue(self):

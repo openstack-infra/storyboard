@@ -37,16 +37,16 @@ class Subscription(WorkerTaskBase):
         :param sub_resource_id: The ID of the subresource.
         """
 
-        if resource == 'timeline_events':
+        if resource == 'timeline_event':
             event = timeline_events.event_get(resource_id)
             subscribers = subscriptions.subscription_get_all_subscriber_ids(
                 'story', event.story_id
             )
             handle_timeline_events(event, author_id, subscribers)
 
-        elif resource == 'project_groups':
+        elif resource == 'project_group':
             subscribers = subscriptions.subscription_get_all_subscriber_ids(
-                'project_group', resource_id
+                resource, resource_id
             )
             handle_resources(method=method,
                              resource_id=resource_id,

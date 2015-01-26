@@ -56,7 +56,7 @@ def event_create(values):
                 method="POST",
                 path=request.path or None,
                 status=response.status_code or None,
-                resource="timeline_events",
+                resource="timeline_event",
                 resource_id=new_event.id or None)
 
     return new_event
