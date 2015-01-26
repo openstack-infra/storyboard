@@ -16,6 +16,7 @@
 from sqlalchemy import distinct
 
 from storyboard.db.api import base as api_base
+import storyboard.db.api.timeline_events as timeline_api
 from storyboard.db import models
 
 SUPPORTED_TYPES = {
@@ -88,6 +89,16 @@ def subscription_get_all_subscriber_ids(resource, resource_id):
         'story': set(),
         'task': set()
     }
+
+    # If we accidentally pass a timeline_event, we're actually going to treat
+    # it as a story.
+    if resource == 'timeline_event':
+        event = timeline_api.event_get(resource_id)
+        if event:
+            resource = 'story'
+            resource_id = event.story_id
+        else:
+            return set()
 
     # Sanity check exit.
     if resource not in affected.keys():

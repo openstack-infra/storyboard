@@ -14,13 +14,16 @@
 
 import datetime
 
+import storyboard.common.event_types as event
 from storyboard.db.api import base as db
 from storyboard.db.models import AccessToken
+from storyboard.db.models import Comment
 from storyboard.db.models import Project
 from storyboard.db.models import ProjectGroup
 from storyboard.db.models import Story
 from storyboard.db.models import Subscription
 from storyboard.db.models import Task
+from storyboard.db.models import TimeLineEvent
 from storyboard.db.models import User
 
 
@@ -144,6 +147,25 @@ def load():
             id=5,
             title="A Test story 5 - oh hai",
             description="Test Description - oh hai"
+        )
+    ])
+    # Create a comment.
+    load_data([
+        Comment(
+            id=1,
+            content="Test Comment",
+            is_active=True
+        )
+    ])
+
+    # Create a timeline event for the above comment.
+    load_data([
+        TimeLineEvent(
+            id=1,
+            story_id=1,
+            comment_id=1,
+            author_id=1,
+            event_type=event.USER_COMMENT
         )
     ])
 

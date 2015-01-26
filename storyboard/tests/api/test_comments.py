@@ -23,7 +23,7 @@ class TestComments(base.FunctionalTest):
         super(TestComments, self).setUp()
         self.comments_resource = '/stories/%s/comments'
 
-        self.story_id = 1
+        self.story_id = 2
 
         self.comment_01 = {
             'content': 'Just a comment passing by'

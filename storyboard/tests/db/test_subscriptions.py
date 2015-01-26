@@ -34,6 +34,9 @@ class TestSubscription(base.FunctionalTest):
         subscribers = subscription_get_all_subscriber_ids('invalid', 1)
         self.assertSetEqual(set(), subscribers)
 
+        subscribers = subscription_get_all_subscriber_ids('timeline_event', 1)
+        self.assertSetEqual({1, 3}, subscribers)
+
         subscribers = subscription_get_all_subscriber_ids('story', 1)
         self.assertSetEqual({1, 3}, subscribers)
         subscribers = subscription_get_all_subscriber_ids('story', 2)
