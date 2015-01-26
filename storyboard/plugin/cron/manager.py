@@ -16,6 +16,7 @@ from crontab import CronTab
 from oslo.config import cfg
 from oslo_log import log
 
+from storyboard.common.working_dir import get_working_directory
 from storyboard.plugin.base import StoryboardPluginLoader
 from storyboard.plugin.cron.base import CronPluginBase
 
@@ -46,8 +47,20 @@ class CronManager(CronPluginBase):
     def enabled(self):
         """Indicate whether this plugin is enabled. This indicates whether
         this plugin alone is runnable, as opposed to the entire cron system.
+        Note that this plugin cannot operate if the system cannot create a
+        working directory.
         """
-        return self.config.cron.enable
+        try:
+            # This will raise an exception if the working directory cannot
+            # be created.
+            get_working_directory()
+
+            # Return the configured cron flag.
+            return self.config.cron.enable
+        except IOError as e:
+            LOG.error("Cannot enable crontab management: Working directory is"
+                      " not available: %s" % (e,))
+            return False
 
     def interval(self):
         """This plugin executes every 5 minutes.

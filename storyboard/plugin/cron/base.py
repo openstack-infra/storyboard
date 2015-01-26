@@ -22,7 +22,7 @@ import six
 
 from oslo_log import log
 
-from storyboard.common.working_dir import get_working_directory
+from storyboard.common.working_dir import get_plugin_directory
 import storyboard.plugin.base as plugin_base
 
 
@@ -96,14 +96,16 @@ class CronPluginBase(plugin_base.PluginBase):
     def execute(self):
         """Execute this cron plugin, first by determining its own working
         directory, then calculating the appropriate runtime interval,
-        and finally executing the run() method.
+        and finally executing the run() method. If the working directory is
+        not available, it will log an error and exit cleanly.
         """
 
         plugin_name = self.get_name()
-        working_directory = get_working_directory()
-        cron_directory = os.path.join(working_directory, 'cron')
-        if not os.path.exists(cron_directory):
-            os.makedirs(cron_directory)
+        try:
+            cron_directory = get_plugin_directory('cron')
+        except IOError as e:
+            LOG.error('Cannot create cron run cache: %s' % (e,))
+            return
 
         lr_file = os.path.join(cron_directory, plugin_name)
 

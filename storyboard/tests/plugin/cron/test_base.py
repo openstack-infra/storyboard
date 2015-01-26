@@ -19,7 +19,7 @@ import pytz
 import shutil
 import tzlocal
 
-from storyboard.common.working_dir import get_working_directory
+import storyboard.common.working_dir as w_dir
 import storyboard.tests.base as base
 from storyboard.tests.plugin.cron.mock_plugin import MockPlugin
 
@@ -31,8 +31,7 @@ class TestCronPluginBase(base.TestCase):
         super(TestCronPluginBase, self).setUp()
 
         # Create the stamp directory
-        working_directory = get_working_directory()
-        cron_directory = os.path.join(working_directory, 'cron')
+        cron_directory = w_dir.get_plugin_directory('cron')
         if not os.path.exists(cron_directory):
             os.makedirs(cron_directory)
 
@@ -40,8 +39,7 @@ class TestCronPluginBase(base.TestCase):
         super(TestCronPluginBase, self).tearDown()
 
         # remove the stamp directory
-        working_directory = get_working_directory()
-        cron_directory = os.path.join(working_directory, 'cron')
+        cron_directory = w_dir.get_plugin_directory('cron')
         shutil.rmtree(cron_directory)
 
     def test_get_name(self):
@@ -59,8 +57,8 @@ class TestCronPluginBase(base.TestCase):
         # Generate the plugin and build our file path
         plugin = MockPlugin(dict())
         plugin_name = plugin.get_name()
-        working_dir = get_working_directory()
-        last_run_path = os.path.join(working_dir, 'cron', plugin_name)
+        cron_directory = w_dir.get_plugin_directory('cron')
+        last_run_path = os.path.join(cron_directory, plugin_name)
 
         # Call the mtime method, ensuring that it is created.
         self.assertFalse(os.path.exists(last_run_path))
@@ -102,9 +100,9 @@ class TestCronPluginBase(base.TestCase):
         # Generate the plugin and simulate a previous execution
         plugin = MockPlugin(dict())
         plugin_name = plugin.get_name()
-        working_directory = get_working_directory()
+        cron_directory = w_dir.get_plugin_directory('cron')
 
-        last_run_path = os.path.join(working_directory, 'cron', plugin_name)
+        last_run_path = os.path.join(cron_directory, plugin_name)
         last_run_date = datetime.datetime(year=2000, month=1, day=1,
                                           hour=12, minute=0, second=0,
                                           microsecond=0, tzinfo=pytz.utc)
