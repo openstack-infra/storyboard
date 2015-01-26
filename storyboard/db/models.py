@@ -356,6 +356,13 @@ def _story_build_summary_query():
 
 class StorySummary(Base):
     __table__ = _story_build_summary_query()
+    tags = relationship('StoryTag', secondary='story_storytags')
+
+    def as_dict(self):
+        d = super(StorySummary, self).as_dict()
+        d["tags"] = [t.name for t in self.tags]
+
+        return d
 
     _public_fields = ["id", "creator_id", "title", "description", "is_bug",
                       "tasks", "comments", "tags", "status",

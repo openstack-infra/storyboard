@@ -17,6 +17,7 @@ from urllib import urlencode
 
 from storyboard.db.api import tasks
 from storyboard.tests import base
+from webtest import AppError
 
 
 class TestStories(base.FunctionalTest):
@@ -66,10 +67,49 @@ class TestStories(base.FunctionalTest):
         self.assertNotEqual(updated['description'],
                             original['description'])
 
+    def test_add_tags(self):
+        url = "/stories/%d/tags" % 1
+        response = self.put_json(url, ["tag_1", "tag_2"])
+        updated = json.loads(response.body)
+
+        self.assertEqual(2, len(updated["tags"]))
+
+    def test_add_tags_duplicate_error(self):
+        url = "/stories/%d/tags" % 1
+        response = self.put_json(url, ["tag_1", "tag_2"])
+        updated = json.loads(response.body)
+
+        self.assertEqual(2, len(updated["tags"]))
+        self.assertRaises(AppError,
+                          self.put_json, url, ["tag_1", "tag_2"])
+
+    def test_remove_unassigned_tags_error(self):
+        url = "/stories/%d/tags" % 1
+        response = self.put_json(url, ["tag_1", "tag_2"])
+        updated = json.loads(response.body)
+
+        self.assertEqual(2, len(updated["tags"]))
+        self.assertRaises(AppError,
+                          self.delete, url + "?tags=tag_4&tags=tag_5")
+
+    def test_remove_tags(self):
+        url = "/stories/%d/tags" % 1
+        response = self.put_json(url, ["tag_1", "tag_2"])
+        updated = json.loads(response.body)
+
+        self.assertEqual(2, len(updated["tags"]))
+
+        self.delete(url + "?tags=tag_1")
+        response = self.get_json(self.resource + "/1")
+
+        self.assertEqual(1, len(response["tags"]))
+
 
 class TestStorySearch(base.FunctionalTest):
     def setUp(self):
         super(TestStorySearch, self).setUp()
+
+        self.resource = '/stories'
 
     def build_search_url(self, params=None, raw=''):
         if params:
@@ -183,6 +223,30 @@ class TestStorySearch(base.FunctionalTest):
 
         result = results.json[0]
         self.assertEqual(1, result['id'])
+
+    def test_get_by_tags(self):
+        tag_url_template = "/stories/%d/tags"
+        self.default_headers['Authorization'] = 'Bearer valid_user_token'
+
+        story_1 = self.get_json(self.resource + "/1")
+        self.put_json(tag_url_template % story_1["id"], ["tag_1", "tag_2"])
+
+        story_2 = self.get_json(self.resource + "/2")
+        self.put_json(tag_url_template % story_2["id"], ["tag_2", "tag_3"])
+
+        # Get the first only
+        tag_query_results = self.get_json(self.resource, tags=["tag_1"])
+        self.assertEqual(1, len(tag_query_results))
+        self.assertEqual(1, tag_query_results[0]["id"])
+
+        # Get the second only
+        tag_query_results = self.get_json(self.resource, tags=["tag_3"])
+        self.assertEqual(1, len(tag_query_results))
+        self.assertEqual(2, tag_query_results[0]["id"])
+
+        # Get both
+        tag_query_results = self.get_json(self.resource, tags=["tag_2"])
+        self.assertEqual(2, len(tag_query_results))
 
     def test_search_empty_results(self):
         url = self.build_search_url({
