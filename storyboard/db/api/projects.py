@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from storyboard.common.master_branch_helper import MasterBranchHelper
 from storyboard.db.api import base as api_base
+from storyboard.db.api import branches as branches_api
 from storyboard.db import models
 
 
@@ -58,7 +60,11 @@ def project_get_count(project_group_id=None, **kwargs):
 
 
 def project_create(values):
-    return api_base.entity_create(models.Project, values)
+    # Create project and 'master' branch for him
+    project = api_base.entity_create(models.Project, values)
+    master_branch = MasterBranchHelper(project["id"])
+    branches_api.branch_create(master_branch.as_dict())
+    return project
 
 
 def project_update(project_id, values):

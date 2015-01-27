@@ -74,6 +74,11 @@ class Project(base.APIBase):
     repo_url = wtypes.text
     """This is a repo link for this project"""
 
+    autocreate_branches = bool
+    """This flag means that storyboard will try to create task branches
+    automatically from the branches declared in the code repository.
+    """
+
     @classmethod
     def sample(cls):
         return cls(
@@ -194,6 +199,43 @@ class Task(base.APIBase):
 
     priority = wtypes.text
     """The priority for this task, one of 'low', 'medium', 'high'"""
+
+    branch_id = int
+    """The ID of corresponding Branch"""
+
+
+class Branch(base.APIBase):
+    """Represents a branch."""
+
+    name = wtypes.text
+    """The branch unique name. This name will be displayed in the URL.
+    At least 3 alphanumeric symbols.
+    """
+
+    project_id = int
+    """The ID of the corresponding Project."""
+
+    expired = bool
+    """A binary flag that marks branches that should no longer be
+    selectable in tasks."""
+
+    expiration_date = datetime
+    """Last date the expired flag was switched to True."""
+
+    autocreated = bool
+    """A flag that marks autocreated entries, so that they can
+    be auto-expired when the corresponding branch is deleted in the git repo.
+    """
+
+    @classmethod
+    def sample(cls):
+        return cls(
+            name="Storyboard-branch",
+            project_id=1,
+            expired=True,
+            expiration_date=datetime(2015, 1, 1, 1, 1),
+            autocreated=False
+        )
 
 
 class Team(base.APIBase):

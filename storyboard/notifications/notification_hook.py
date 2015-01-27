@@ -32,6 +32,7 @@ class_mappings = {'task': [models.Task, wmodels.Task],
                   'user': [models.User, wmodels.User],
                   'team': [models.Team, wmodels.Team],
                   'story': [models.Story, wmodels.Story],
+                  'branch': [models.Branch, wmodels.Branch],
                   'tag': [models.StoryTag, wmodels.Tag]}
 
 
@@ -140,6 +141,7 @@ class NotificationHook(hooks.PecanHook):
             'projects': 'project',
             'project_groups': 'project_group',
             'tasks': 'task',
+            'branches': 'branch',
             'timeline_events': 'timeline_event',
             'users': 'user',
             'teams': 'team',

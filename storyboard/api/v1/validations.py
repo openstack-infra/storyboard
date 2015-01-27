@@ -166,6 +166,21 @@ TASKS_PUT_SCHEMA = {
 TASKS_POST_SCHEMA = copy.deepcopy(TASKS_PUT_SCHEMA)
 TASKS_POST_SCHEMA["required"] = ["title"]
 
+BRANCHES_PUT_SCHEMA = {
+    "name": "branch_schema",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "minLength": CommonLength.lower_middle_length,
+            "maxLength": CommonLength.top_middle_length
+        }
+    }
+}
+
+BRANCHES_POST_SCHEMA = copy.deepcopy(BRANCHES_PUT_SCHEMA)
+BRANCHES_POST_SCHEMA["required"] = ["name"]
+
 STORY_TAGS_PUT_SCHEMA = {
     "name": "storyTag_schema",
     "type": "object",

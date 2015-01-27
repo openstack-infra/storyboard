@@ -242,8 +242,10 @@ class Project(FullText, ModelBuilder, Base):
     is_active = Column(Boolean, default=True)
     project_groups = relationship("ProjectGroup",
                                   secondary="project_group_mapping")
+    autocreate_branches = Column(Boolean, default=False)
 
-    _public_fields = ["id", "name", "description", "tasks", "repo_url"]
+    _public_fields = ["id", "name", "description", "tasks", "repo_url",
+                      "autocreate_branches"]
 
 
 class ProjectGroup(ModelBuilder, Base):
@@ -301,10 +303,30 @@ class Task(FullText, ModelBuilder, Base):
     story_id = Column(Integer, ForeignKey('stories.id'))
     project_id = Column(Integer, ForeignKey('projects.id'))
     assignee_id = Column(Integer, ForeignKey('users.id'), nullable=True)
+    branch_id = Column(Integer, ForeignKey('branches.id'), nullable=True)
     priority = Column(Enum(*_TASK_PRIORITIES), default='medium')
 
     _public_fields = ["id", "creator_id", "title", "status", "story_id",
-                      "project_id", "assignee_id", "priority"]
+                      "project_id", "assignee_id", "priority", "branch_id"]
+
+
+class Branch(FullText, ModelBuilder, Base):
+    __tablename__ = 'branches'
+
+    __table_args__ = (
+        schema.UniqueConstraint('name', 'project_id', name='branch_un_constr'),
+    )
+
+    __fulltext_columns__ = ['name']
+
+    name = Column(String(CommonLength.top_middle_length))
+    project_id = Column(Integer, ForeignKey('projects.id'))
+    expired = Column(Boolean, default=False)
+    expiration_date = Column(UTCDateTime, default=None)
+    autocreated = Column(Boolean, default=False)
+
+    _public_fields = ["id", "name", "project_id", "expired",
+                      "expiration_date", "autocreated"]
 
 
 class StoryTag(ModelBuilder, Base):

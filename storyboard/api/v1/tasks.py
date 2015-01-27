@@ -62,13 +62,13 @@ class TasksController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.Task], wtypes.text, int, int, int, int,
+    @wsme_pecan.wsexpose([wmodels.Task], wtypes.text, int, int, int, int, int,
                          [wtypes.text], [wtypes.text], int, int, wtypes.text,
                          wtypes.text)
     def get_all(self, title=None, story_id=None, assignee_id=None,
-                project_id=None, project_group_id=None, status=None,
-                priority=None, marker=None, limit=None, sort_field='id',
-                sort_dir='asc'):
+                project_id=None, project_group_id=None, branch_id=None,
+                status=None, priority=None, marker=None, limit=None,
+                sort_field='id', sort_dir='asc'):
         """Retrieve definitions of all of the tasks.
 
         :param title: search by task title.
@@ -76,6 +76,7 @@ class TasksController(rest.RestController):
         :param assignee_id: filter tasks by who they are assigned to.
         :param project_id: filter the tasks based on project.
         :param project_group_id: filter tasks based on project group.
+        :param branch_id: filter tasks based on branch_id.
         :param status: filter tasks by status.
         :param priority: filter tasks by priority.
         :param marker: The resource id where the page should begin.
@@ -98,6 +99,7 @@ class TasksController(rest.RestController):
                           assignee_id=assignee_id,
                           project_id=project_id,
                           project_group_id=project_group_id,
+                          branch_id=branch_id,
                           status=status,
                           priority=priority,
                           sort_field=sort_field,
@@ -110,6 +112,7 @@ class TasksController(rest.RestController):
                             assignee_id=assignee_id,
                             project_id=project_id,
                             project_group_id=project_group_id,
+                            branch_id=branch_id,
                             status=status,
                             priority=priority)
 
