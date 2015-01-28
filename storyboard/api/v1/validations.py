@@ -181,6 +181,21 @@ BRANCHES_PUT_SCHEMA = {
 BRANCHES_POST_SCHEMA = copy.deepcopy(BRANCHES_PUT_SCHEMA)
 BRANCHES_POST_SCHEMA["required"] = ["name"]
 
+MILESTONES_PUT_SCHEMA = {
+    "name": "milestone_schema",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "minLength": CommonLength.lower_middle_length,
+            "maxLength": CommonLength.top_middle_length
+        }
+    }
+}
+
+MILESTONES_POST_SCHEMA = copy.deepcopy(MILESTONES_PUT_SCHEMA)
+MILESTONES_POST_SCHEMA["required"] = ["name"]
+
 STORY_TAGS_PUT_SCHEMA = {
     "name": "storyTag_schema",
     "type": "object",

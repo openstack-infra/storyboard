@@ -304,10 +304,12 @@ class Task(FullText, ModelBuilder, Base):
     project_id = Column(Integer, ForeignKey('projects.id'))
     assignee_id = Column(Integer, ForeignKey('users.id'), nullable=True)
     branch_id = Column(Integer, ForeignKey('branches.id'), nullable=True)
+    milestone_id = Column(Integer, ForeignKey('milestones.id'), nullable=True)
     priority = Column(Enum(*_TASK_PRIORITIES), default='medium')
 
     _public_fields = ["id", "creator_id", "title", "status", "story_id",
-                      "project_id", "assignee_id", "priority", "branch_id"]
+                      "project_id", "assignee_id", "priority", "branch_id",
+                      "milestone_id"]
 
 
 class Branch(FullText, ModelBuilder, Base):
@@ -327,6 +329,24 @@ class Branch(FullText, ModelBuilder, Base):
 
     _public_fields = ["id", "name", "project_id", "expired",
                       "expiration_date", "autocreated"]
+
+
+class Milestone(FullText, ModelBuilder, Base):
+    __tablename__ = 'milestones'
+
+    __table_args__ = (
+        schema.UniqueConstraint('name', 'branch_id',
+                                name='milestone_un_constr'),
+    )
+
+    __fulltext_columns__ = ['name']
+
+    name = Column(String(CommonLength.top_middle_length))
+    branch_id = Column(Integer, ForeignKey('branches.id'))
+    expired = Column(Boolean, default=False)
+    expiration_date = Column(UTCDateTime, default=None)
+
+    _public_fields = ["id", "name", "branch_id", "expired", "expiration_date"]
 
 
 class StoryTag(ModelBuilder, Base):
