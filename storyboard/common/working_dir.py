@@ -80,6 +80,11 @@ def get_plugin_directory(plugin_name):
     directory = os.path.join(get_working_directory(), 'plugin', plugin_name)
 
     if not os.path.exists(directory):
-        os.makedirs(directory)
+        try:
+            os.makedirs(directory)
+        except (OSError, Exception) as e:
+            message = six.text_type(e)
+            LOG.error("Cannot create plugin directory: %s" % (message,))
+            raise IOError(message)
 
     return directory
