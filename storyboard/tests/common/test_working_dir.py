@@ -24,6 +24,9 @@ import storyboard.tests.base as base
 
 CONF = cfg.CONF
 
+PERM_READ_ONLY = stat.S_IRUSR + stat.S_IRGRP + stat.S_IROTH
+PERM_ALL = stat.S_IRWXU + stat.S_IRWXG + stat.S_IRWXO
+
 
 class TestWorkingDir(base.TestCase):
     def test_get_working_directory(self):
@@ -77,13 +80,11 @@ class TestWorkingDir(base.TestCase):
         """Assert that the get_working_directory() method raises an error if
         it cannot be created.
         """
-        read_only = stat.S_IRUSR + stat.S_IRGRP + stat.S_IROTH
-        all_permissions = stat.S_IRWXU + stat.S_IRWXG + stat.S_IRWXO
 
         # Create a temporary directory
         temp_path = os.tempnam()
         os.makedirs(temp_path)
-        os.chmod(temp_path, read_only)
+        os.chmod(temp_path, PERM_READ_ONLY)
 
         # Set a temporary directory
         CONF.set_override('working_directory', temp_path)
@@ -92,7 +93,7 @@ class TestWorkingDir(base.TestCase):
         # Make sure it raises an exception.
         self.assertRaises(IOError, working_dir.get_working_directory)
 
-        os.chmod(temp_path, all_permissions)
+        os.chmod(temp_path, PERM_ALL)
 
         # Clean up after ourselves.
         shutil.rmtree(temp_path)
@@ -143,5 +144,29 @@ class TestWorkingDir(base.TestCase):
         self.assertTrue(os.access(plugin_path, os.W_OK))
 
         shutil.rmtree(temp_path)
+        CONF.clear_override('working_directory')
+        working_dir.WORKING_DIRECTORY = None
+
+    def test_get_plugin_directory_parent_locked(self):
+        temp_path = os.path.realpath(os.tempnam())
+        CONF.set_override('working_directory', temp_path)
+
+        # Create the directory and lock it down.
+        working_dir.get_working_directory()
+        self.assertTrue(os.path.exists(CONF.working_directory))
+        os.chmod(CONF.working_directory, PERM_READ_ONLY)
+
+        plugin_name = 'my_test_plugin'
+        plugin_path = os.path.join(CONF.working_directory, 'plugin',
+                                   plugin_name)
+        self.assertFalse(os.path.exists(plugin_path))
+
+        self.assertRaises(IOError,
+                          working_dir.get_plugin_directory, plugin_name)
+
+        # Reset permissions and clean up
+        os.chmod(CONF.working_directory, PERM_ALL)
+
+        shutil.rmtree(CONF.working_directory)
         CONF.clear_override('working_directory')
         working_dir.WORKING_DIRECTORY = None
