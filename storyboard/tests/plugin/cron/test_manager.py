@@ -29,7 +29,7 @@ from storyboard.tests.plugin.cron.mock_plugin import MockPlugin
 CONF = cfg.CONF
 
 
-class TestCronManager(base.TestCase):
+class TestCronManager(base.WorkingDirTestCase):
     def setUp(self):
         super(TestCronManager, self).setUp()
 
