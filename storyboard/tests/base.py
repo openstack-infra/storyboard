@@ -16,6 +16,8 @@
 # under the License.
 
 import os
+import shutil
+import stat
 import uuid
 
 from alembic import command
@@ -28,6 +30,7 @@ import six
 import sqlalchemy
 import testtools
 
+import storyboard.common.working_dir as working_dir
 from storyboard.db.api import base as db_api_base
 from storyboard.db.migration.cli import get_alembic_config
 from storyboard.openstack.common import lockutils
@@ -100,7 +103,37 @@ class TestCase(testtools.TestCase):
             CONF.set_override(k, v, group)
 
 
-class DbTestCase(TestCase):
+class WorkingDirTestCase(TestCase):
+    """A test case that ensures that the configured working directory,
+    if ever invoked, does not pollute the global working-directory space.
+    """
+    def setUp(self):
+        super(WorkingDirTestCase, self).setUp()
+
+        # First register the teardown.
+        self.addCleanup(self._delete_working_dir)
+
+        temp_path = os.path.realpath(os.tempnam())
+        CONF.set_override('working_directory', temp_path)
+
+        # Create the directory
+        path = working_dir.get_working_directory()
+        self.assertTrue(os.path.exists(path))
+
+    def _delete_working_dir(self):
+        path = working_dir.get_working_directory()
+        perms = stat.S_IRWXU + stat.S_IRWXG + stat.S_IRWXO
+
+        if os.path.exists(path):
+            os.chmod(path, perms)
+            shutil.rmtree(path)
+
+        self.assertFalse(os.path.exists(path))
+
+        working_dir.WORKING_DIRECTORY = None
+
+
+class DbTestCase(WorkingDirTestCase):
 
     def setUp(self):
         super(DbTestCase, self).setUp()

@@ -26,14 +26,8 @@ from storyboard.tests.mock_data import load_data
 CONF = cfg.CONF
 
 
-class TestTokenCleaner(base.FunctionalTest):
+class TestTokenCleaner(base.FunctionalTest, base.WorkingDirTestCase):
     """Test cases for our OAuth Token cleaner plugin."""
-
-    def setUp(self):
-        super(TestTokenCleaner, self).setUp()
-
-    def tearDown(self):
-        super(TestTokenCleaner, self).tearDown()
 
     def test_enabled(self):
         """Assert that this plugin responds to the flag set in our

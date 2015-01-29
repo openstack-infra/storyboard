@@ -16,7 +16,6 @@ import calendar
 import datetime
 import os
 import pytz
-import shutil
 import tzlocal
 
 import storyboard.common.working_dir as w_dir
@@ -24,7 +23,7 @@ import storyboard.tests.base as base
 from storyboard.tests.plugin.cron.mock_plugin import MockPlugin
 
 
-class TestCronPluginBase(base.TestCase):
+class TestCronPluginBase(base.WorkingDirTestCase):
     """Test the abstract plugin core."""
 
     def setUp(self):
@@ -34,13 +33,6 @@ class TestCronPluginBase(base.TestCase):
         cron_directory = w_dir.get_plugin_directory('cron')
         if not os.path.exists(cron_directory):
             os.makedirs(cron_directory)
-
-    def tearDown(self):
-        super(TestCronPluginBase, self).tearDown()
-
-        # remove the stamp directory
-        cron_directory = w_dir.get_plugin_directory('cron')
-        shutil.rmtree(cron_directory)
 
     def test_get_name(self):
         """Test that the plugin can name itself."""
