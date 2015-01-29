@@ -25,7 +25,7 @@ class NameType(types.StringType):
 
     """
 
-    _name_regex = r'^[a-zA-Z0-9]+([\-\./]?[a-zA-Z0-9]+)*$'
+    _name_regex = r'^[a-zA-Z0-9]+([_\-\./]?[a-zA-Z0-9]+)*$'
 
     def __init__(self):
         super(NameType, self).__init__(min_length=3, pattern=self._name_regex)
