@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from oslo.config import cfg
+from pecan import abort
 from pecan import expose
 from pecan import request
 from pecan import response
@@ -137,6 +138,10 @@ class StoriesController(rest.RestController):
         story_dict = story.as_dict()
 
         user_id = request.current_user_id
+
+        if story.creator_id and story.creator_id != user_id:
+            abort(400, _("You can't select author of story."))
+
         story_dict.update({"creator_id": user_id})
 
         if not "tags" in story_dict or not story_dict["tags"]:
@@ -157,6 +162,10 @@ class StoriesController(rest.RestController):
         :param story_id: An ID of the story.
         :param story: a story within the request body.
         """
+
+        if story.creator_id and story.creator_id != request.current_user_id:
+            abort(400, _("You can't change author of story."))
+
         updated_story = stories_api.story_update(
             story_id,
             story.as_dict(omit_unset=True))

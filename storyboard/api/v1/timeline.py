@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from oslo.config import cfg
+from pecan import abort
 from pecan import request
 from pecan import response
 from pecan import rest
@@ -206,9 +207,7 @@ class CommentsController(rest.RestController):
         comment_author_id = events_api.events_get_all(
             comment_id=comment_id)[0].author_id
         if request.current_user_id != comment_author_id:
-            response.status_code = 400
-            response.body = _("You are not allowed to update this comment.")
-            return response
+            abort(400, _("You can't update this comment"))
 
         updated_comment = comments_api.comment_update(comment_id,
                                                       comment_body.as_dict())

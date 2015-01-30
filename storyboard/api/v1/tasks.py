@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from oslo.config import cfg
+from pecan import abort
 from pecan import request
 from pecan import response
 from pecan import rest
@@ -127,6 +128,9 @@ class TasksController(rest.RestController):
         :param task: a task within the request body.
         """
 
+        if task.creator_id and task.creator_id != request.current_user_id:
+            abort(400, _("You can't select author of task."))
+
         creator_id = request.current_user_id
         task.creator_id = creator_id
 
@@ -148,6 +152,9 @@ class TasksController(rest.RestController):
         :param task_id: An ID of the task.
         :param task: a task within the request body.
         """
+        if task.creator_id and task.creator_id != request.current_user_id:
+            abort(400, _("You can't change author of task."))
+
         original_task = tasks_api.task_get(task_id)
 
         updated_task = tasks_api.task_update(task_id,
