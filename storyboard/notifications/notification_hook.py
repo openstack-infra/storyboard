@@ -18,8 +18,19 @@ import re
 
 from pecan import hooks
 
+from storyboard.api.v1 import wmodels
 import storyboard.common.hook_priorities as priority
+from storyboard.db.api import base as api_base
+from storyboard.db import models
 from storyboard.notifications.publisher import publish
+
+class_mappings = {'task': [models.Task, wmodels.Task],
+                  'project_group': [models.ProjectGroup, wmodels.ProjectGroup],
+                  'project': [models.ProjectGroup, wmodels.Project],
+                  'user': [models.User, wmodels.User],
+                  'team': [models.Team, wmodels.Team],
+                  'story': [models.Story, wmodels.Story],
+                  'tag': [models.StoryTag, wmodels.Tag]}
 
 
 class NotificationHook(hooks.PecanHook):
@@ -28,6 +39,21 @@ class NotificationHook(hooks.PecanHook):
 
     def __init__(self):
         super(NotificationHook, self).__init__()
+
+    def before(self, state):
+        # Ignore get methods, we only care about changes.
+        if state.request.method not in ['POST', 'PUT', 'DELETE']:
+            return
+
+        request = state.request
+
+        # Attempt to determine the type of the payload. This checks for
+        # nested paths.
+        (resource, resource_id, subresource, subresource_id) \
+            = self.parse(request.path)
+
+        state.old_entity_values = self.get_original_resource(resource,
+                                                             resource_id)
 
     def after(self, state):
         # Ignore get methods, we only care about changes.
@@ -41,11 +67,10 @@ class NotificationHook(hooks.PecanHook):
         # nested paths.
         (resource, resource_id, subresource, subresource_id) \
             = self.parse(request.path)
-        if not resource:
-            return
 
+        # On a POST method, the server has assigned an ID to the resource,
+        # so we should be getting it from the resource rather than the URL.
         if state.request.method == 'POST':
-            # When a resource is created..
             response_body = json.loads(response.body)
             if response_body:
                 resource_id = response_body.get('id')
@@ -63,6 +88,22 @@ class NotificationHook(hooks.PecanHook):
                 resource_id=resource_id,
                 sub_resource=subresource,
                 sub_resource_id=subresource_id)
+
+    def get_original_resource(self, resource, resource_id):
+        """Given a resource name and ID, will load that resource and map it
+        to a JSON object.
+        """
+        if not resource or not resource_id or resource not in \
+                class_mappings.keys():
+            return None
+
+        model_class, wmodel_class = class_mappings[resource]
+        entity = api_base.entity_get(model_class, resource_id)
+        if entity:
+            return wmodel_class.from_db_model(entity)
+        else:
+            # In the case of a DELETE, the entity will be returned as None
+            return None
 
     def parse(self, s):
         url_pattern = re.match("^\/v1\/([a-z_]+)\/?([0-9]+)?"

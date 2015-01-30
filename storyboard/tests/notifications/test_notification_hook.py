@@ -12,13 +12,16 @@
 # implied. See the License for the specific language governing permissions and
 # limitations under the License.
 
+from mock import patch, Mock
 from storyboard.api.v1.v1_controller import V1Controller
+from storyboard.api.v1.wmodels import Task as TaskWmodel
 import storyboard.common.hook_priorities as priority
+from storyboard.db.models import Task
 from storyboard.notifications.notification_hook import NotificationHook
 import storyboard.tests.base as base
 
 
-class TestNotificationHook(base.TestCase):
+class TestNotificationHook(base.DbTestCase):
 
     def test_priority(self):
         """Assert that this hook has default priority."""
@@ -114,3 +117,104 @@ class TestNotificationHook(base.TestCase):
                          n.singularize_resource('systeminfo'))
         self.assertEqual('openid',
                          n.singularize_resource('openid'))
+
+    def test_map_resource_invalid_options(self):
+        """Assert that the map_resource method behaves as expected when
+        receiving invalid values.
+        """
+        n = NotificationHook()
+
+        # Test no resource
+        self.assertIsNone(n.get_original_resource(None, None))
+
+        # Test invalid resource.
+        self.assertIsNone(n.get_original_resource('invalid', 1))
+
+        # Test no resource_id
+        self.assertIsNone(n.get_original_resource('story', None))
+
+        # Test invalid (gone) resource_id.
+        self.assertIsNone(n.get_original_resource('story', 1000000))
+
+    @patch('storyboard.db.api.base.entity_get')
+    def test_map_resource_valid_options(self, mock_entity_get):
+        """Assert that the map_resource method behaves as expected when
+        receiving valid values.
+        """
+        n = NotificationHook()
+
+        # Mock entity_get method to return a sample Task
+        sample_task = Task(id=1,
+                           creator_id=1,
+                           title='Test',
+                           status='inprogress',
+                           story_id=1,
+                           project_id=1,
+                           assignee_id=1,
+                           priority='medium')
+        mock_entity_get.return_value = sample_task
+
+        sample_task_wmodel = TaskWmodel.from_db_model(sample_task)
+        old_entity_values = n.get_original_resource('task', 1)
+
+        self.assertEquals(old_entity_values.id,
+                          sample_task_wmodel.id)
+        self.assertEquals(old_entity_values.creator_id,
+                          sample_task_wmodel.creator_id)
+        self.assertEquals(old_entity_values.title,
+                          sample_task_wmodel.title)
+        self.assertEquals(old_entity_values.status,
+                          sample_task_wmodel.status)
+        self.assertEquals(old_entity_values.story_id,
+                          sample_task_wmodel.story_id)
+        self.assertEquals(old_entity_values.project_id,
+                          sample_task_wmodel.project_id)
+        self.assertEquals(old_entity_values.assignee_id,
+                          sample_task_wmodel.assignee_id)
+        self.assertEquals(old_entity_values.priority,
+                          sample_task_wmodel.priority)
+
+    @patch('storyboard.db.api.base.entity_get')
+    def test_old_entity_values_set_on_state_by_before(self, mock_entity_get):
+        """Tests that the values of the resource being changed by the
+        request are retrieved in the before method and stored in the
+        state object as variable 'old_returned_values'.
+        """
+        n = NotificationHook()
+
+        # Mocking state object to simulate a 'PUT' request for task
+        # resource 1
+        mock_state = Mock()
+        mock_state.request.method = 'PUT'
+        mock_state.request.path = '/v1/tasks/1'
+
+        # Mock entity_get method to return a sample Task
+        sample_task = Task(id=1,
+                           creator_id=1,
+                           title='Test',
+                           status='inprogress',
+                           story_id=1,
+                           project_id=1,
+                           assignee_id=1,
+                           priority='medium')
+        mock_entity_get.return_value = sample_task
+
+        sample_task_wmodel = TaskWmodel.from_db_model(sample_task)
+        n.before(mock_state)
+
+        self.assertEquals(mock_state.old_entity_values.id,
+                          sample_task_wmodel.id)
+        self.assertEquals(mock_state.old_entity_values.creator_id,
+                          sample_task_wmodel.creator_id)
+        self.assertEquals(mock_state.old_entity_values.title,
+                          sample_task_wmodel.title)
+        self.assertEquals(mock_state.old_entity_values.status,
+                          sample_task_wmodel.status)
+        self.assertEquals(mock_state.old_entity_values.story_id,
+                          sample_task_wmodel.story_id)
+        self.assertEquals(mock_state.old_entity_values.project_id,
+                          sample_task_wmodel.project_id)
+        self.assertEquals(mock_state.old_entity_values.assignee_id,
+                          sample_task_wmodel.assignee_id)
+        self.assertEquals(mock_state.old_entity_values.priority,
+                          sample_task_wmodel.priority)
