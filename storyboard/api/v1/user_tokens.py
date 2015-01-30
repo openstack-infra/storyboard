@@ -152,7 +152,7 @@ class UserTokensController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose(wmodels.AccessToken, int, int)
+    @wsme_pecan.wsexpose(wmodels.AccessToken, int, int, status_code=204)
     def delete(self, user_id, access_token_id):
         """Deletes an access token for the given user.
 
@@ -167,8 +167,6 @@ class UserTokensController(rest.RestController):
             abort(404, _("Token not found."))
 
         token_api.access_token_delete(access_token_id)
-
-        response.status_code = 204
 
     def _assert_can_access(self, user_id, token_entity=None):
         current_user = user_api.user_get(request.current_user_id)

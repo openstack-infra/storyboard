@@ -170,15 +170,13 @@ class StoriesController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.superuser)
-    @wsme_pecan.wsexpose(wmodels.Story, int)
+    @wsme_pecan.wsexpose(wmodels.Story, int, status_code=204)
     def delete(self, story_id):
         """Delete this story.
 
         :param story_id: An ID of the story.
         """
         stories_api.story_delete(story_id)
-
-        response.status_code = 204
 
     comments = CommentsController()
     events = TimeLineEventsController()

@@ -219,7 +219,7 @@ class CommentsController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose(wmodels.Comment, int, int)
+    @wsme_pecan.wsexpose(wmodels.Comment, int, int, status_code=204)
     def delete(self, story_id, comment_id):
         """Update an existing comment.
 
@@ -234,9 +234,6 @@ class CommentsController(rest.RestController):
             return response
 
         comments_api.comment_delete(comment_id)
-
-        response.status_code = 204
-        return response
 
     @decorators.db_exceptions
     @secure(checks.guest)
