@@ -161,7 +161,7 @@ class StoriesController(rest.RestController):
         if updated_story:
             user_id = request.current_user_id
             events_api.story_details_changed_event(story_id, user_id,
-                story.title)
+                                                   updated_story.title)
 
             return wmodels.Story.from_db_model(updated_story)
         else:
