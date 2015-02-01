@@ -15,6 +15,9 @@
 from oslo.config import cfg
 from oslo_log import log
 
+from storyboard.common.working_dir import get_plugin_directory
+
+
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
@@ -62,3 +65,11 @@ PLUGIN_OPTS = [
 ]
 
 CONF.register_opts(PLUGIN_OPTS, "plugin_email")
+
+
+def get_email_directory():
+    """A shared utility method that always provides the same working
+    directory. Error handling is explicitly not provided, as the methods used
+    'should' be consistent about the errors they themselves raise.
+    """
+    return get_plugin_directory("email")
