@@ -25,6 +25,7 @@ from storyboard.api.auth.token_storage import impls as storage_impls
 from storyboard.api.auth.token_storage import storage
 from storyboard.api import config as api_config
 from storyboard.api.middleware.cors_middleware import CORSMiddleware
+from storyboard.api.middleware import server_owned_fields_hook
 from storyboard.api.middleware import token_middleware
 from storyboard.api.middleware import user_id_hook
 from storyboard.api.middleware import validation_hook
@@ -84,7 +85,8 @@ def setup_app(pecan_config=None):
 
     hooks = [
         user_id_hook.UserIdHook(),
-        validation_hook.ValidationHook()
+        validation_hook.ValidationHook(),
+        server_owned_fields_hook.ServerOwnedFieldsHook()
     ]
 
     # Setup token storage
