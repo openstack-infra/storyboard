@@ -53,7 +53,7 @@ def _get_connect_string(backend, user, passwd, database):
     """
 
     if backend == "mysql":
-        backend = "mysql+mysqldb"
+        backend = "mysql+pymysql"
     else:
         raise Exception("Unrecognized backend: '%s'" % backend)
 

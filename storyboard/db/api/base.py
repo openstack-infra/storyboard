@@ -266,9 +266,6 @@ def entity_create(kls, values):
     except db_exc.DBDuplicateEntry as de:
         raise exc.DBDuplicateEntry(object_name=kls.__name__,
                                    value=de.value)
-    except db_exc.DBReferenceError as re:
-        raise exc.DBReferenceError(object_name=kls.__name__,
-                                   value=re.constraint, key=re.key)
     except db_exc.DBConnectionError:
         raise exc.DBConnectionError()
     except db_exc.ColumnError:
@@ -277,6 +274,11 @@ def entity_create(kls, values):
         raise exc.DBDeadLock()
     except db_exc.DBInvalidUnicodeParameter:
         raise exc.DBInvalidUnicodeParameter
+    # XXX(greghaynes) Due to a bug in oslo.db + PyMySQL reference errors
+    # are not properly raised.
+    except db_exc.DBError:
+        raise exc.DBReferenceError(object_name=kls.__name__,
+                                   value='unknown', key='unknown')
 
     return entity
 
@@ -299,9 +301,6 @@ def entity_update(kls, entity_id, values):
     except db_exc.DBDuplicateEntry as de:
         raise exc.DBDuplicateEntry(object_name=kls.__name__,
                                    value=de.value)
-    except db_exc.DBReferenceError as re:
-        raise exc.DBReferenceError(object_name=kls.__name__,
-                                   value=re.constraint, key=re.key)
     except db_exc.DBConnectionError:
         raise exc.DBConnectionError()
     except db_exc.ColumnError:
@@ -310,6 +309,11 @@ def entity_update(kls, entity_id, values):
         raise exc.DBDeadLock()
     except db_exc.DBInvalidUnicodeParameter:
         raise exc.DBInvalidUnicodeParameter
+    # XXX(greghaynes) Due to a bug in oslo.db + PyMySQL reference errors
+    # are not properly raised.
+    except db_exc.DBError:
+        raise exc.DBReferenceError(object_name=kls.__name__,
+                                   value='error', key='error')
 
     session = get_session()
     entity = __entity_get(kls, entity_id, session)
@@ -330,9 +334,6 @@ def entity_hard_delete(kls, entity_id):
 
             session.delete(entity)
 
-    except db_exc.DBReferenceError as re:
-        raise exc.DBReferenceError(object_name=kls.__name__,
-                                   value=re.constraint, key=re.key)
     except db_exc.DBConnectionError:
         raise exc.DBConnectionError()
     except db_exc.ColumnError:
@@ -341,3 +342,8 @@ def entity_hard_delete(kls, entity_id):
         raise exc.DBDeadLock()
     except db_exc.DBInvalidUnicodeParameter:
         raise exc.DBInvalidUnicodeParameter()
+    # XXX(greghaynes) Due to a bug in oslo.db + PyMySQL reference errors
+    # are not properly raised.
+    except db_exc.DBError:
+        raise exc.DBReferenceError(object_name=kls.__name__,
+                                   value='unkonwn', key='unknonwn')
