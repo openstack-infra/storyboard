@@ -18,7 +18,6 @@ from pecan import request
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
-from wsme.exc import ClientSideError
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
@@ -26,6 +25,7 @@ from storyboard.api.v1.search import search_engine
 from storyboard.api.v1 import validations
 from storyboard.api.v1 import wmodels
 from storyboard.common import decorators
+from storyboard.common import exception as exc
 from storyboard.db.api import tasks as tasks_api
 from storyboard.db.api import timeline_events as events_api
 from storyboard.openstack.common.gettextutils import _  # noqa
@@ -56,8 +56,7 @@ class TasksController(rest.RestController):
         if task:
             return wmodels.Task.from_db_model(task)
         else:
-            raise ClientSideError(_("Task %s not found") % task_id,
-                                  status_code=404)
+            raise exc.NotFound(_("Task %s not found") % task_id)
 
     @decorators.db_exceptions
     @secure(checks.guest)
@@ -158,8 +157,7 @@ class TasksController(rest.RestController):
             self._post_timeline_events(original_task, updated_task)
             return wmodels.Task.from_db_model(updated_task)
         else:
-            raise ClientSideError(_("Task %s not found") % task_id,
-                                  status_code=404)
+            raise exc.NotFound(_("Task %s not found") % task_id)
 
     def _post_timeline_events(self, original_task, updated_task):
         # If both the assignee_id and the status were changed there will be

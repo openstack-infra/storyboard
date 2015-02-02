@@ -19,7 +19,6 @@ from pecan.decorators import expose
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
-from wsme.exc import ClientSideError
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
@@ -49,7 +48,7 @@ class UsersSubcontroller(rest.RestController):
         team = teams_api.team_get(team_id)
 
         if not team:
-            raise ClientSideError(_("The requested team does not exist"))
+            raise exc.NotFound(_("Team %s not found") % team_id)
 
         return [wmodels.User.from_db_model(user) for user in team.users]
 
@@ -94,8 +93,7 @@ class TeamsController(rest.RestController):
         if team:
             return wmodels.Team.from_db_model(team)
         else:
-            raise ClientSideError(_("Team %s not found") % team_id,
-                                  status_code=404)
+            raise exc.NotFound(_("Team %s not found") % team_id)
 
     @decorators.db_exceptions
     @secure(checks.guest)
@@ -111,8 +109,7 @@ class TeamsController(rest.RestController):
         if team:
             return wmodels.Team.from_db_model(team)
         else:
-            raise ClientSideError(_("Team %s not found") % team_name,
-                                  status_code=404)
+            raise exc.NotFound(_("Team %s not found") % team_name)
 
     @decorators.db_exceptions
     @secure(checks.guest)
@@ -181,8 +178,7 @@ class TeamsController(rest.RestController):
         if result:
             return wmodels.Team.from_db_model(result)
         else:
-            raise ClientSideError(_("Team %s not found") % team_id,
-                                  status_code=404)
+            raise exc.NotFound(_("Team %s not found") % team_id)
 
     users = UsersSubcontroller()
 

@@ -18,7 +18,6 @@ from pecan.decorators import expose
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
-from wsme.exc import ClientSideError
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
@@ -26,6 +25,7 @@ from storyboard.api.v1.search import search_engine
 from storyboard.api.v1 import validations
 from storyboard.api.v1 import wmodels
 from storyboard.common import decorators
+from storyboard.common import exception as exc
 from storyboard.db.api import projects as projects_api
 from storyboard.openstack.common.gettextutils import _  # noqa
 
@@ -60,8 +60,7 @@ class ProjectsController(rest.RestController):
         if project:
             return wmodels.Project.from_db_model(project)
         else:
-            raise ClientSideError(_("Project %s not found") % project_id,
-                                  status_code=404)
+            raise exc.NotFound(_("Project %s not found") % project_id)
 
     @decorators.db_exceptions
     @secure(checks.guest)
@@ -77,8 +76,7 @@ class ProjectsController(rest.RestController):
         if project:
             return wmodels.Project.from_db_model(project)
         else:
-            raise ClientSideError(_("Project %s not found") % project_name,
-                                  status_code=404)
+            raise exc.NotFound(_("Project %s not found") % project_name)
 
     @decorators.db_exceptions
     @secure(checks.guest)
@@ -153,8 +151,7 @@ class ProjectsController(rest.RestController):
         if result:
             return wmodels.Project.from_db_model(result)
         else:
-            raise ClientSideError(_("Project %s not found") % project_id,
-                                  status_code=404)
+            raise exc.NotFound(_("Project %s not found") % project_id)
 
     def _is_int(self, s):
         try:

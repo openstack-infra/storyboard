@@ -51,8 +51,8 @@ class ProjectsSubcontroller(rest.RestController):
         project_group = project_groups.project_group_get(project_group_id)
 
         if not project_group:
-            raise ClientSideError(_("The requested project "
-                                    "group does not exist"))
+            raise exc.NotFound(_("Project Group %s not found")
+                               % project_group_id)
 
         return [wmodels.Project.from_db_model(project)
                 for project in project_group.projects]
@@ -102,9 +102,8 @@ class ProjectGroupsController(rest.RestController):
 
         group = project_groups.project_group_get(project_group_id)
         if not group:
-            raise ClientSideError(_("Project Group %s not found") %
-                                  project_group_id,
-                                  status_code=404)
+            raise exc.NotFound(_("Project Group %s not found")
+                               % project_group_id)
 
         return wmodels.ProjectGroup.from_db_model(group)
 
