@@ -18,10 +18,14 @@ import re
 
 from pecan import hooks
 
+import storyboard.common.hook_priorities as priority
 from storyboard.notifications.publisher import publish
 
 
 class NotificationHook(hooks.PecanHook):
+
+    priority = priority.DEFAULT
+
     def __init__(self):
         super(NotificationHook, self).__init__()
 

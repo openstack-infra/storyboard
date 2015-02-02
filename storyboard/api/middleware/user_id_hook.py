@@ -15,10 +15,13 @@
 
 from pecan import hooks
 
+import storyboard.common.hook_priorities as priority
 from storyboard.db.api import access_tokens as token_api
 
 
 class UserIdHook(hooks.PecanHook):
+
+    priority = priority.AUTH
 
     def before(self, state):
         request = state.request

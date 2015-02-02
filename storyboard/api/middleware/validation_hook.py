@@ -18,8 +18,13 @@ import jsonschema
 from pecan import abort
 from pecan import hooks
 
+import storyboard.common.hook_priorities as priority
+
 
 class ValidationHook(hooks.PecanHook):
+
+    priority = priority.VALIDATION
+
     def validate(self, json_body, schema):
         try:
             jsonschema.validate(json_body, schema)

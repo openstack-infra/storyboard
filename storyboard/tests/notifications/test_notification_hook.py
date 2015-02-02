@@ -13,11 +13,17 @@
 # limitations under the License.
 
 from storyboard.api.v1.v1_controller import V1Controller
+import storyboard.common.hook_priorities as priority
 from storyboard.notifications.notification_hook import NotificationHook
 import storyboard.tests.base as base
 
 
 class TestNotificationHook(base.TestCase):
+
+    def test_priority(self):
+        """Assert that this hook has default priority."""
+        self.assertEqual(NotificationHook.priority, priority.DEFAULT)
+
     def test_parse(self):
         """Test various permutations of the notification parser."""
 
