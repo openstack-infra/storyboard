@@ -42,7 +42,6 @@ import six
 import six.moves.urllib.parse as urlparse
 
 CONF = cfg.CONF
-SERVER_OWNED_FIELDS = ["created_at", "updated_at"]
 
 
 def table_args():
