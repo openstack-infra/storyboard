@@ -209,7 +209,7 @@ class CommentsController(rest.RestController):
         comment_author_id = events_api.events_get_all(
             comment_id=comment_id)[0].author_id
         if request.current_user_id != comment_author_id:
-            abort(400, _("You can't update this comment"))
+            abort(403, _("You are not allowed to update this comment."))
 
         updated_comment = comments_api.comment_update(comment_id,
                                                       comment_body.as_dict(
@@ -230,9 +230,7 @@ class CommentsController(rest.RestController):
         comment = comments_api.comment_get(comment_id)
 
         if request.current_user_id != comment.author_id:
-            response.status_code = 400
-            response.body = _("You are not allowed to delete this comment.")
-            return response
+            abort(403, _("You are not allowed to delete this comment."))
 
         comments_api.comment_delete(comment_id)
 

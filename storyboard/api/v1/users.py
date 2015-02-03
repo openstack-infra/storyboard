@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from oslo.config import cfg
+from pecan import abort
 from pecan import expose
 from pecan import request
 from pecan import response
@@ -138,9 +139,7 @@ class UsersController(rest.RestController):
         # Only owners and superadmins are allowed to modify users.
         if request.current_user_id != user_id \
                 and not current_user.is_superuser:
-            response.status_code = 403
-            response.body = _("You are not allowed to update this user.")
-            return response
+            abort(403, _("You are not allowed to update this user."))
 
         # Strip out values that you're not allowed to change.
         user_dict = user.as_dict(omit_unset=True)
