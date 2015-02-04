@@ -248,6 +248,21 @@ class TestStorySearch(base.FunctionalTest):
         tag_query_results = self.get_json(self.resource, tags=["tag_2"])
         self.assertEqual(2, len(tag_query_results))
 
+        # Get stories, which have tag_1 or tag_3
+        tag_query_results = self.get_json(self.resource,
+                                          tags=["tag_1", "tag_3"],
+                                          tags_filter_type="any")
+        self.assertEqual(2, len(tag_query_results))
+        self.assertEqual(1, tag_query_results[0]["id"])
+        self.assertEqual(2, tag_query_results[1]["id"])
+
+        # Get stories, which have tag_1 with tags filter type 'any'
+        tag_query_results = self.get_json(self.resource,
+                                          tags=["tag_1"],
+                                          tags_filter_type="any")
+        self.assertEqual(1, len(tag_query_results))
+        self.assertEqual(1, tag_query_results[0]["id"])
+
     def test_search_empty_results(self):
         url = self.build_search_url({
             'title': 'grumpycat'
