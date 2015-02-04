@@ -19,7 +19,6 @@ from pecan import request
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
-from wsme.exc import ClientSideError
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
@@ -30,6 +29,7 @@ from storyboard.api.v1.timeline import TimeLineEventsController
 from storyboard.api.v1 import validations
 from storyboard.api.v1 import wmodels
 from storyboard.common import decorators
+from storyboard.common import exception as exc
 from storyboard.db.api import stories as stories_api
 from storyboard.db.api import timeline_events as events_api
 from storyboard.openstack.common.gettextutils import _  # noqa
@@ -61,8 +61,7 @@ class StoriesController(rest.RestController):
         if story:
             return wmodels.Story.from_db_model(story)
         else:
-            raise ClientSideError(_("Story %s not found") % story_id,
-                                  status_code=404)
+            raise exc.NotFound(_("Story %s not found") % story_id)
 
     @decorators.db_exceptions
     @secure(checks.guest)
@@ -165,8 +164,7 @@ class StoriesController(rest.RestController):
 
             return wmodels.Story.from_db_model(updated_story)
         else:
-            raise ClientSideError(_("Story %s not found") % story_id,
-                                  status_code=404)
+            raise exc.NotFound(_("Story %s not found") % story_id)
 
     @decorators.db_exceptions
     @secure(checks.superuser)

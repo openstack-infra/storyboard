@@ -39,8 +39,7 @@ class NotFound(StoryboardException):
     message = _("Object not found")
 
     def __init__(self, message=None):
-        if message:
-            self.message = message
+        super(NotFound, self).__init__(message, 404)
 
 
 class NotEmpty(StoryboardException):

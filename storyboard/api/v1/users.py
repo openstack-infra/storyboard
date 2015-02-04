@@ -20,7 +20,6 @@ from pecan import response
 from pecan import rest
 from pecan.secure import secure
 import six
-from wsme.exc import ClientSideError
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
@@ -30,6 +29,7 @@ from storyboard.api.v1.user_tokens import UserTokensController
 from storyboard.api.v1 import validations
 from storyboard.api.v1 import wmodels
 from storyboard.common import decorators
+from storyboard.common import exception as exc
 from storyboard.db.api import users as users_api
 from storyboard.openstack.common.gettextutils import _  # noqa
 
@@ -108,8 +108,7 @@ class UsersController(rest.RestController):
 
         user = users_api.user_get(user_id, filter_non_public)
         if not user:
-            raise ClientSideError(_("User %s not found") % user_id,
-                                  status_code=404)
+            raise exc.NotFound(_("User %s not found") % user_id)
         return user
 
     @decorators.db_exceptions

@@ -17,13 +17,14 @@ from oslo.config import cfg
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
-from wsme.exc import ClientSideError
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import wmodels
+from storyboard.common import exception as exc
 from storyboard.db.api import stories as stories_api
 from storyboard.db.api import story_tags as tags_api
+from storyboard.openstack.common.gettextutils import _  # noqa
 
 CONF = cfg.CONF
 
@@ -45,8 +46,7 @@ class TagsController(rest.RestController):
         if tag:
             return wmodels.Tag.from_db_model(tag)
         else:
-            raise ClientSideError("Tag %s not found" % tag_id,
-                                  status_code=404)
+            raise exc.NotFound(_("Tag %s not found") % tag_id)
 
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Tag], int, int, int)
@@ -65,8 +65,7 @@ class TagsController(rest.RestController):
 
         story = stories_api.story_get(story_id)
         if not story:
-            raise ClientSideError("Story %s not found" % story_id,
-                                  status_code=404)
+            raise exc.NotFound("Story %s not found" % story_id)
 
         return [wmodels.Tag.from_db_model(t) for t in story.tags]
 
@@ -81,8 +80,7 @@ class TagsController(rest.RestController):
 
         story = stories_api.story_get(story_id)
         if not story:
-            raise ClientSideError("Story %s not found" % story_id,
-                                  status_code=404)
+            raise exc.NotFound("Story %s not found" % story_id)
 
         for tag in tags:
             stories_api.story_add_tag(story_id, tag)
@@ -114,8 +112,7 @@ class TagsController(rest.RestController):
 
         story = stories_api.story_get(story_id)
         if not story:
-            raise ClientSideError("Story %s not found" % story_id,
-                                  status_code=404)
+            raise exc.NotFound("Story %s not found" % story_id)
 
         for tag in tags:
             stories_api.story_remove_tag(story_id, tag)

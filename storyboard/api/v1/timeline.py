@@ -18,7 +18,6 @@ from pecan import request
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
-from wsme.exc import ClientSideError
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
@@ -26,6 +25,7 @@ from storyboard.api.v1.search import search_engine
 from storyboard.api.v1 import wmodels
 from storyboard.common import decorators
 from storyboard.common import event_types
+from storyboard.common import exception as exc
 from storyboard.db.api import comments as comments_api
 from storyboard.db.api import timeline_events as events_api
 from storyboard.openstack.common.gettextutils import _  # noqa
@@ -56,8 +56,7 @@ class TimeLineEventsController(rest.RestController):
             wsme_event = wmodels.TimeLineEvent.resolve_event_values(wsme_event)
             return wsme_event
         else:
-            raise ClientSideError(_("Comment %s not found") % event_id,
-                                  status_code=404)
+            raise exc.NotFound(_("Event %s not found") % event_id)
 
     @decorators.db_exceptions
     @secure(checks.guest)
@@ -118,8 +117,7 @@ class CommentsController(rest.RestController):
         if comment:
             return wmodels.Comment.from_db_model(comment)
         else:
-            raise ClientSideError(_("Comment %s not found") % comment_id,
-                                  status_code=404)
+            raise exc.NotFound(_("Comment %s not found") % comment_id)
 
     @decorators.db_exceptions
     @secure(checks.guest)
