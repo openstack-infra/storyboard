@@ -70,14 +70,12 @@ class ProjectsSubcontroller(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.superuser)
-    @wsme_pecan.wsexpose(None, int, int)
+    @wsme_pecan.wsexpose(None, int, int, status_code=204)
     def delete(self, project_group_id, project_id):
         """Delete a project from a project_group
         """
         project_groups.project_group_delete_project(project_group_id,
                                                     project_id)
-
-        response.status_code = 204
 
 
 class ProjectGroupsController(rest.RestController):
@@ -179,7 +177,7 @@ class ProjectGroupsController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.superuser)
-    @wsme_pecan.wsexpose(None, int)
+    @wsme_pecan.wsexpose(None, int, status_code=204)
     def delete(self, project_group_id):
         """Delete this project group.
 
@@ -191,7 +189,5 @@ class ProjectGroupsController(rest.RestController):
             abort(404, not_found_exc.message)
         except exc.NotEmpty as not_empty_exc:
             abort(400, not_empty_exc.message)
-
-        response.status_code = 204
 
     projects = ProjectsSubcontroller()

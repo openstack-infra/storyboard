@@ -141,7 +141,7 @@ class SubscriptionEventsController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose(None, int)
+    @wsme_pecan.wsexpose(None, int, status_code=204)
     def delete(self, subscription_event_id):
         """Delete a specific subscription.
 
@@ -158,5 +158,3 @@ class SubscriptionEventsController(rest.RestController):
 
         subscription_events_api.subscription_events_delete(
             subscription_event_id)
-
-        response.status_code = 204

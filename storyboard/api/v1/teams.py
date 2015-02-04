@@ -65,12 +65,10 @@ class UsersSubcontroller(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.superuser)
-    @wsme_pecan.wsexpose(None, int, int)
+    @wsme_pecan.wsexpose(None, int, int, status_code=204)
     def delete(self, team_id, user_id):
         """Delete a user from a team."""
         teams_api.team_delete_user(team_id, user_id)
-
-        response.status_code = 204
 
 
 class TeamsController(rest.RestController):
@@ -210,7 +208,7 @@ class TeamsController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.superuser)
-    @wsme_pecan.wsexpose(None, int)
+    @wsme_pecan.wsexpose(None, int, status_code=204)
     def delete(self, team_id):
         """Delete this team.
 
@@ -222,5 +220,3 @@ class TeamsController(rest.RestController):
             abort(404, not_found_exc.message)
         except exc.NotEmpty as not_empty_exc:
             abort(400, not_empty_exc.message)
-
-        response.status_code = 204

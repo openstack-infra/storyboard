@@ -137,7 +137,7 @@ class TestUserTokensAsUser(base.FunctionalTest):
         response = self.delete(self.resource + '/' +
                                six.text_type(response.json['id']),
                                expect_errors=True)
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(204, response.status_code)
 
     def test_create_unauthorized(self):
         """Assert that a user cannot create a token for someone else."""
@@ -280,7 +280,7 @@ class TestUserTokensAsSuperuser(base.FunctionalTest):
     def test_delete_other(self):
         """Assert that a superuser CAN delete a token for someone else."""
         response = self.delete('/users/2/tokens/3', expect_errors=True)
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(204, response.status_code)
 
         response = self.get_json('/users/2/tokens/3', expect_errors=True)
         self.assertEquals(404, response.status_code)

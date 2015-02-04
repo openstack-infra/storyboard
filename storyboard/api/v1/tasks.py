@@ -205,7 +205,7 @@ class TasksController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose(wmodels.Task, int)
+    @wsme_pecan.wsexpose(wmodels.Task, int, status_code=204)
     def delete(self, task_id):
         """Delete this task.
 
@@ -220,8 +220,6 @@ class TasksController(rest.RestController):
             author_id=request.current_user_id)
 
         tasks_api.task_delete(task_id)
-
-        response.status_code = 204
 
     @decorators.db_exceptions
     @secure(checks.guest)

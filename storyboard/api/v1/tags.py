@@ -14,7 +14,6 @@
 # limitations under the License.
 
 from oslo.config import cfg
-from pecan import response
 from pecan import rest
 from pecan.secure import secure
 import wsmeext.pecan as wsme_pecan
@@ -101,7 +100,7 @@ class TagsController(rest.RestController):
         return wmodels.Tag.from_db_model(tag)
 
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose(None, int, body=[unicode])
+    @wsme_pecan.wsexpose(None, int, body=[unicode], status_code=204)
     def delete(self, story_id, tags):
         """Remove a list of tags from a Story.
 
@@ -116,5 +115,3 @@ class TagsController(rest.RestController):
 
         for tag in tags:
             stories_api.story_remove_tag(story_id, tag)
-
-        response.status_code = 204
