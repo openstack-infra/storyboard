@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#    http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,24 +24,28 @@ import six
 
 from storyboard.api.auth.oauth_validator import SERVER
 from storyboard.api.auth.openid_client import client as openid_client
+from storyboard.common import decorators
 from storyboard.db.api import auth as auth_api
 
 LOG = log.getLogger(__name__)
 
 
 class AuthController(rest.RestController):
+
     _custom_actions = {
         "authorize": ["GET"],
         "authorize_return": ["GET"],
         "token": ["POST"],
     }
 
+    @decorators.oauth_exceptions
     @pecan.expose()
     def authorize(self):
         """Authorization code request."""
 
         return openid_client.send_openid_redirect(request, response)
 
+    @decorators.oauth_exceptions
     @pecan.expose()
     def authorize_return(self):
         """Authorization code redirect endpoint.
@@ -117,6 +121,7 @@ class AuthController(rest.RestController):
 
         return response
 
+    @decorators.oauth_exceptions
     @pecan.expose()
     def token(self):
         """Token endpoint."""

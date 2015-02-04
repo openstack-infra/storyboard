@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#    http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,20 +13,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import requests
+
 from oslo.config import cfg
 from oslo_log import log
-import requests
 import six
 
+import storyboard.common.exception as exc
+
 from storyboard.api.auth import utils
+
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 
 
 class OpenIdClient(object):
-
     def send_openid_redirect(self, request, response):
+
+        # Extract needed parameters
+        redirect_uri = request.params.get("redirect_uri")
+        response_type = request.params.get("response_type")
+
+        # Sanity Check: response_type
+        if response_type != 'code':
+            raise exc.UnsupportedResponseType(redirect_uri=redirect_uri,
+                                              message='response_type must '
+                                                      'be \'code\'')
+
         redirect_location = CONF.oauth.openid_url
         response.status_code = 303
 
@@ -34,16 +48,16 @@ class OpenIdClient(object):
             "scope": six.text_type(request.params.get("scope")),
             "state": six.text_type(request.params.get("state")),
             "client_id": six.text_type(request.params.get("client_id")),
-            "response_type": six.text_type(request.params.get(
-                "response_type")),
-            "sb_redirect_uri": six.text_type(request.params.get(
-                "redirect_uri"))
+            "response_type": six.text_type(response_type),
+            "sb_redirect_uri": six.text_type(redirect_uri)
         }
 
-        #TODO(krotscheck): URI base should be fully inferred from the request.
+        # TODO(krotscheck): URI base should be fully inferred from the request.
         # assuming that the API is hosted at /api isn't good.
-        return_to_url = request.host_url + "/api/v1/openid/authorize_return?" \
-            + utils.join_params(return_params, encode=True)
+        return_to_url = "%s/api/v1/openid/authorize_return?%s" % (
+            request.host_url,
+            utils.join_params(return_params, encode=True)
+        )
 
         response.status_code = 303
 
@@ -110,5 +124,6 @@ class OpenIdClient(object):
                          for token in data_tokens)
 
         return data_dict["assoc_handle"]
+
 
 client = OpenIdClient()

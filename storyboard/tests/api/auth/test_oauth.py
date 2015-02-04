@@ -65,7 +65,7 @@ class BaseOAuthTest(base.FunctionalTest):
         for key, value in six.iteritems(kwargs):
             self.assertIn(key, parameters)
             self.assertIsNotNone(parameters[key])
-            self.assertEqual(value, parameters[key])
+            self.assertEqual(value, parameters[key][0])
 
 
 class TestOAuthAuthorize(BaseOAuthTest):
@@ -83,7 +83,7 @@ class TestOAuthAuthorize(BaseOAuthTest):
     valid_params = {
         'response_type': 'code',
         'client_id': 'storyboard.openstack.org',
-        'redirect_uri': 'https://storyboard.openstack.org/!#/auth/token',
+        'redirect_uri': 'https://storyboard.openstack.org/#!/auth/token',
         'scope': 'user'
     }
 
@@ -127,6 +127,28 @@ class TestOAuthAuthorize(BaseOAuthTest):
                          redirect_params['state'][0])
         self.assertEqual(self.valid_params['redirect_uri'],
                          redirect_params['sb_redirect_uri'][0])
+
+    def test_authorize_invalid_response_type(self):
+        """Assert that an invalid response_type redirects back to the
+        redirect_uri and provides the expected error response.
+        """
+        invalid_params = self.valid_params.copy()
+        invalid_params['response_type'] = 'invalid_code'
+
+        # Simple GET with invalid code parameters
+        random_state = six.text_type(uuid.uuid4())
+        response = self.get_json(path='/openid/authorize',
+                                 expect_errors=True,
+                                 state=random_state,
+                                 **invalid_params)
+
+        # Validate the error response
+        self.assertValidRedirect(response=response,
+                                 expected_status_code=302,
+                                 redirect_uri=invalid_params['redirect_uri'],
+                                 error='unsupported_response_type',
+                                 error_description='response_type must be '
+                                                   '\'code\'')
 
 
 class TestOAuthAccessToken(BaseOAuthTest):

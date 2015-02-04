@@ -13,9 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import httplib
+
+from oslo_log import log
+import rfc3987
 from wsme.exc import ClientSideError
 
 from storyboard.openstack.common.gettextutils import _  # noqa
+
+LOG = log.getLogger(__name__)
 
 
 class StoryboardException(ClientSideError):
@@ -233,3 +239,76 @@ class DBInvalidSortKey(DBException):
     """
 
     message = _("Invalid sort field")
+
+
+class OAuthException(ClientSideError):
+    """Base Exception for our OAuth response handling. All of the error codes
+    used for this exception type are defined in the OAuth 2.0 Specification.
+    https://tools.ietf.org/html/rfc6749#section-5.2
+
+    To use, extend and override the 'error' field. Specific error description
+    messages need to be added when the exception is raised.
+    """
+
+    error = "server_error"
+
+    redirect_uri = None
+
+    def __init__(self, message=None, redirect_uri=None):
+
+        if not redirect_uri:
+            code = httplib.BAD_REQUEST
+        else:
+            try:
+                parts = rfc3987.parse(redirect_uri, 'URI')
+                if parts['scheme'] not in ['http', 'https']:
+                    raise ValueError('Invalid scheme')
+                self.redirect_uri = redirect_uri
+                code = httplib.SEE_OTHER
+            except ValueError:
+                LOG.warning('Provided redirect_uri is invalid: %s'
+                            % (redirect_uri,))
+                code = httplib.BAD_REQUEST
+
+        super(OAuthException, self) \
+            .__init__(msg=message, status_code=code)
+
+
+class InvalidRequest(OAuthException):
+    error = "invalid_request"
+
+
+class AccessDenied(OAuthException):
+    error = "access_denied"
+
+
+class UnsupportedResponseType(OAuthException):
+    error = "unsupported_response_type"
+
+
+class InvalidScope(OAuthException):
+    error = "invalid_scope"
+
+
+class InvalidClient(OAuthException):
+    error = "invalid_client"
+
+
+class UnauthorizedClient(OAuthException):
+    error = "unauthorized_client"
+
+
+class InvalidGrant(OAuthException):
+    error = "invalid_grant"
+
+
+class UnsupportedGrantType(OAuthException):
+    error = "unsupported_grant_type"
+
+
+class ServerError(OAuthException):
+    error = "server_error"
+
+
+class TemporarilyUnavailable(OAuthException):
+    error = "temporarily_unavailable"
