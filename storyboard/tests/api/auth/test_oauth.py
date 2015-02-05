@@ -171,6 +171,27 @@ class TestOAuthAuthorize(BaseOAuthTest):
                                  error='unsupported_response_type',
                                  error_description=e_msg.NO_RESPONSE_TYPE)
 
+    def test_authorize_no_client(self):
+        """Assert that a nonexistent client redirects back to the
+        redirect_uri and provides the expected error response.
+        """
+        invalid_params = self.valid_params.copy()
+        del invalid_params['client_id']
+
+        # Simple GET with invalid code parameters
+        random_state = six.text_type(uuid.uuid4())
+        response = self.get_json(path='/openid/authorize',
+                                 expect_errors=True,
+                                 state=random_state,
+                                 **invalid_params)
+
+        # Validate the error response
+        self.assertValidRedirect(response=response,
+                                 expected_status_code=302,
+                                 redirect_uri=invalid_params['redirect_uri'],
+                                 error='invalid_client',
+                                 error_description=e_msg.NO_CLIENT_ID)
+
 
 class TestOAuthAccessToken(BaseOAuthTest):
     """Functional test for the /oauth/token endpoint for the generation of

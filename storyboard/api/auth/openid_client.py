@@ -20,6 +20,7 @@ import six
 
 from storyboard.api.auth import ErrorMessages as e_msg
 from storyboard.api.auth import utils
+from storyboard.common.exception import InvalidClient
 from storyboard.common.exception import UnsupportedResponseType
 
 
@@ -33,6 +34,7 @@ class OpenIdClient(object):
         # Extract needed parameters
         redirect_uri = request.params.get("redirect_uri")
         response_type = request.params.get("response_type")
+        client_id = request.params.get("client_id")
 
         # Sanity Check: response_type
         if not response_type:
@@ -42,13 +44,18 @@ class OpenIdClient(object):
             raise UnsupportedResponseType(redirect_uri=redirect_uri,
                                           message=e_msg.INVALID_RESPONSE_TYPE)
 
+        # Sanity Check: client_id
+        if not client_id:
+            raise InvalidClient(redirect_uri=redirect_uri,
+                                message=e_msg.NO_CLIENT_ID)
+
         redirect_location = CONF.oauth.openid_url
         response.status_code = 303
 
         return_params = {
             "scope": six.text_type(request.params.get("scope")),
             "state": six.text_type(request.params.get("state")),
-            "client_id": six.text_type(request.params.get("client_id")),
+            "client_id": six.text_type(client_id),
             "response_type": six.text_type(response_type),
             "sb_redirect_uri": six.text_type(redirect_uri)
         }
