@@ -29,8 +29,24 @@ def access_token_get(access_token_id):
 
 
 def access_token_get_by_token(access_token):
-    return api_base.model_query(models.AccessToken)\
+    return api_base.model_query(models.AccessToken) \
         .filter_by(access_token=access_token).first()
+
+
+def is_valid(access_token):
+    if not access_token:
+        return False
+
+    token = access_token_get_by_token(access_token)
+
+    if not token:
+        return False
+
+    if datetime.datetime.utcnow() > token.expires_at:
+        token.access_token_delete(token)
+        return False
+
+    return True
 
 
 def access_token_get_all(marker=None, limit=None, sort_field=None,

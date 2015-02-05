@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#    http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,14 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from datetime import datetime
+import datetime
 
 from oauthlib.oauth2 import RequestValidator
 from oauthlib.oauth2 import WebApplicationServer
 from oslo.config import cfg
 from oslo_log import log
 
-from storyboard.api.auth.token_storage import storage
+from storyboard.db.api import access_tokens as token_api
+from storyboard.db.api import auth as auth_api
 from storyboard.db.api import users as user_api
 
 CONF = cfg.CONF
@@ -41,7 +42,6 @@ class SkeletonValidator(RequestValidator):
 
     def __init__(self):
         super(SkeletonValidator, self).__init__()
-        self.token_storage = storage.get_storage()
 
     def validate_client_id(self, client_id, request, *args, **kwargs):
         """Check that a valid client is connecting
@@ -111,7 +111,7 @@ class SkeletonValidator(RequestValidator):
         email = request._params["openid.sreg.email"]
         full_name = request._params["openid.sreg.fullname"]
         username = request._params["openid.sreg.nickname"]
-        last_login = datetime.utcnow()
+        last_login = datetime.datetime.utcnow()
 
         user = user_api.user_get_by_openid(openid)
         user_dict = {"full_name": full_name,
@@ -125,7 +125,13 @@ class SkeletonValidator(RequestValidator):
         else:
             user = user_api.user_update(user.id, user_dict)
 
-        self.token_storage.save_authorization_code(code, user_id=user.id)
+        # def save_authorization_code(self, authorization_code, user_id):
+        values = {
+            "code": code["code"],
+            "state": code["state"],
+            "user_id": user.id
+        }
+        auth_api.authorization_code_save(values)
 
     # Token request
 
@@ -142,7 +148,8 @@ class SkeletonValidator(RequestValidator):
     def validate_code(self, client_id, code, client, request, *args, **kwargs):
         """Validate the code belongs to the client."""
 
-        return self.token_storage.check_authorization_code(code)
+        db_code = auth_api.authorization_code_get(code)
+        return not db_code is None
 
     def confirm_redirect_uri(self, client_id, code, redirect_uri, client,
                              *args, **kwargs):
@@ -169,13 +176,12 @@ class SkeletonValidator(RequestValidator):
         # Try authorization code
         code = request._params.get("code")
         if code:
-            code_info = self.token_storage.get_authorization_code_info(code)
+            code_info = auth_api.authorization_code_get(code)
             return code_info.user_id
 
         # Try refresh token
         refresh_token = request._params.get("refresh_token")
-        refresh_token_entry = self.token_storage.get_refresh_token_info(
-            refresh_token)
+        refresh_token_entry = auth_api.refresh_token_get(refresh_token)
         if refresh_token_entry:
             return refresh_token_entry.user_id
 
@@ -190,10 +196,28 @@ class SkeletonValidator(RequestValidator):
         # be removed.
         self.invalidate_refresh_token(request)
 
-        self.token_storage.save_token(access_token=token["access_token"],
-                                      expires_in=token["expires_in"],
-                                      refresh_token=token["refresh_token"],
-                                      user_id=user_id)
+        access_token_values = {
+            "access_token": token["access_token"],
+            "expires_in": token["expires_in"],
+            "expires_at": datetime.datetime.utcnow() + datetime.timedelta(
+                seconds=token["expires_in"]),
+            "user_id": user_id
+        }
+
+        # Oauthlib does not provide a separate expiration time for a
+        # refresh_token so taking it from config directly.
+        refresh_expires_in = CONF.oauth.refresh_token_ttl
+
+        refresh_token_values = {
+            "refresh_token": token["refresh_token"],
+            "user_id": user_id,
+            "expires_in": refresh_expires_in,
+            "expires_at": datetime.datetime.utcnow() + datetime.timedelta(
+                seconds=refresh_expires_in),
+        }
+
+        token_api.access_token_create(access_token_values)
+        auth_api.refresh_token_save(refresh_token_values)
 
     def invalidate_authorization_code(self, client_id, code, request, *args,
                                       **kwargs):
@@ -202,7 +226,7 @@ class SkeletonValidator(RequestValidator):
 
         """
 
-        self.token_storage.invalidate_authorization_code(code)
+        auth_api.authorization_code_delete(code)
 
     # Protected resource request
 
@@ -229,7 +253,16 @@ class SkeletonValidator(RequestValidator):
                                **kwargs):
         """Check that the refresh token exists in the db."""
 
-        return self.token_storage.check_refresh_token(refresh_token)
+        refresh_token_entry = auth_api.refresh_token_get(refresh_token)
+
+        if not refresh_token_entry:
+            return False
+
+        if datetime.datetime.utcnow() > refresh_token_entry.expires_at:
+            auth_api.refresh_token_delete(refresh_token)
+            return False
+
+        return True
 
     def invalidate_refresh_token(self, request):
         """Remove a used token from the storage."""
@@ -241,7 +274,7 @@ class SkeletonValidator(RequestValidator):
         if not refresh_token:
             return
 
-        self.token_storage.invalidate_refresh_token(refresh_token)
+        auth_api.refresh_token_delete(refresh_token)
 
 
 class OpenIdConnectServer(WebApplicationServer):

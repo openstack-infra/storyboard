@@ -24,7 +24,7 @@ import six
 
 from storyboard.api.auth.oauth_validator import SERVER
 from storyboard.api.auth.openid_client import client as openid_client
-from storyboard.api.auth.token_storage import storage
+from storyboard.db.api import auth as auth_api
 
 LOG = log.getLogger(__name__)
 
@@ -73,8 +73,7 @@ class AuthController(rest.RestController):
 
     def _access_token_by_code(self):
         auth_code = request.params.get("code")
-        code_info = storage.get_storage() \
-            .get_authorization_code_info(auth_code)
+        code_info = auth_api.authorization_code_get(auth_code)
         headers, body, code = SERVER.create_token_response(
             uri=request.url,
             http_method=request.method,
@@ -96,8 +95,7 @@ class AuthController(rest.RestController):
 
     def _access_token_by_refresh_token(self):
         refresh_token = request.params.get("refresh_token")
-        refresh_token_info = storage.get_storage().get_refresh_token_info(
-            refresh_token)
+        refresh_token_info = auth_api.refresh_token_get(refresh_token)
 
         headers, body, code = SERVER.create_token_response(
             uri=request.url,

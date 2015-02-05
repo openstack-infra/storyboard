@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#    http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,7 +15,7 @@
 
 from pecan import hooks
 
-from storyboard.api.auth.token_storage import storage
+from storyboard.db.api import access_tokens as token_api
 
 
 class UserIdHook(hooks.PecanHook):
@@ -24,11 +24,11 @@ class UserIdHook(hooks.PecanHook):
         request = state.request
 
         if request.authorization and len(request.authorization) == 2:
-            token = request.authorization[1]
-            token_info = storage.get_storage().get_access_token_info(token)
+            access_token = request.authorization[1]
+            token = token_api.access_token_get_by_token(access_token)
 
-            if token_info:
-                request.current_user_id = token_info.user_id
+            if token:
+                request.current_user_id = token.user_id
                 return
 
         request.current_user_id = None

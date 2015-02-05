@@ -21,8 +21,6 @@ from oslo_log import log
 import pecan
 from wsgiref import simple_server
 
-from storyboard.api.auth.token_storage import impls as storage_impls
-from storyboard.api.auth.token_storage import storage
 from storyboard.api import config as api_config
 from storyboard.api.middleware.cors_middleware import CORSMiddleware
 from storyboard.api.middleware import token_middleware
@@ -86,11 +84,6 @@ def setup_app(pecan_config=None):
         user_id_hook.UserIdHook(),
         validation_hook.ValidationHook()
     ]
-
-    # Setup token storage
-    token_storage_type = CONF.token_storage_type
-    storage_cls = storage_impls.STORAGE_IMPLS[token_storage_type]
-    storage.set_storage(storage_cls())
 
     # Setup search engine
     search_engine_name = CONF.search_engine
