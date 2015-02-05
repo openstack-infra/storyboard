@@ -13,9 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo.db.sqlalchemy.utils import InvalidSortKey
 from sqlalchemy.orm import subqueryload
-from wsme.exc import ClientSideError
 
 from storyboard.api.v1 import wmodels
 from storyboard.common import exception as exc
@@ -85,18 +83,13 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
         query = query.filter(models.StorySummary.status.in_(status))
 
     # paginate the query
-    try:
-        query = api_base.paginate_query(query=query,
-                                        model=models.StorySummary,
-                                        limit=limit,
-                                        sort_keys=[sort_field],
-                                        marker=marker,
-                                        sort_dir=sort_dir)
-    except InvalidSortKey:
-        raise exc.DBInvalidSortKey(
-            _("Invalid sort_field [%s]") % (sort_field,))
-    except ValueError as ve:
-        raise ClientSideError(_("%s") % (ve,), status_code=400)
+
+    query = api_base.paginate_query(query=query,
+                                    model=models.StorySummary,
+                                    limit=limit,
+                                    sort_key=sort_field,
+                                    marker=marker,
+                                    sort_dir=sort_dir)
 
     raw_stories = query.all()
     stories = map(summarize_task_statuses, raw_stories)

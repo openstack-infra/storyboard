@@ -241,6 +241,15 @@ class DBInvalidSortKey(DBException):
     message = _("Invalid sort field")
 
 
+class DBValueError(DBException):
+    """Value error exception
+
+    This exception wraps standard ValueError exception.
+    """
+
+    message = _("Unknown value.")
+
+
 class OAuthException(ClientSideError):
     """Base Exception for our OAuth response handling. All of the error codes
     used for this exception type are defined in the OAuth 2.0 Specification.
