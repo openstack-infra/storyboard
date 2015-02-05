@@ -41,3 +41,5 @@ class ErrorMessages(object):
     NO_RESPONSE_TYPE = _('You did not provide a response_type.')
     INVALID_RESPONSE_TYPE = _('response_type must be \'code\'')
     NO_CLIENT_ID = _('You did not provide a client_id.')
+    NO_REDIRECT_URI = _('You did not provide a redirect_uri.')
+    INVALID_REDIRECT_URI = _('You did not provide a valid redirect_uri.')

@@ -192,6 +192,48 @@ class TestOAuthAuthorize(BaseOAuthTest):
                                  error='invalid_client',
                                  error_description=e_msg.NO_CLIENT_ID)
 
+    def test_authorize_invalid_redirect_uri(self):
+        """Assert that an invalid redirect_uri returns a 400 message with the
+        appropriate error message encoded in the body of the response.
+        """
+        invalid_params = self.valid_params.copy()
+        invalid_params['redirect_uri'] = 'not_a_valid_uri'
+
+        # Simple GET with invalid code parameters
+        random_state = six.text_type(uuid.uuid4())
+        response = self.get_json(path='/openid/authorize',
+                                 expect_errors=True,
+                                 state=random_state,
+                                 **invalid_params)
+
+        # Assert that this is NOT a redirect
+        self.assertEqual(400, response.status_code)
+        self.assertIsNotNone(response.json)
+        self.assertEqual('invalid_request', response.json['error'])
+        self.assertEqual(e_msg.INVALID_REDIRECT_URI,
+                         response.json['error_description'])
+
+    def test_authorize_no_redirect_uri(self):
+        """Assert that a nonexistent redirect_uri returns a 400 message with
+        the appropriate error message encoded in the body of the response.
+        """
+        invalid_params = self.valid_params.copy()
+        del invalid_params['redirect_uri']
+
+        # Simple GET with invalid code parameters
+        random_state = six.text_type(uuid.uuid4())
+        response = self.get_json(path='/openid/authorize',
+                                 expect_errors=True,
+                                 state=random_state,
+                                 **invalid_params)
+
+        # Assert that this is NOT a redirect
+        self.assertEqual(400, response.status_code)
+        self.assertIsNotNone(response.json)
+        self.assertEqual('invalid_request', response.json['error'])
+        self.assertEqual(e_msg.NO_REDIRECT_URI,
+                         response.json['error_description'])
+
 
 class TestOAuthAccessToken(BaseOAuthTest):
     """Functional test for the /oauth/token endpoint for the generation of

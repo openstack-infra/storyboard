@@ -70,6 +70,6 @@ def oauth_exceptions(func):
                     'error_description': error_description
                 }
                 response.body = json.dumps(error_body)
-                abort(o_exc.code, error_description)
+                abort(o_exc.code, error_description, json_body=error_body)
 
     return decorate

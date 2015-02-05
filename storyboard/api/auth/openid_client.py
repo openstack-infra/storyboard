@@ -16,11 +16,13 @@
 from oslo.config import cfg
 from oslo_log import log
 import requests
+import rfc3987
 import six
 
 from storyboard.api.auth import ErrorMessages as e_msg
 from storyboard.api.auth import utils
 from storyboard.common.exception import InvalidClient
+from storyboard.common.exception import InvalidRequest
 from storyboard.common.exception import UnsupportedResponseType
 
 
@@ -35,6 +37,14 @@ class OpenIdClient(object):
         redirect_uri = request.params.get("redirect_uri")
         response_type = request.params.get("response_type")
         client_id = request.params.get("client_id")
+
+        # Sanity Check: Redirect URI
+        if not redirect_uri:
+            raise InvalidRequest(message=e_msg.NO_REDIRECT_URI)
+        try:
+            rfc3987.parse(redirect_uri, 'URI')
+        except ValueError:
+            raise InvalidRequest(message=e_msg.INVALID_REDIRECT_URI)
 
         # Sanity Check: response_type
         if not response_type:
