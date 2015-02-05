@@ -21,8 +21,11 @@ import six
 
 from storyboard.api.auth import ErrorMessages as e_msg
 from storyboard.api.auth import utils
+
 from storyboard.common.exception import InvalidClient
+
 from storyboard.common.exception import InvalidRequest
+from storyboard.common.exception import InvalidScope
 from storyboard.common.exception import UnsupportedResponseType
 
 
@@ -37,6 +40,7 @@ class OpenIdClient(object):
         redirect_uri = request.params.get("redirect_uri")
         response_type = request.params.get("response_type")
         client_id = request.params.get("client_id")
+        scope = request.params.get("scope")
 
         # Sanity Check: Redirect URI
         if not redirect_uri:
@@ -59,11 +63,20 @@ class OpenIdClient(object):
             raise InvalidClient(redirect_uri=redirect_uri,
                                 message=e_msg.NO_CLIENT_ID)
 
+        # Sanity Check: scope
+        if not scope:
+            raise InvalidScope(redirect_uri=redirect_uri,
+                               message=e_msg.NO_SCOPE)
+        # TODO(krotscheck): Defer scope check to ACL once available.
+        if scope != 'user':
+            raise InvalidScope(redirect_uri=redirect_uri,
+                               message=e_msg.INVALID_SCOPE)
+
         redirect_location = CONF.oauth.openid_url
         response.status_code = 303
 
         return_params = {
-            "scope": six.text_type(request.params.get("scope")),
+            "scope": six.text_type(scope),
             "state": six.text_type(request.params.get("state")),
             "client_id": six.text_type(client_id),
             "response_type": six.text_type(response_type),

@@ -43,3 +43,6 @@ class ErrorMessages(object):
     NO_CLIENT_ID = _('You did not provide a client_id.')
     NO_REDIRECT_URI = _('You did not provide a redirect_uri.')
     INVALID_REDIRECT_URI = _('You did not provide a valid redirect_uri.')
+
+    INVALID_SCOPE = _('scope must be \'user\'.')
+    NO_SCOPE = _('You did not provide a scope.')

@@ -192,6 +192,48 @@ class TestOAuthAuthorize(BaseOAuthTest):
                                  error='invalid_client',
                                  error_description=e_msg.NO_CLIENT_ID)
 
+    def test_authorize_invalid_scope(self):
+        """Assert that an invalid scope redirects back to the
+        redirect_uri and provides the expected error response.
+        """
+        invalid_params = self.valid_params.copy()
+        invalid_params['scope'] = 'invalid_scope'
+
+        # Simple GET with invalid code parameters
+        random_state = six.text_type(uuid.uuid4())
+        response = self.get_json(path='/openid/authorize',
+                                 expect_errors=True,
+                                 state=random_state,
+                                 **invalid_params)
+
+        # Validate the error response
+        self.assertValidRedirect(response=response,
+                                 expected_status_code=302,
+                                 redirect_uri=invalid_params['redirect_uri'],
+                                 error='invalid_scope',
+                                 error_description=e_msg.INVALID_SCOPE)
+
+    def test_authorize_no_scope(self):
+        """Assert that a nonexistent scope redirects back to the
+        redirect_uri and provides the expected error response.
+        """
+        invalid_params = self.valid_params.copy()
+        del invalid_params['scope']
+
+        # Simple GET with invalid code parameters
+        random_state = six.text_type(uuid.uuid4())
+        response = self.get_json(path='/openid/authorize',
+                                 expect_errors=True,
+                                 state=random_state,
+                                 **invalid_params)
+
+        # Validate the error response
+        self.assertValidRedirect(response=response,
+                                 expected_status_code=302,
+                                 redirect_uri=invalid_params['redirect_uri'],
+                                 error='invalid_scope',
+                                 error_description=e_msg.NO_SCOPE)
+
     def test_authorize_invalid_redirect_uri(self):
         """Assert that an invalid redirect_uri returns a 400 message with the
         appropriate error message encoded in the body of the response.
