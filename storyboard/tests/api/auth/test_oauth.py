@@ -375,6 +375,28 @@ class TestOAuthAuthorizeReturn(BaseOAuthTest):
                                  state=token.state,
                                  code=token.code)
 
+    def test_invalid_response_request(self, mock_post):
+        """This test ensures that a failed authorize request against the oauth
+        endpoint succeeds with expected values.
+        """
+        self._mock_response(mock_post, valid=False)
+
+        random_state = six.text_type(uuid.uuid4())
+
+        # Simple GET with various parameters
+        response = self.get_json(path='/openid/authorize_return',
+                                 expect_errors=True,
+                                 state=random_state,
+                                 **self.valid_params)
+
+        # Validate the redirect response
+        self.assertValidRedirect(response=response,
+                                 expected_status_code=302,
+                                 redirect_uri=
+                                 self.valid_params['sb_redirect_uri'],
+                                 error='access_denied',
+                                 error_description=e_msg.OPEN_ID_TOKEN_INVALID)
+
 
 class TestOAuthAccessToken(BaseOAuthTest):
     """Functional test for the /oauth/token endpoint for the generation of

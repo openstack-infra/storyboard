@@ -21,6 +21,7 @@ import six
 
 from storyboard.api.auth import ErrorMessages as e_msg
 from storyboard.api.auth import utils
+from storyboard.common.exception import AccessDenied
 from storyboard.common.exception import InvalidClient
 from storyboard.common.exception import InvalidRequest
 from storyboard.common.exception import InvalidScope
@@ -121,7 +122,7 @@ class OpenIdClient(object):
 
         return response
 
-    def verify_openid(self, request, response):
+    def verify_openid(self, request):
         verify_params = dict(request.params.copy())
         verify_params["openid.mode"] = "check_authentication"
 
@@ -133,8 +134,8 @@ class OpenIdClient(object):
 
         if (verify_response.status_code / 100 != 2
             or verify_dict['is_valid'] != 'true'):
-            response.status_code = 401  # Unauthorized
-            return False
+            raise AccessDenied(redirect_uri=request.params['sb_redirect_uri'],
+                               message=e_msg.OPEN_ID_TOKEN_INVALID)
 
         return True
 

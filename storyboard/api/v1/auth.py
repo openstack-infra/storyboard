@@ -57,9 +57,8 @@ class AuthController(rest.RestController):
 
         """
 
-        if not openid_client.verify_openid(request, response):
-            # The verify call will set unauthorized code
-            return response
+        # This will raise an exception if it's not valid
+        openid_client.verify_openid(request)
 
         headers, body, code = SERVER.create_authorization_response(
             uri=request.url,

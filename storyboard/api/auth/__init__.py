@@ -46,3 +46,6 @@ class ErrorMessages(object):
 
     INVALID_SCOPE = _('scope must be \'user\'.')
     NO_SCOPE = _('You did not provide a scope.')
+
+    OPEN_ID_TOKEN_INVALID = _('Our authorization server declined your '
+                              'credentials.')
