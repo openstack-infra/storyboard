@@ -12,10 +12,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import requests
 from urlparse import parse_qs
 from urlparse import urlparse
 import uuid
 
+from mock import patch
 from oslo.config import cfg
 import six
 
@@ -275,6 +277,103 @@ class TestOAuthAuthorize(BaseOAuthTest):
         self.assertEqual('invalid_request', response.json['error'])
         self.assertEqual(e_msg.NO_REDIRECT_URI,
                          response.json['error_description'])
+
+
+@patch.object(requests, 'post')
+class TestOAuthAuthorizeReturn(BaseOAuthTest):
+    """Functional tests for our /oauth/authorize_return, which handles
+    responses from the launchpad service. The expected behavior here is that
+    a successful response will 303 back to the client in accordance with
+    the OAuth Authorization Response as described here:
+    http://tools.ietf.org/html/rfc6749#section-4.1.2
+
+    Errors from launchpad should be recast into the appropriate error code
+    and follow the error responses in the same section.
+    """
+    valid_params = {
+        'response_type': 'code',
+        'client_id': 'storyboard.openstack.org',
+        'sb_redirect_uri': 'https://storyboard.openstack.org/!#/auth/token',
+        'scope': 'user',
+        'openid.assoc_handle': '{HMAC-SHA1}{54d11f3f}{lmmpZg==}',
+        'openid.ax.count.Email': 0,
+        'openid.ax.type.Email': 'http://schema.openid.net/contact/email',
+        'openid.ax.count.FirstName': 0,
+        'openid.ax.type.FirstName': 'http://schema.openid.net/namePerson'
+                                    '/first',
+        'openid.ax.count.LastName': 0,
+        'openid.ax.type.LastName': 'http://schema.openid.net/namePerson'
+                                   '/last',
+        'openid.ax.mode': 'fetch_response',
+
+        # These two would usually be the OpenID URI.
+        'openid.claimed_id': 'regularuser_openid',
+        'openid.identity': 'regularuser_openid',
+
+        'openid.mode': 'id_res',
+        "openid.ns": "http://specs.openid.net/auth/2.0",
+        "openid.ns.ax": "http://openid.net/srv/ax/1.0",
+        "openid.ns.sreg": "http://openid.net/sreg/1.0",
+        "openid.op_endpoint": "https://login.launchpad.net/+openid",
+        "openid.response_nonce": "2015-02-03T19:19:27ZY5SIfO",
+        "openid.return_to": "https://storyboard.openstack.org/api/v1/openid"
+                            "/authorize_return?scope=user",
+        "openid.sig=2ghVIBuCYDFe32cMOvY9rTCsQfg": "",
+        "openid.signed": "assoc_handle,ax.count.Email,ax.count.FirstName,"
+                         "ax.count.LastName,ax.mode,ax.type.Email,"
+                         "ax.type.FirstName,ax.type.LastName,claimed_id,"
+                         "identity,mode,ns,ns.ax,ns.sreg,op_endpoint,"
+                         "response_nonce,return_to,signed,sreg.email,"
+                         "sreg.fullname,sreg.nickname",
+        "openid.sreg.email": "test@example.com",
+        "openid.sreg.fullname": "Test User",
+        "openid.sreg.nickname": "superuser"
+    }
+
+    def _mock_response(self, mock_post, valid=True):
+        """Set the mock response from the openid endpoint to either true or
+        false.
+
+        :param mock_post: The mock to decorate.
+        :param valid: Whether to provide a valid or invalid response.
+        :return:
+        """
+
+        mock_post.return_value.status_code = 200
+        if valid:
+            mock_post.return_value.content = \
+                'is_valid:true\nns:http://specs.openid.net/auth/2.0\n'
+        else:
+            mock_post.return_value.content = \
+                'is_valid:false\nns:http://specs.openid.net/auth/2.0\n'
+
+    def test_valid_response_request(self, mock_post):
+        """This test ensures that the authorize request against the oauth
+        endpoint succeeds with expected values.
+        """
+        self._mock_response(mock_post, valid=True)
+
+        random_state = six.text_type(uuid.uuid4())
+
+        # Simple GET with various parameters
+        response = self.get_json(path='/openid/authorize_return',
+                                 expect_errors=True,
+                                 state=random_state,
+                                 **self.valid_params)
+
+        # Try to pull the code out of the response
+        location = response.headers.get('Location')
+        location_url = urlparse(location)
+        parameters = parse_qs(location_url[4])
+        token = auth_api.authorization_code_get(parameters['code'])
+
+        # Validate the redirect response
+        self.assertValidRedirect(response=response,
+                                 expected_status_code=302,
+                                 redirect_uri=
+                                 self.valid_params['sb_redirect_uri'],
+                                 state=token.state,
+                                 code=token.code)
 
 
 class TestOAuthAccessToken(BaseOAuthTest):

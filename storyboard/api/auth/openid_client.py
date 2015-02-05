@@ -21,9 +21,7 @@ import six
 
 from storyboard.api.auth import ErrorMessages as e_msg
 from storyboard.api.auth import utils
-
 from storyboard.common.exception import InvalidClient
-
 from storyboard.common.exception import InvalidRequest
 from storyboard.common.exception import InvalidScope
 from storyboard.common.exception import UnsupportedResponseType
