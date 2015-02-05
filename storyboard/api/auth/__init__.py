@@ -14,6 +14,8 @@
 
 from oslo.config import cfg
 
+from storyboard.openstack.common.gettextutils import _  # noqa
+
 CONF = cfg.CONF
 
 OAUTH_OPTS = [
@@ -31,3 +33,10 @@ OAUTH_OPTS = [
 ]
 
 CONF.register_opts(OAUTH_OPTS, "oauth")
+
+
+class ErrorMessages(object):
+    """A list of error messages used in our OAuth Endpoint."""
+
+    NO_RESPONSE_TYPE = _('You did not provide a response_type.')
+    INVALID_RESPONSE_TYPE = _('response_type must be \'code\'')

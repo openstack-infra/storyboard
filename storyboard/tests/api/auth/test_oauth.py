@@ -19,6 +19,7 @@ import uuid
 from oslo.config import cfg
 import six
 
+from storyboard.api.auth import ErrorMessages as e_msg
 from storyboard.db.api import access_tokens as token_api
 from storyboard.db.api import auth as auth_api
 from storyboard.tests import base
@@ -147,8 +148,28 @@ class TestOAuthAuthorize(BaseOAuthTest):
                                  expected_status_code=302,
                                  redirect_uri=invalid_params['redirect_uri'],
                                  error='unsupported_response_type',
-                                 error_description='response_type must be '
-                                                   '\'code\'')
+                                 error_description=e_msg.INVALID_RESPONSE_TYPE)
+
+    def test_authorize_no_response_type(self):
+        """Assert that an nonexistent response_type redirects back to the
+        redirect_uri and provides the expected error response.
+        """
+        invalid_params = self.valid_params.copy()
+        del invalid_params['response_type']
+
+        # Simple GET with invalid code parameters
+        random_state = six.text_type(uuid.uuid4())
+        response = self.get_json(path='/openid/authorize',
+                                 expect_errors=True,
+                                 state=random_state,
+                                 **invalid_params)
+
+        # Validate the error response
+        self.assertValidRedirect(response=response,
+                                 expected_status_code=302,
+                                 redirect_uri=invalid_params['redirect_uri'],
+                                 error='unsupported_response_type',
+                                 error_description=e_msg.NO_RESPONSE_TYPE)
 
 
 class TestOAuthAccessToken(BaseOAuthTest):

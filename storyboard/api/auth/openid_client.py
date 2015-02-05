@@ -13,15 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import requests
-
 from oslo.config import cfg
 from oslo_log import log
+import requests
 import six
 
-import storyboard.common.exception as exc
-
+from storyboard.api.auth import ErrorMessages as e_msg
 from storyboard.api.auth import utils
+from storyboard.common.exception import UnsupportedResponseType
 
 
 LOG = log.getLogger(__name__)
@@ -36,10 +35,12 @@ class OpenIdClient(object):
         response_type = request.params.get("response_type")
 
         # Sanity Check: response_type
+        if not response_type:
+            raise UnsupportedResponseType(redirect_uri=redirect_uri,
+                                          message=e_msg.NO_RESPONSE_TYPE)
         if response_type != 'code':
-            raise exc.UnsupportedResponseType(redirect_uri=redirect_uri,
-                                              message='response_type must '
-                                                      'be \'code\'')
+            raise UnsupportedResponseType(redirect_uri=redirect_uri,
+                                          message=e_msg.INVALID_RESPONSE_TYPE)
 
         redirect_location = CONF.oauth.openid_url
         response.status_code = 303
