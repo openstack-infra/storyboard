@@ -29,7 +29,7 @@ import wsmeext.pecan as wsme_pecan
 from storyboard.api.auth import authorization_checks as checks
 import storyboard.api.v1.wmodels as wmodels
 from storyboard.common import decorators
-import storyboard.db.api.access_tokens as token_api
+import storyboard.db.api.user_tokens as token_api
 import storyboard.db.api.users as user_api
 from storyboard.openstack.common.gettextutils import _  # noqa
 
@@ -39,6 +39,18 @@ LOG = log.getLogger(__name__)
 
 
 class UserTokensController(rest.RestController):
+    def _from_db_model(self, access_token):
+        access_token_model = wmodels.AccessToken.from_db_model(
+            access_token,
+            skip_fields="refresh_tokens")
+
+        access_token_model.refresh_tokens = [
+            wmodels.RefreshToken.from_db_model(token)
+            for token in access_token.refresh_tokens
+        ]
+
+        return access_token_model
+
     @decorators.db_exceptions
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose([wmodels.AccessToken], int, int, int, wtypes.text,
@@ -62,23 +74,24 @@ class UserTokensController(rest.RestController):
         limit = min(CONF.page_size_maximum, max(1, limit))
 
         # Resolve the marker record.
-        marker_token = token_api.access_token_get(marker)
+        marker_token = token_api.user_token_get(marker)
 
-        tokens = token_api.access_token_get_all(marker=marker_token,
-                                                limit=limit,
-                                                user_id=user_id,
-                                                filter_non_public=True,
-                                                sort_field=sort_field,
-                                                sort_dir=sort_dir)
-        token_count = token_api.access_token_get_count(user_id=user_id)
+        tokens = token_api.user_token_get_all(marker=marker_token,
+                                              limit=limit,
+                                              user_id=user_id,
+                                              filter_non_public=True,
+                                              sort_field=sort_field,
+                                              sort_dir=sort_dir)
+        token_count = token_api.user_token_get_count(user_id=user_id)
 
         # Apply the query response headers.
         response.headers['X-Limit'] = str(limit)
         response.headers['X-Total'] = str(token_count)
+
         if marker_token:
             response.headers['X-Marker'] = str(marker_token.id)
 
-        return [wmodels.AccessToken.from_db_model(t) for t in tokens]
+        return [self._from_db_model(t) for t in tokens]
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
@@ -90,13 +103,13 @@ class UserTokensController(rest.RestController):
         :param access_token_id: The ID of the access token.
         :return: The requested access token.
         """
-        access_token = token_api.access_token_get(access_token_id)
+        access_token = token_api.user_token_get(access_token_id)
         self._assert_can_access(user_id, access_token)
 
         if not access_token:
-            abort(404, _("Token not found."))
+            abort(404, _("Token %s not found.") % access_token_id)
 
-        return wmodels.AccessToken.from_db_model(access_token)
+        return self._from_db_model(access_token)
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
@@ -115,13 +128,24 @@ class UserTokensController(rest.RestController):
             body.access_token = six.text_type(uuid.uuid4())
 
         # Token duplication check.
-        dupes = token_api.access_token_get_all(access_token=body.access_token)
+        dupes = token_api.user_token_get_all(
+            access_token=body.access_token
+        )
+
         if dupes:
             abort(409, _('This token already exist.'))
 
-        token = token_api.access_token_create(body.as_dict())
+        token_dict = body.as_dict()
 
-        return wmodels.AccessToken.from_db_model(token)
+        if "refresh_tokens" in token_dict:
+            del token_dict["refresh_tokens"]
+
+        token = token_api.user_token_create(token_dict)
+
+        if not token:
+            abort(400, _("Can't create access token."))
+
+        return self._from_db_model(token)
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
@@ -135,21 +159,27 @@ class UserTokensController(rest.RestController):
         :param body: The access token.
         :return: The created access token.
         """
-        target_token = token_api.access_token_get(access_token_id)
+
+        target_token = token_api.user_token_get(access_token_id)
 
         self._assert_can_access(user_id, body)
         self._assert_can_access(user_id, target_token)
 
         if not target_token:
-            abort(404, _("Token not found."))
+            abort(404, _("Token %s not found.") % access_token_id)
 
         # We only allow updating the expiration date.
         target_token.expires_in = body.expires_in
 
-        result_token = token_api.access_token_update(access_token_id,
-                                                     target_token.as_dict())
+        token_dict = target_token.as_dict()
 
-        return wmodels.AccessToken.from_db_model(result_token)
+        if "refresh_tokens" in token_dict:
+            del token_dict["refresh_tokens"]
+
+        result_token = token_api.user_token_update(access_token_id,
+                                                   token_dict)
+
+        return self._from_db_model(result_token)
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
@@ -161,13 +191,13 @@ class UserTokensController(rest.RestController):
         :param access_token_id: The ID of the access token.
         :return: Empty body, or error response.
         """
-        access_token = token_api.access_token_get(access_token_id)
+        access_token = token_api.user_token_get(access_token_id)
         self._assert_can_access(user_id, access_token)
 
         if not access_token:
-            abort(404, _("Token not found."))
+            abort(404, _("Token %s not found.") % access_token_id)
 
-        token_api.access_token_delete(access_token_id)
+        token_api.user_token_delete(access_token_id)
 
     def _assert_can_access(self, user_id, token_entity=None):
         current_user = user_api.user_get(request.current_user_id)

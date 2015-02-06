@@ -25,7 +25,8 @@ import six.moves.urllib.parse as urlparse
 
 from storyboard.api.auth import ErrorMessages as e_msg
 from storyboard.db.api import access_tokens as token_api
-from storyboard.db.api import auth as auth_api
+from storyboard.db.api import auth_codes as auth_api
+from storyboard.db.api import refresh_tokens
 from storyboard.tests import base
 
 
@@ -584,7 +585,7 @@ class TestOAuthAccessToken(BaseOAuthTest):
 
         # Assert that the refresh token is in the database
         refresh_token = \
-            auth_api.refresh_token_get(token['refresh_token'])
+            refresh_tokens.refresh_token_get_by_token(token['refresh_token'])
         self.assertIsNotNone(refresh_token)
 
         # Assert that system configured values is owned by the correct user.
@@ -773,7 +774,7 @@ class TestOAuthAccessToken(BaseOAuthTest):
             token_api.access_token_get_by_token(t1['access_token'])
         self.assertIsNotNone(access_token)
         refresh_token = \
-            auth_api.refresh_token_get(t1['refresh_token'])
+            refresh_tokens.refresh_token_get_by_token(t1['refresh_token'])
         self.assertIsNotNone(refresh_token)
 
         # Issue a refresh token request.
@@ -814,7 +815,7 @@ class TestOAuthAccessToken(BaseOAuthTest):
 
         # Assert that the refresh token is in the database
         new_refresh_token = \
-            auth_api.refresh_token_get(t2['refresh_token'])
+            refresh_tokens.refresh_token_get_by_token(t2['refresh_token'])
         self.assertIsNotNone(new_refresh_token)
 
         # Assert that system configured values is owned by the correct user.
@@ -829,7 +830,7 @@ class TestOAuthAccessToken(BaseOAuthTest):
         no_access_token = \
             token_api.access_token_get_by_token(t1['access_token'])
         no_refresh_token = \
-            auth_api.refresh_token_get(t1['refresh_token'])
+            refresh_tokens.refresh_token_get_by_token(t1['refresh_token'])
 
         self.assertIsNone(no_refresh_token)
         self.assertIsNone(no_access_token)

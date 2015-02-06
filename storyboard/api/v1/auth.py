@@ -27,7 +27,8 @@ from storyboard.api.auth.oauth_validator import SERVER
 from storyboard.api.auth.openid_client import client as openid_client
 from storyboard.common import decorators
 from storyboard.common.exception import UnsupportedGrantType
-from storyboard.db.api import auth as auth_api
+from storyboard.db.api import auth_codes as auth_api
+from storyboard.db.api import refresh_tokens as refresh_token_api
 
 LOG = log.getLogger(__name__)
 
@@ -101,7 +102,8 @@ class AuthController(rest.RestController):
 
     def _access_token_by_refresh_token(self):
         refresh_token = request.params.get("refresh_token")
-        refresh_token_info = auth_api.refresh_token_get(refresh_token)
+        refresh_token_info = \
+            refresh_token_api.refresh_token_get_by_token(refresh_token)
 
         headers, body, code = SERVER.create_token_response(
             uri=request.url,

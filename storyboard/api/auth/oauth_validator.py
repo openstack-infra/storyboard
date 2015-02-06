@@ -22,7 +22,8 @@ from oslo.config import cfg
 from oslo_log import log
 
 from storyboard.db.api import access_tokens as token_api
-from storyboard.db.api import auth as auth_api
+from storyboard.db.api import auth_codes as auth_api
+from storyboard.db.api import refresh_tokens as refresh_token_api
 from storyboard.db.api import users as user_api
 
 CONF = cfg.CONF
@@ -197,7 +198,8 @@ class SkeletonValidator(RequestValidator):
 
         # Try refresh token
         refresh_token = request._params.get("refresh_token")
-        refresh_token_entry = auth_api.refresh_token_get(refresh_token)
+        refresh_token_entry = \
+            refresh_token_api.refresh_token_get_by_token(refresh_token)
         if refresh_token_entry:
             return refresh_token_entry.user_id
 
@@ -226,14 +228,14 @@ class SkeletonValidator(RequestValidator):
         refresh_expires_in = CONF.oauth.refresh_token_ttl
 
         refresh_token_values = {
-            "access_token_id": access_token.id,
             "refresh_token": token["refresh_token"],
             "user_id": user_id,
             "expires_in": refresh_expires_in,
             "expires_at": datetime.datetime.now(pytz.utc) + datetime.timedelta(
                 seconds=refresh_expires_in),
         }
-        auth_api.refresh_token_save(refresh_token_values)
+        refresh_token_api.refresh_token_create(access_token.id,
+                                               refresh_token_values)
 
     def invalidate_authorization_code(self, client_id, code, request, *args,
                                       **kwargs):
@@ -268,17 +270,7 @@ class SkeletonValidator(RequestValidator):
     def validate_refresh_token(self, refresh_token, client, request, *args,
                                **kwargs):
         """Check that the refresh token exists in the db."""
-
-        refresh_token_entry = auth_api.refresh_token_get(refresh_token)
-
-        if not refresh_token_entry:
-            return False
-
-        if datetime.datetime.now(pytz.utc) > refresh_token_entry.expires_at:
-            auth_api.refresh_token_delete(refresh_token)
-            return False
-
-        return True
+        return refresh_token_api.is_valid(refresh_token)
 
     def invalidate_refresh_token(self, request):
         """Remove a used token from the storage."""
@@ -290,8 +282,10 @@ class SkeletonValidator(RequestValidator):
         if not refresh_token:
             return
 
-        r_token = auth_api.refresh_token_get(refresh_token)
-        token_api.access_token_delete(r_token.access_token_id)  # Cascades
+        r_token = refresh_token_api.refresh_token_get_by_token(refresh_token)
+        token_api.access_token_delete(
+            refresh_token_api.get_access_token_id(r_token.id)
+        )  # Cascades
 
 
 class OpenIdConnectServer(WebApplicationServer):

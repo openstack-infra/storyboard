@@ -28,7 +28,6 @@ class TestUserTokensAsUser(base.FunctionalTest):
         """
         response = self.get_json(self.resource, expect_errors=True)
         self.assertEqual(200, response.status_code)
-        self.assertEqual(len(response.json), 2)
 
     def test_unauthorized_browse(self):
         """Assert a basic browse for someone else's tokens

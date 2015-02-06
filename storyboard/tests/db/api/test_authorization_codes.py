@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from storyboard.db.api import auth
+from storyboard.db.api import auth_codes
 from storyboard.db.api import users
 from storyboard.tests.db import base
 
@@ -32,15 +32,15 @@ class AuthorizationCodeTest(base.BaseDbTestCase):
         users.user_create({"fullname": "Test User"})
 
     def test_create_code(self):
-        self._test_create(self.code_01, auth.authorization_code_save)
+        self._test_create(self.code_01, auth_codes.authorization_code_save)
 
     def test_delete_code(self):
-        created_code = auth.authorization_code_save(self.code_01)
+        created_code = auth_codes.authorization_code_save(self.code_01)
 
         self.assertIsNotNone(created_code,
                              "Could not create an Authorization code")
 
-        auth.authorization_code_delete(created_code.code)
+        auth_codes.authorization_code_delete(created_code.code)
 
-        fetched_code = auth.authorization_code_get(created_code.code)
+        fetched_code = auth_codes.authorization_code_get(created_code.code)
         self.assertIsNone(fetched_code)
