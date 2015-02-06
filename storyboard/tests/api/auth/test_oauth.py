@@ -12,6 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import datetime
 import requests
 from urlparse import parse_qs
 from urlparse import urlparse
@@ -543,6 +544,52 @@ class TestOAuthAccessToken(BaseOAuthTest):
             authorization_code.code
         ))
 
+    def test_expired_access_token(self):
+        """This test ensures that an access token will expire after a
+        reasonable TTL.
+        """
+
+        # Build a few expired access codes, so that we have some coverage on
+        # weird timezone problems. We will assume that they all expire after
+        # 5 minutes
+        times = [
+            datetime.datetime.now() - datetime.timedelta(minutes=6),
+            datetime.datetime.now() - datetime.timedelta(hours=1),
+            datetime.datetime.now() - datetime.timedelta(hours=2),
+            datetime.datetime.now() - datetime.timedelta(hours=3),
+            datetime.datetime.now() - datetime.timedelta(hours=4),
+            datetime.datetime.now() - datetime.timedelta(hours=5),
+            datetime.datetime.now() - datetime.timedelta(hours=6),
+            datetime.datetime.now() - datetime.timedelta(hours=12),
+            datetime.datetime.now() - datetime.timedelta(hours=18),
+            datetime.datetime.now() - datetime.timedelta(hours=24),
+        ]
+
+        for created_at in times:
+            # Generate a valid auth token
+            authorization_code = auth_api.authorization_code_save({
+                'user_id': 2,
+                'state': 'test_state',
+                'code': 'test_valid_code',
+                'created_at': created_at,
+                'expires_in': 300
+            })
+
+            # POST with content: application/x-www-form-urlencoded
+            response = self.app.post('/v1/openid/token',
+                                     params={
+                                         'code': authorization_code.code,
+                                         'grant_type': 'authorization_code'
+                                     },
+                                     content_type=
+                                     'application/x-www-form-urlencoded',
+                                     expect_errors=True)
+
+            # Assert that this is the expected error.
+            self.assertEqual(401, response.status_code)
+            self.assertIsNotNone(response.json)
+            self.assertEqual('invalid_grant', response.json['error'])
+
     def test_invalid_grant_type(self):
         """This test ensures that invalid grant_type parameters get the
         appropriate error response.
@@ -552,7 +599,8 @@ class TestOAuthAccessToken(BaseOAuthTest):
         authorization_code = auth_api.authorization_code_save({
             'user_id': 2,
             'state': 'test_state',
-            'code': 'test_valid_code'
+            'code': 'test_valid_code',
+            'expires_in': 300
         })
 
         # POST with content: application/x-www-form-urlencoded
@@ -571,3 +619,45 @@ class TestOAuthAccessToken(BaseOAuthTest):
         self.assertEqual('unsupported_grant_type', response.json['error'])
         self.assertEqual(e_msg.INVALID_TOKEN_GRANT_TYPE,
                          response.json['error_description'])
+
+    def test_invalid_access_token(self):
+        """This test ensures that invalid grant_type parameters get the
+        appropriate error response.
+        """
+
+        # POST with content: application/x-www-form-urlencoded
+        response = self.app.post('/v1/openid/token',
+                                 params={
+                                     'code': 'invalid_access_token',
+                                     'grant_type': 'invalid_grant_type'
+                                 },
+                                 content_type=
+                                 'application/x-www-form-urlencoded',
+                                 expect_errors=True)
+
+        # Assert that this is a successful response
+        self.assertEqual(400, response.status_code)
+        self.assertIsNotNone(response.json)
+        self.assertEqual('unsupported_grant_type', response.json['error'])
+        self.assertEqual(e_msg.INVALID_TOKEN_GRANT_TYPE,
+                         response.json['error_description'])
+
+    def test_invalid_refresh_token(self):
+        """This test ensures that an invalid refresh token can be converted
+        into a valid access token.
+        """
+
+        # Generate an auth and a refresh token.
+        resp_1 = self.app.post('/v1/openid/token',
+                               params={
+                                   'refresh_token': 'invalid_refresh_token',
+                                   'grant_type': 'refresh_token'
+                               },
+                               content_type=
+                               'application/x-www-form-urlencoded',
+                               expect_errors=True)
+
+        # Assert that this is a correct response
+        self.assertEqual(401, resp_1.status_code)
+        self.assertIsNotNone(resp_1.json)
+        self.assertEqual('invalid_grant', resp_1.json['error'])

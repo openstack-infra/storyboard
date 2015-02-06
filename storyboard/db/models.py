@@ -308,6 +308,7 @@ class AuthorizationCode(ModelBuilder, Base):
     code = Column(Unicode(CommonLength.top_middle_length), nullable=False)
     state = Column(Unicode(CommonLength.top_middle_length), nullable=False)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    expires_in = Column(Integer, nullable=False, default=300)
 
 
 class AccessToken(ModelBuilder, Base):

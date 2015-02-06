@@ -129,7 +129,8 @@ class SkeletonValidator(RequestValidator):
         values = {
             "code": code["code"],
             "state": code["state"],
-            "user_id": user.id
+            "user_id": user.id,
+            "expires_in": CONF.oauth.authorization_code_ttl
         }
         auth_api.authorization_code_save(values)
 
@@ -146,10 +147,19 @@ class SkeletonValidator(RequestValidator):
         return True
 
     def validate_code(self, client_id, code, client, request, *args, **kwargs):
-        """Validate the code belongs to the client."""
+        """Validate the code belongs to the client. It must exist, and it
+        must be recent.
+        """
 
         db_code = auth_api.authorization_code_get(code)
-        return not db_code is None
+        if not db_code:
+            return False
+
+        # Calculate the expiration date.
+        expires_on = db_code.created_at + datetime.timedelta(
+            seconds=db_code.expires_in)
+
+        return expires_on > datetime.datetime.now()
 
     def confirm_redirect_uri(self, client_id, code, redirect_uri, client,
                              *args, **kwargs):
