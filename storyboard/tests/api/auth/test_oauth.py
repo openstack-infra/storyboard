@@ -542,3 +542,32 @@ class TestOAuthAccessToken(BaseOAuthTest):
         self.assertIsNone(auth_api.authorization_code_get(
             authorization_code.code
         ))
+
+    def test_invalid_grant_type(self):
+        """This test ensures that invalid grant_type parameters get the
+        appropriate error response.
+        """
+
+        # Generate a valid auth token
+        authorization_code = auth_api.authorization_code_save({
+            'user_id': 2,
+            'state': 'test_state',
+            'code': 'test_valid_code'
+        })
+
+        # POST with content: application/x-www-form-urlencoded
+        response = self.app.post('/v1/openid/token',
+                                 params={
+                                     'code': authorization_code.code,
+                                     'grant_type': 'invalid_grant_type'
+                                 },
+                                 content_type=
+                                 'application/x-www-form-urlencoded',
+                                 expect_errors=True)
+
+        # Assert that this is a successful response
+        self.assertEqual(400, response.status_code)
+        self.assertIsNotNone(response.json)
+        self.assertEqual('unsupported_grant_type', response.json['error'])
+        self.assertEqual(e_msg.INVALID_TOKEN_GRANT_TYPE,
+                         response.json['error_description'])

@@ -53,3 +53,6 @@ class ErrorMessages(object):
     INVALID_NO_EMAIL = _('Please permit access to your email address.')
     INVALID_NO_NAME = _('Please permit access to your name.')
     INVALID_NO_NICKNAME = _('Please permit access to your nickname.')
+
+    INVALID_TOKEN_GRANT_TYPE = _('Only grant types "authorization_code" and '
+                                 '"refresh_token" are supported.')

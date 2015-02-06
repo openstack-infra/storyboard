@@ -22,9 +22,11 @@ from pecan import response
 from pecan import rest
 import six
 
+from storyboard.api.auth import ErrorMessages as e_msg
 from storyboard.api.auth.oauth_validator import SERVER
 from storyboard.api.auth.openid_client import client as openid_client
 from storyboard.common import decorators
+from storyboard.common.exception import UnsupportedGrantType
 from storyboard.db.api import auth as auth_api
 
 LOG = log.getLogger(__name__)
@@ -126,6 +128,10 @@ class AuthController(rest.RestController):
         """Token endpoint."""
 
         grant_type = request.params.get("grant_type")
+
+        if grant_type not in ["authorization_code", "refresh_token"]:
+            raise UnsupportedGrantType(message=e_msg.INVALID_TOKEN_GRANT_TYPE)
+
         if grant_type == "authorization_code":
             # Serve an access token having an authorization code
             return self._access_token_by_code()
