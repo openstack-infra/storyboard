@@ -195,6 +195,27 @@ class TestOAuthAuthorize(BaseOAuthTest):
                                  error='invalid_client',
                                  error_description=e_msg.NO_CLIENT_ID)
 
+    def test_authorize_invalid_client(self):
+        """Assert that an invalid client redirects back to the
+        redirect_uri and provides the expected error response.
+        """
+        invalid_params = self.valid_params.copy()
+        invalid_params['client_id'] = 'invalid_client'
+
+        # Simple GET with invalid code parameters
+        random_state = six.text_type(uuid.uuid4())
+        response = self.get_json(path='/openid/authorize',
+                                 expect_errors=True,
+                                 state=random_state,
+                                 **invalid_params)
+
+        # Validate the error response
+        self.assertValidRedirect(response=response,
+                                 expected_status_code=302,
+                                 redirect_uri=invalid_params['redirect_uri'],
+                                 error='unauthorized_client',
+                                 error_description=e_msg.INVALID_CLIENT_ID)
+
     def test_authorize_invalid_scope(self):
         """Assert that an invalid scope redirects back to the
         redirect_uri and provides the expected error response.

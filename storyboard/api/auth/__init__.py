@@ -33,7 +33,12 @@ OAUTH_OPTS = [
 
     cfg.IntOpt("refresh_token_ttl",
                default=60 * 60 * 24 * 7,  # One week
-               help="Time in seconds before an refresh_token expires")
+               help="Time in seconds before an refresh_token expires"),
+
+    cfg.ListOpt("valid_oauth_clients",
+               default=['storyboard.openstack.org', 'localhost'],
+               help="A list of valid client id's that may connect to "
+                    "StoryBoard.")
 ]
 
 CONF.register_opts(OAUTH_OPTS, "oauth")
@@ -45,6 +50,7 @@ class ErrorMessages(object):
     NO_RESPONSE_TYPE = _('You did not provide a response_type.')
     INVALID_RESPONSE_TYPE = _('response_type must be \'code\'')
     NO_CLIENT_ID = _('You did not provide a client_id.')
+    INVALID_CLIENT_ID = _('You did not provide a valid client_id.')
     NO_REDIRECT_URI = _('You did not provide a redirect_uri.')
     INVALID_REDIRECT_URI = _('You did not provide a valid redirect_uri.')
 
