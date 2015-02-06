@@ -642,6 +642,100 @@ class TestOAuthAccessToken(BaseOAuthTest):
         self.assertEqual(e_msg.INVALID_TOKEN_GRANT_TYPE,
                          response.json['error_description'])
 
+    def test_valid_refresh_token(self):
+        """This test ensures that a valid refresh token can be converted into
+        a valid access token, and cleans up after itself.
+        """
+
+        # Generate a valid access code
+        authorization_code = auth_api.authorization_code_save({
+            'user_id': 2,
+            'state': 'test_state',
+            'code': 'test_valid_code'
+        })
+
+        # Generate an auth and a refresh token.
+        resp_1 = self.app.post('/v1/openid/token',
+                               params={
+                                   'code': authorization_code.code,
+                                   'grant_type': 'authorization_code'
+                               },
+                               content_type=
+                               'application/x-www-form-urlencoded',
+                               expect_errors=True)
+
+        # Assert that this is a successful response
+        self.assertEqual(200, resp_1.status_code)
+
+        # Assert that the token came back in the response
+        t1 = resp_1.json
+
+        # Assert that both are in the database.
+        access_token = \
+            token_api.access_token_get_by_token(t1['access_token'])
+        self.assertIsNotNone(access_token)
+        refresh_token = \
+            auth_api.refresh_token_get(t1['refresh_token'])
+        self.assertIsNotNone(refresh_token)
+
+        # Issue a refresh token request.
+
+        resp_2 = self.app.post('/v1/openid/token',
+                               params={
+                                   'refresh_token': t1['refresh_token'],
+                                   'grant_type': 'refresh_token'
+                               },
+                               content_type=
+                               'application/x-www-form-urlencoded',
+                               expect_errors=True)
+
+        # Assert that the response is good.
+        self.assertEqual(200, resp_2.status_code)
+
+        # Assert that the token came back in the response
+        t2 = resp_2.json
+        self.assertIsNotNone(t2['access_token'])
+        self.assertIsNotNone(t2['expires_in'])
+        self.assertIsNotNone(t2['id_token'])
+        self.assertIsNotNone(t2['refresh_token'])
+        self.assertIsNotNone(t2['token_type'])
+        self.assertEqual('Bearer', t2['token_type'])
+
+        # Assert that the access token is in the database
+        new_access_token = \
+            token_api.access_token_get_by_token(t2['access_token'])
+        self.assertIsNotNone(new_access_token)
+
+        # Assert that system configured values is owned by the correct user.
+        self.assertEquals(2, new_access_token.user_id)
+        self.assertEquals(t2['id_token'], new_access_token.user_id)
+        self.assertEqual(t2['expires_in'], CONF.oauth.access_token_ttl)
+        self.assertEqual(t2['expires_in'], new_access_token.expires_in)
+        self.assertEqual(t2['access_token'],
+                         new_access_token.access_token)
+
+        # Assert that the refresh token is in the database
+        new_refresh_token = \
+            auth_api.refresh_token_get(t2['refresh_token'])
+        self.assertIsNotNone(new_refresh_token)
+
+        # Assert that system configured values is owned by the correct user.
+        self.assertEquals(2, new_refresh_token.user_id)
+        self.assertEqual(CONF.oauth.refresh_token_ttl,
+                         new_refresh_token.expires_in)
+        self.assertEqual(t2['refresh_token'],
+                         new_refresh_token.refresh_token)
+
+        # Assert that the old access tokens are no longer in the database and
+        # have been cleaned up.
+        no_access_token = \
+            token_api.access_token_get_by_token(t1['access_token'])
+        no_refresh_token = \
+            auth_api.refresh_token_get(t1['refresh_token'])
+
+        self.assertIsNone(no_refresh_token)
+        self.assertIsNone(no_access_token)
+
     def test_invalid_refresh_token(self):
         """This test ensures that an invalid refresh token can be converted
         into a valid access token.

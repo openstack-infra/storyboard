@@ -58,7 +58,7 @@ class SkeletonValidator(RequestValidator):
 
         """
 
-        #todo(nkonovalov): check an uri based on CONF.domain
+        # todo(nkonovalov): check an uri based on CONF.domain
         return True
 
     def get_default_redirect_uri(self, client_id, request, *args, **kwargs):
@@ -168,7 +168,7 @@ class SkeletonValidator(RequestValidator):
 
         """
 
-        #todo(nkonovalov): check an uri based on CONF.domain
+        # todo(nkonovalov): check an uri based on CONF.domain
         return True
 
     def validate_grant_type(self, client_id, grant_type, client, request,
@@ -202,8 +202,8 @@ class SkeletonValidator(RequestValidator):
 
         user_id = self._resolve_user_id(request)
 
-        # If a refresh_token was used to obtain a new access_token, it should
-        # be removed.
+        # If a refresh_token was used to obtain a new access_token, it (and
+        # its access token) should be removed.
         self.invalidate_refresh_token(request)
 
         access_token_values = {
@@ -213,20 +213,20 @@ class SkeletonValidator(RequestValidator):
                 seconds=token["expires_in"]),
             "user_id": user_id
         }
+        access_token = token_api.access_token_create(access_token_values)
 
         # Oauthlib does not provide a separate expiration time for a
         # refresh_token so taking it from config directly.
         refresh_expires_in = CONF.oauth.refresh_token_ttl
 
         refresh_token_values = {
+            "access_token_id": access_token.id,
             "refresh_token": token["refresh_token"],
             "user_id": user_id,
             "expires_in": refresh_expires_in,
             "expires_at": datetime.datetime.utcnow() + datetime.timedelta(
                 seconds=refresh_expires_in),
         }
-
-        token_api.access_token_create(access_token_values)
         auth_api.refresh_token_save(refresh_token_values)
 
     def invalidate_authorization_code(self, client_id, code, request, *args,
@@ -284,7 +284,8 @@ class SkeletonValidator(RequestValidator):
         if not refresh_token:
             return
 
-        auth_api.refresh_token_delete(refresh_token)
+        r_token = auth_api.refresh_token_get(refresh_token)
+        token_api.access_token_delete(r_token.access_token_id)  # Cascades
 
 
 class OpenIdConnectServer(WebApplicationServer):
