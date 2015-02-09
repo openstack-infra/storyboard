@@ -184,9 +184,9 @@ def story_add_tag(story_id, tag_name):
                                {'name': "Story", 'id': story_id})
 
         if tag_name in [t.name for t in story.tags]:
-            raise exc.DuplicateEntry(_("The Story %(id)d already has "
-                                       "a tag %(tag)s") %
-                                     {'id': story_id, 'tag': tag_name})
+            raise exc.DBDuplicateEntry(
+                _("The Story %(id)d already has a tag %(tag)s") %
+                {'id': story_id, 'tag': tag_name})
 
         story.tags.append(tag)
         session.add(story)
