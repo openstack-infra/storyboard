@@ -52,6 +52,10 @@ def superuser():
         return False
 
     token = token_api.access_token_get_by_token(token)
+
+    if not token:
+        return False
+
     user = user_api.user_get(token.user_id)
 
     if not user.is_superuser:
