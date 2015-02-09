@@ -43,7 +43,7 @@ def is_valid(access_token):
         return False
 
     if datetime.datetime.utcnow() > token.expires_at:
-        token.access_token_delete(token)
+        access_token_delete(token.id)
         return False
 
     return True
