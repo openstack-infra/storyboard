@@ -57,7 +57,8 @@ def story_get(story_id, session=None):
 
 def story_get_all(title=None, description=None, status=None, assignee_id=None,
                   project_group_id=None, project_id=None, tags=None,
-                  marker=None, limit=None, sort_field='id', sort_dir='asc'):
+                  marker=None, limit=None, tags_filter_type="all",
+                  sort_field='id', sort_dir='asc'):
     # Sanity checks, in case someone accidentally explicitly passes in 'None'
     if not sort_field:
         sort_field = 'id'
@@ -70,7 +71,8 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
                                   assignee_id=assignee_id,
                                   project_group_id=project_group_id,
                                   project_id=project_id,
-                                  tags=tags)
+                                  tags=tags,
+                                  tags_filter_type=tags_filter_type)
 
     # Turn the whole shebang into a subquery.
     subquery = subquery.subquery('filtered_stories')
@@ -105,13 +107,14 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
 
 def story_get_count(title=None, description=None, status=None,
                     assignee_id=None, project_group_id=None, project_id=None,
-                    tags=None):
+                    tags=None, tags_filter_type="all"):
     query = _story_build_query(title=title,
                                description=description,
                                assignee_id=assignee_id,
                                project_group_id=project_group_id,
                                project_id=project_id,
-                               tags=tags)
+                               tags=tags,
+                               tags_filter_type=tags_filter_type)
 
     # If we're also asking for status, we have to attach storysummary here,
     # since story status is derived.
@@ -126,7 +129,8 @@ def story_get_count(title=None, description=None, status=None,
 
 
 def _story_build_query(title=None, description=None, assignee_id=None,
-                       project_group_id=None, project_id=None, tags=None):
+                       project_group_id=None, project_id=None, tags=None,
+                       tags_filter_type='all'):
     # First build a standard story query.
     query = api_base.model_query(models.Story.id).distinct()
 
@@ -138,8 +142,14 @@ def _story_build_query(title=None, description=None, assignee_id=None,
 
     # Filtering by tags
     if tags:
-        for tag in tags:
-            query = query.filter(models.Story.tags.any(name=tag))
+        if tags_filter_type == 'all':
+            for tag in tags:
+                query = query.filter(models.Story.tags.any(name=tag))
+        elif tags_filter_type == 'any':
+            query = query.filter(models.Story.tags.any
+                                 (models.StoryTag.name.in_(tags)))
+        else:
+            raise exc.NotFound("Tags filter not found.")
 
     # Are we filtering by project group?
     if project_group_id:

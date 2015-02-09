@@ -66,11 +66,12 @@ class StoriesController(rest.RestController):
     @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Story], unicode, unicode, [unicode], int,
-                         int, int, [unicode], int, int, unicode, unicode)
+                         int, int, [unicode], int, int, unicode, unicode,
+                         unicode)
     def get_all(self, title=None, description=None, status=None,
                 assignee_id=None, project_group_id=None, project_id=None,
-                tags=None, marker=None, limit=None, sort_field='id',
-                sort_dir='asc'):
+                tags=None, marker=None, limit=None, tags_filter_type='all',
+                sort_field='id', sort_dir='asc'):
         """Retrieve definitions of all of the stories.
 
         :param title: A string to filter the title by.
@@ -82,6 +83,7 @@ class StoriesController(rest.RestController):
         :param tags: a list of tags to filter by.
         :param marker: The resource id where the page should begin.
         :param limit: The number of stories to retrieve.
+        :param tags_filter_type: type of tags filter.
         :param sort_field: The name of the field to sort on.
         :param sort_dir: sort direction for results (asc, desc).
         """
@@ -103,6 +105,7 @@ class StoriesController(rest.RestController):
                            project_id=project_id,
                            tags=tags,
                            marker=marker_story,
+                           tags_filter_type=tags_filter_type,
                            limit=limit, sort_field=sort_field,
                            sort_dir=sort_dir)
         story_count = stories_api \
@@ -112,7 +115,8 @@ class StoriesController(rest.RestController):
                              assignee_id=assignee_id,
                              project_group_id=project_group_id,
                              project_id=project_id,
-                             tags=tags)
+                             tags=tags,
+                             tags_filter_type=tags_filter_type)
 
         # Apply the query response headers.
         response.headers['X-Limit'] = str(limit)
