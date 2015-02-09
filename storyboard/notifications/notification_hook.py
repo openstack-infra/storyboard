@@ -79,7 +79,7 @@ class NotificationHook(hooks.PecanHook):
 
         # Get a copy of the resource post-modification. Will return None in
         # the case of a DELETE.
-        new_resource = self.map_resource(resource, resource_id)
+        new_resource = self.get_original_resource(resource, resource_id)
 
         # Build the payload. Use of None is included to ensure that we don't
         # accidentally blow up the API call, but we don't anticipate it
