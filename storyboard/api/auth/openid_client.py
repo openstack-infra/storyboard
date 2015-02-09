@@ -125,6 +125,7 @@ class OpenIdClient(object):
     def verify_openid(self, request):
         verify_params = dict(request.params.copy())
         verify_params["openid.mode"] = "check_authentication"
+        redirect_uri = request.params['sb_redirect_uri'] or None
 
         verify_response = requests.post(CONF.oauth.openid_url,
                                         data=verify_params)
@@ -134,8 +135,20 @@ class OpenIdClient(object):
 
         if (verify_response.status_code / 100 != 2
             or verify_dict['is_valid'] != 'true'):
-            raise AccessDenied(redirect_uri=request.params['sb_redirect_uri'],
+            raise AccessDenied(redirect_uri=redirect_uri,
                                message=e_msg.OPEN_ID_TOKEN_INVALID)
+
+        # Is the data we've received within our required parameters?
+        required_parameters = {
+            'openid.sreg.email': e_msg.INVALID_NO_EMAIL,
+            'openid.sreg.fullname': e_msg.INVALID_NO_NAME,
+            'openid.sreg.nickname': e_msg.INVALID_NO_NICKNAME,
+        }
+
+        for name, error in six.iteritems(required_parameters):
+            if name not in verify_params or not verify_params[name]:
+                raise InvalidRequest(redirect_uri=redirect_uri,
+                                     message=error)
 
         return True
 

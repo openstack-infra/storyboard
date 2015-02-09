@@ -397,6 +397,84 @@ class TestOAuthAuthorizeReturn(BaseOAuthTest):
                                  error='access_denied',
                                  error_description=e_msg.OPEN_ID_TOKEN_INVALID)
 
+    def test_invalid_redirect_no_name(self, mock_post):
+        """If the oauth response to storyboard is valid, but does not include a
+        first name, it should error.
+        """
+        self._mock_response(mock_post, valid=True)
+
+        random_state = six.text_type(uuid.uuid4())
+
+        invalid_params = self.valid_params.copy()
+        del invalid_params['openid.sreg.fullname']
+
+        # Simple GET with various parameters
+        response = self.get_json(path='/openid/authorize_return',
+                                 expect_errors=True,
+                                 state=random_state,
+                                 **invalid_params)
+
+        # Validate the redirect response
+        self.assertValidRedirect(response=response,
+                                 expected_status_code=302,
+                                 redirect_uri=
+                                 self.valid_params['sb_redirect_uri'],
+                                 error='invalid_request',
+                                 error_description=e_msg.INVALID_NO_NAME)
+
+    def test_invalid_redirect_no_email(self, mock_post):
+        """If the oauth response to storyboard is valid, but does not include a
+        first name, it should error.
+        """
+        self._mock_response(mock_post, valid=True)
+
+        random_state = six.text_type(uuid.uuid4())
+
+        invalid_params = self.valid_params.copy()
+        del invalid_params['openid.sreg.email']
+
+        # Simple GET with various parameters
+        response = self.get_json(path='/openid/authorize_return',
+                                 expect_errors=True,
+                                 state=random_state,
+                                 **invalid_params)
+
+        # Validate the redirect response
+        self.assertValidRedirect(response=response,
+                                 expected_status_code=302,
+                                 redirect_uri=
+                                 self.valid_params['sb_redirect_uri'],
+                                 error='invalid_request',
+                                 error_description=e_msg.INVALID_NO_EMAIL)
+
+    def test_invalid_redirect_no_username(self, mock_post):
+        """If the oauth response to storyboard is valid, but does not include a
+        first name, it should error.
+
+        TODO: Remove during work for
+        https://storyboard.openstack.org/#!/story/2000152
+        """
+        self._mock_response(mock_post, valid=True)
+
+        random_state = six.text_type(uuid.uuid4())
+
+        invalid_params = self.valid_params.copy()
+        del invalid_params['openid.sreg.nickname']
+
+        # Simple GET with various parameters
+        response = self.get_json(path='/openid/authorize_return',
+                                 expect_errors=True,
+                                 state=random_state,
+                                 **invalid_params)
+
+        # Validate the redirect response
+        self.assertValidRedirect(response=response,
+                                 expected_status_code=302,
+                                 redirect_uri=
+                                 self.valid_params['sb_redirect_uri'],
+                                 error='invalid_request',
+                                 error_description=e_msg.INVALID_NO_NICKNAME)
+
 
 class TestOAuthAccessToken(BaseOAuthTest):
     """Functional test for the /oauth/token endpoint for the generation of

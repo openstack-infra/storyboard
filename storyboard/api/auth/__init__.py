@@ -49,3 +49,7 @@ class ErrorMessages(object):
 
     OPEN_ID_TOKEN_INVALID = _('Our authorization server declined your '
                               'credentials.')
+
+    INVALID_NO_EMAIL = _('Please permit access to your email address.')
+    INVALID_NO_NAME = _('Please permit access to your name.')
+    INVALID_NO_NICKNAME = _('Please permit access to your nickname.')
