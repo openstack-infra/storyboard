@@ -51,6 +51,9 @@ lock_path = $state_path/lock
 # OpenId Authentication endpoint
 # openid_url = https://login.launchpad.net/+openid
 
+# Time in seconds before an authorization code expires.
+# authorization_code_ttl = 300
+
 # Time in seconds before an access_token expires
 # access_token_ttl = 3600
 

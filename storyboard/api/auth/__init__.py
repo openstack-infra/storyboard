@@ -23,6 +23,10 @@ OAUTH_OPTS = [
                default='https://login.launchpad.net/+openid',
                help='OpenId Authentication endpoint'),
 
+    cfg.IntOpt("authorization_code_ttl",
+               default=5 * 60,  # Five minutes
+               help="Time in seconds before an authorization code expires"),
+
     cfg.IntOpt("access_token_ttl",
                default=60 * 60,  # One hour
                help="Time in seconds before an access_token expires"),
