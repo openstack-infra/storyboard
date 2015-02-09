@@ -18,6 +18,7 @@ from datetime import timedelta
 from oslo.config import cfg
 import storyboard.db.api.base as db_api
 from storyboard.db.models import AccessToken
+from storyboard.db.models import RefreshToken
 from storyboard.plugin.token_cleaner.cleaner import TokenCleaner
 import storyboard.tests.base as base
 from storyboard.tests.mock_data import load_data
@@ -61,22 +62,38 @@ class TestTokenCleaner(base.FunctionalTest, base.WorkingDirTestCase):
         # expiration dates. I subtract 5 seconds here because the time it
         # takes to execute the script may, or may not, result in an
         # 8-day-old-token to remain valid.
+        new_access_tokens = []
+        new_refresh_tokens = []
         for i in range(0, 100):
             created_at = datetime.utcnow() - timedelta(days=i)
             expires_in = (60 * 60 * 24) - 5  # Minus five seconds, see above.
             expires_at = created_at + timedelta(seconds=expires_in)
 
-            load_data([
+            new_access_tokens.append(
                 AccessToken(
                     user_id=1,
                     created_at=created_at.strftime('%Y-%m-%d %H:%M:%S'),
                     expires_in=expires_in,
                     expires_at=expires_at.strftime('%Y-%m-%d %H:%M:%S'),
                     access_token='test_token_%s' % (i,))
-            ])
+            )
+        new_access_tokens = load_data(new_access_tokens)
+
+        for token in new_access_tokens:
+            new_refresh_tokens.append(
+                RefreshToken(
+                    user_id=1,
+                    access_token_id=token.id,
+                    created_at=token.created_at,
+                    expires_at=token.expires_at,
+                    expires_in=300,
+                    refresh_token='test_refresh_%s' % (token.id,))
+            )
+        new_refresh_tokens = load_data(new_refresh_tokens)
 
         # Make sure we have 100 tokens.
         self.assertEqual(100, db_api.model_query(AccessToken).count())
+        self.assertEqual(100, db_api.model_query(RefreshToken).count())
 
         # Run the plugin.
         plugin = TokenCleaner(CONF)
@@ -84,3 +101,4 @@ class TestTokenCleaner(base.FunctionalTest, base.WorkingDirTestCase):
 
         # Make sure we have 8 tokens left (since one plugin starts today).
         self.assertEqual(8, db_api.model_query(AccessToken).count())
+        self.assertEqual(8, db_api.model_query(RefreshToken).count())

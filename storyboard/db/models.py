@@ -51,7 +51,7 @@ def table_args():
                 'mysql_charset': "utf8"}
     return None
 
-## CUSTOM TYPES
+# # CUSTOM TYPES
 
 # A mysql medium text type.
 MYSQL_MEDIUM_TEXT = UnicodeText().with_variant(MEDIUMTEXT(), 'mysql')
@@ -317,10 +317,17 @@ class AccessToken(ModelBuilder, Base):
                           nullable=False)
     expires_in = Column(Integer, nullable=False)
     expires_at = Column(DateTime, nullable=False)
+    refresh_tokens = relationship("RefreshToken",
+                                  cascade="save-update, merge, delete",
+                                  passive_updates=False,
+                                  passive_deletes=False)
 
 
 class RefreshToken(ModelBuilder, Base):
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    access_token_id = Column(Integer,
+                             ForeignKey('accesstokens.id'),
+                             nullable=False)
     refresh_token = Column(Unicode(CommonLength.top_middle_length),
                            nullable=False)
     expires_in = Column(Integer, nullable=False)
@@ -335,7 +342,7 @@ def _story_build_summary_query():
         expr.case(
             [(func.sum(Task.status.in_(
                 ['todo', 'inprogress', 'review'])) > 0,
-             'active'),
+              'active'),
              ((func.sum(Task.status == 'merged')) > 0, 'merged')],
             else_='invalid'
         ).label('status')
@@ -347,8 +354,8 @@ def _story_build_summary_query():
     select_items.append(expr.null().label('task_statuses'))
 
     result = select(select_items, None,
-        expr.Join(Story, Task, onclause=Story.id == Task.story_id,
-            isouter=True)) \
+                    expr.Join(Story, Task, onclause=Story.id == Task.story_id,
+                              isouter=True)) \
         .group_by(Story.id) \
         .alias('story_summary')
 

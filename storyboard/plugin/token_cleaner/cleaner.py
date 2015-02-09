@@ -52,10 +52,12 @@ class TokenCleaner(CronPluginBase):
         lastweek = datetime.utcnow() - timedelta(weeks=1)
 
         # Build the query.
-        query = api_base.model_query(AccessToken)
+        query = api_base.model_query(AccessToken.id)
 
         # Apply the filter.
         query = query.filter(AccessToken.expires_at < lastweek)
 
-        # Batch delete.
-        query.delete()
+        # Manually deleting each record, because batch deletes are an
+        # exception to ORM Cascade markup.
+        for token in query.all():
+            api_base.entity_hard_delete(AccessToken, token.id)
