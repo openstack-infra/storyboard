@@ -39,7 +39,10 @@ LOG = log.getLogger(__name__)
 
 def main():
     CONF.register_cli_opts(IMPORT_OPTS)
-    log.register_options(CONF)
+    try:
+        log.register_options(CONF)
+    except cfg.ArgsAlreadyParsedError:
+        pass
     log.setup(CONF, 'storyboard')
     CONF(project='storyboard')
 

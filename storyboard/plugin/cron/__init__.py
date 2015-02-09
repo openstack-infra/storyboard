@@ -36,7 +36,12 @@ def main():
     crontab to target different plugins on different execution intervals.
     """
     CONF.register_cli_opts(CRON_OPTS)
-    log.register_options(CONF)
+
+    try:
+        log.register_options(CONF)
+    except cfg.ArgsAlreadyParsedError:
+        pass
+
     CONF(project='storyboard')
     log.setup(CONF, 'storyboard')
 

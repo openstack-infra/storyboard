@@ -37,7 +37,11 @@ CONF = cfg.CONF
 
 LOG = log.getLogger(__name__)
 
-log.register_options(CONF)
+try:
+    log.register_options(CONF)
+except cfg.ArgsAlreadyParsedError:
+    pass
+
 API_OPTS = [
     cfg.StrOpt('bind_host',
                default='0.0.0.0',

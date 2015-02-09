@@ -31,7 +31,11 @@ LOG = log.getLogger(__name__)
 
 
 def subscribe():
-    log.register_options(CONF)
+    try:
+        log.register_options(CONF)
+    except cfg.ArgsAlreadyParsedError:
+        pass
+
     log.setup(CONF, 'storyboard')
     CONF(project='storyboard')
     CONF.register_opts(NOTIFICATION_OPTS, "notifications")
