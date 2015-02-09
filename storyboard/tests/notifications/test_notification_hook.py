@@ -157,21 +157,21 @@ class TestNotificationHook(base.DbTestCase):
         sample_task_wmodel = TaskWmodel.from_db_model(sample_task)
         old_entity_values = n.get_original_resource('task', 1)
 
-        self.assertEquals(old_entity_values.id,
+        self.assertEquals(old_entity_values['id'],
                           sample_task_wmodel.id)
-        self.assertEquals(old_entity_values.creator_id,
+        self.assertEquals(old_entity_values['creator_id'],
                           sample_task_wmodel.creator_id)
-        self.assertEquals(old_entity_values.title,
+        self.assertEquals(old_entity_values['title'],
                           sample_task_wmodel.title)
-        self.assertEquals(old_entity_values.status,
+        self.assertEquals(old_entity_values['status'],
                           sample_task_wmodel.status)
-        self.assertEquals(old_entity_values.story_id,
+        self.assertEquals(old_entity_values['story_id'],
                           sample_task_wmodel.story_id)
-        self.assertEquals(old_entity_values.project_id,
+        self.assertEquals(old_entity_values['project_id'],
                           sample_task_wmodel.project_id)
-        self.assertEquals(old_entity_values.assignee_id,
+        self.assertEquals(old_entity_values['assignee_id'],
                           sample_task_wmodel.assignee_id)
-        self.assertEquals(old_entity_values.priority,
+        self.assertEquals(old_entity_values['priority'],
                           sample_task_wmodel.priority)
 
     @patch('storyboard.db.api.base.entity_get')
@@ -202,19 +202,19 @@ class TestNotificationHook(base.DbTestCase):
         sample_task_wmodel = TaskWmodel.from_db_model(sample_task)
         n.before(mock_state)
 
-        self.assertEquals(mock_state.old_entity_values.id,
+        self.assertEquals(mock_state.old_entity_values['id'],
                           sample_task_wmodel.id)
-        self.assertEquals(mock_state.old_entity_values.creator_id,
+        self.assertEquals(mock_state.old_entity_values['creator_id'],
                           sample_task_wmodel.creator_id)
-        self.assertEquals(mock_state.old_entity_values.title,
+        self.assertEquals(mock_state.old_entity_values['title'],
                           sample_task_wmodel.title)
-        self.assertEquals(mock_state.old_entity_values.status,
+        self.assertEquals(mock_state.old_entity_values['status'],
                           sample_task_wmodel.status)
-        self.assertEquals(mock_state.old_entity_values.story_id,
+        self.assertEquals(mock_state.old_entity_values['story_id'],
                           sample_task_wmodel.story_id)
-        self.assertEquals(mock_state.old_entity_values.project_id,
+        self.assertEquals(mock_state.old_entity_values['project_id'],
                           sample_task_wmodel.project_id)
-        self.assertEquals(mock_state.old_entity_values.assignee_id,
+        self.assertEquals(mock_state.old_entity_values['assignee_id'],
                           sample_task_wmodel.assignee_id)
-        self.assertEquals(mock_state.old_entity_values.priority,
+        self.assertEquals(mock_state.old_entity_values['priority'],
                           sample_task_wmodel.priority)

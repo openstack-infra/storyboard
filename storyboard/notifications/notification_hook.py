@@ -23,6 +23,7 @@ import storyboard.common.hook_priorities as priority
 from storyboard.db.api import base as api_base
 from storyboard.db import models
 from storyboard.notifications.publisher import publish
+from wsme.rest.json import tojson
 
 class_mappings = {'task': [models.Task, wmodels.Task],
                   'project_group': [models.ProjectGroup, wmodels.ProjectGroup],
@@ -106,7 +107,7 @@ class NotificationHook(hooks.PecanHook):
         model_class, wmodel_class = class_mappings[resource]
         entity = api_base.entity_get(model_class, resource_id)
         if entity:
-            return wmodel_class.from_db_model(entity)
+            return tojson(wmodel_class, wmodel_class.from_db_model(entity))
         else:
             # In the case of a DELETE, the entity will be returned as None
             return None
