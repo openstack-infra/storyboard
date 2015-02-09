@@ -25,6 +25,7 @@ from storyboard.common.exception import AccessDenied
 from storyboard.common.exception import InvalidClient
 from storyboard.common.exception import InvalidRequest
 from storyboard.common.exception import InvalidScope
+from storyboard.common.exception import UnauthorizedClient
 from storyboard.common.exception import UnsupportedResponseType
 
 
@@ -61,6 +62,9 @@ class OpenIdClient(object):
         if not client_id:
             raise InvalidClient(redirect_uri=redirect_uri,
                                 message=e_msg.NO_CLIENT_ID)
+        if client_id not in CONF.oauth.valid_oauth_clients:
+            raise UnauthorizedClient(redirect_uri=redirect_uri,
+                                     message=e_msg.INVALID_CLIENT_ID)
 
         # Sanity Check: scope
         if not scope:

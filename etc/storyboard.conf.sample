@@ -60,6 +60,9 @@ lock_path = $state_path/lock
 # Time in seconds before an refresh_token expires
 # refresh_token_ttl = 604800
 
+# A list of valid client id's that may connect to StoryBoard.
+# valid_oauth_clients = storyboard.openstack.org, localhost
+
 [cron]
 # Storyboard's cron management configuration
 
