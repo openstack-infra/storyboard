@@ -17,7 +17,6 @@ from urllib import urlencode
 
 from storyboard.db.api import tasks
 from storyboard.tests import base
-from webtest import AppError
 
 
 class TestStories(base.FunctionalTest):
@@ -80,8 +79,8 @@ class TestStories(base.FunctionalTest):
         updated = json.loads(response.body)
 
         self.assertEqual(2, len(updated["tags"]))
-        self.assertRaises(AppError,
-                          self.put_json, url, ["tag_1", "tag_2"])
+        response = self.put_json(url, ["tag_1", "tag_2"], expect_errors=True)
+        self.assertEqual(400, response.status_code)
 
     def test_remove_unassigned_tags_error(self):
         url = "/stories/%d/tags" % 1
@@ -89,8 +88,9 @@ class TestStories(base.FunctionalTest):
         updated = json.loads(response.body)
 
         self.assertEqual(2, len(updated["tags"]))
-        self.assertRaises(AppError,
-                          self.delete, url + "?tags=tag_4&tags=tag_5")
+        response = self.delete(url + "?tags=tag_4&tags=tag_5",
+                               expect_errors=True)
+        self.assertEqual(404, response.status_code)
 
     def test_remove_tags(self):
         url = "/stories/%d/tags" % 1
