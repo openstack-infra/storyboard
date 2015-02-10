@@ -118,9 +118,9 @@ class TestNotificationHook(base.DbTestCase):
         self.assertEqual('openid',
                          n.singularize_resource('openid'))
 
-    def test_map_resource_invalid_options(self):
-        """Assert that the map_resource method behaves as expected when
-        receiving invalid values.
+    def test_get_original_resource_invalid_options(self):
+        """Assert that the get_original_resource method behaves as expected
+        when receiving invalid values.
         """
         n = NotificationHook()
 
@@ -137,9 +137,9 @@ class TestNotificationHook(base.DbTestCase):
         self.assertIsNone(n.get_original_resource('story', 1000000))
 
     @patch('storyboard.db.api.base.entity_get')
-    def test_map_resource_valid_options(self, mock_entity_get):
-        """Assert that the map_resource method behaves as expected when
-        receiving valid values.
+    def test_get_original_resource_valid_options(self, mock_entity_get):
+        """Assert that the get_original_resource method behaves as expected
+        when receiving valid values.
         """
         n = NotificationHook()
 
