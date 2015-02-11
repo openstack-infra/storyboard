@@ -19,6 +19,7 @@ import storyboard.common.hook_priorities as priority
 from storyboard.db.models import Task
 from storyboard.notifications.notification_hook import NotificationHook
 import storyboard.tests.base as base
+from wsme.rest.json import tojson
 
 
 class TestNotificationHook(base.DbTestCase):
@@ -218,3 +219,53 @@ class TestNotificationHook(base.DbTestCase):
                           sample_task_wmodel.assignee_id)
         self.assertEquals(mock_state.old_entity_values['priority'],
                           sample_task_wmodel.priority)
+
+    @patch('storyboard.notifications.notification_hook.publish')
+    @patch.object(NotificationHook, 'get_original_resource')
+    def test_after_publishes_payload(self, mock_get_original_resource,
+                                     mock_publish):
+        n = NotificationHook()
+
+        sample_original_task = TaskWmodel.from_db_model(Task(id=1,
+                           creator_id=1,
+                           title='Test',
+                           status='inprogress',
+                           story_id=1,
+                           project_id=1,
+                           assignee_id=1,
+                           priority='medium'))
+
+        sample_modified_task = TaskWmodel.from_db_model(Task(id=1,
+                           creator_id=1,
+                           title='Test',
+                           status='merged',
+                           story_id=1,
+                           project_id=1,
+                           assignee_id=1,
+                           priority='medium'))
+
+        sot_json = tojson(TaskWmodel, sample_original_task)
+        smt_json = tojson(TaskWmodel, sample_modified_task)
+
+        # Mocking state object to simulate a 'PUT' request for task
+        # resource 1
+        mock_state = Mock()
+        mock_state.request.current_user_id = '1'
+        mock_state.request.method = 'PUT'
+        mock_state.request.path = '/v1/tasks/1'
+        mock_state.response.status_code = '200'
+        mock_state.old_entity_values = sot_json
+        mock_get_original_resource.return_value = smt_json
+
+        n.after(mock_state)
+        mock_publish.assert_called_with(
+            author_id=mock_state.request.current_user_id,
+            method=mock_state.request.method,
+            path=mock_state.request.path,
+            status=mock_state.response.status_code,
+            resource='task',
+            resource_id='1',
+            sub_resource=None,
+            sub_resource_id=None,
+            resource_before=sot_json,
+            resource_after=smt_json)
