@@ -39,6 +39,8 @@ LOG = log.getLogger(__name__)
 
 
 class UserTokensController(rest.RestController):
+    _custom_actions = {"delete_all": ["DELETE"]}
+
     def _from_db_model(self, access_token):
         access_token_model = wmodels.AccessToken.from_db_model(
             access_token,
@@ -198,6 +200,17 @@ class UserTokensController(rest.RestController):
             abort(404, _("Token %s not found.") % access_token_id)
 
         token_api.user_token_delete(access_token_id)
+
+    @decorators.db_exceptions
+    @secure(checks.authenticated)
+    @wsme_pecan.wsexpose(wmodels.AccessToken, int, status_code=204)
+    def delete_all(self, user_id):
+        """Deletes all access tokens for the given user
+
+        :param user_id: The user ID of the user.
+        """
+
+        token_api.delete_all_user_tokens(user_id)
 
     def _assert_can_access(self, user_id, token_entity=None):
         current_user = user_api.user_get(request.current_user_id)
