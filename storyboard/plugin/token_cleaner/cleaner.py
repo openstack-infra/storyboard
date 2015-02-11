@@ -14,6 +14,7 @@
 
 from datetime import datetime
 from datetime import timedelta
+import pytz
 
 import storyboard.db.api.base as api_base
 from storyboard.db.models import AccessToken
@@ -49,7 +50,7 @@ class TokenCleaner(CronPluginBase):
         :param end_time: The current timestamp.
         """
         # Calculate last week.
-        lastweek = datetime.utcnow() - timedelta(weeks=1)
+        lastweek = datetime.now(pytz.utc) - timedelta(weeks=1)
 
         # Build the query.
         query = api_base.model_query(AccessToken.id)

@@ -14,6 +14,7 @@
 
 from datetime import datetime
 from datetime import timedelta
+import pytz
 
 from oslo.config import cfg
 import storyboard.db.api.base as db_api
@@ -67,16 +68,16 @@ class TestTokenCleaner(db_base.BaseDbTestCase,
         new_access_tokens = []
         new_refresh_tokens = []
         for i in range(0, 100):
-            created_at = datetime.utcnow() - timedelta(days=i)
+            created_at = datetime.now(pytz.utc) - timedelta(days=i)
             expires_in = (60 * 60 * 24) - 5  # Minus five seconds, see above.
             expires_at = created_at + timedelta(seconds=expires_in)
 
             new_access_tokens.append(
                 AccessToken(
                     user_id=1,
-                    created_at=created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                    created_at=created_at,
                     expires_in=expires_in,
-                    expires_at=expires_at.strftime('%Y-%m-%d %H:%M:%S'),
+                    expires_at=expires_at,
                     access_token='test_token_%s' % (i,))
             )
         new_access_tokens = load_data(new_access_tokens)

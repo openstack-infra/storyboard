@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import datetime
+import pytz
 
 from oauthlib.oauth2 import RequestValidator
 from oauthlib.oauth2 import WebApplicationServer
@@ -111,7 +112,7 @@ class SkeletonValidator(RequestValidator):
         email = request._params["openid.sreg.email"]
         full_name = request._params["openid.sreg.fullname"]
         username = request._params["openid.sreg.nickname"]
-        last_login = datetime.datetime.utcnow()
+        last_login = datetime.datetime.now(pytz.utc)
 
         user = user_api.user_get_by_openid(openid)
         user_dict = {"full_name": full_name,
@@ -159,10 +160,10 @@ class SkeletonValidator(RequestValidator):
 
         # yolanda.robla: TEMPORARILY COMMENT THAT UNTIL FIX IS ON PLACE
         # Calculate the expiration date.
-        #expires_on = db_code.created_at + datetime.timedelta(
-        #    seconds=db_code.expires_in)
+        # expires_on = db_code.created_at + datetime.timedelta(
+        # seconds=db_code.expires_in)
         #
-        #return expires_on > datetime.datetime.now()
+        # return expires_on > datetime.datetime.now()
 
     def confirm_redirect_uri(self, client_id, code, redirect_uri, client,
                              *args, **kwargs):
@@ -212,7 +213,7 @@ class SkeletonValidator(RequestValidator):
         access_token_values = {
             "access_token": token["access_token"],
             "expires_in": token["expires_in"],
-            "expires_at": datetime.datetime.utcnow() + datetime.timedelta(
+            "expires_at": datetime.datetime.now(pytz.utc) + datetime.timedelta(
                 seconds=token["expires_in"]),
             "user_id": user_id
         }
@@ -227,7 +228,7 @@ class SkeletonValidator(RequestValidator):
             "refresh_token": token["refresh_token"],
             "user_id": user_id,
             "expires_in": refresh_expires_in,
-            "expires_at": datetime.datetime.utcnow() + datetime.timedelta(
+            "expires_at": datetime.datetime.now(pytz.utc) + datetime.timedelta(
                 seconds=refresh_expires_in),
         }
         auth_api.refresh_token_save(refresh_token_values)
@@ -271,7 +272,7 @@ class SkeletonValidator(RequestValidator):
         if not refresh_token_entry:
             return False
 
-        if datetime.datetime.utcnow() > refresh_token_entry.expires_at:
+        if datetime.datetime.now(pytz.utc) > refresh_token_entry.expires_at:
             auth_api.refresh_token_delete(refresh_token)
             return False
 

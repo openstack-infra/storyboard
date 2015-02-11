@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import datetime
+import pytz
 
 from storyboard.db.api import base as api_base
 from storyboard.db import models
@@ -37,7 +38,7 @@ def is_valid(access_token):
     if not token:
         return False
 
-    if datetime.datetime.utcnow() > token.expires_at:
+    if datetime.datetime.now(tz=pytz.utc) > token.expires_at:
         access_token_delete(token.id)
         return False
 
@@ -75,9 +76,9 @@ def access_token_get_count(**kwargs):
 
 def access_token_create(values):
     # Update the expires_at date.
-    values['created_at'] = datetime.datetime.utcnow()
-    values['expires_at'] = datetime.datetime.utcnow() + datetime.timedelta(
-        seconds=values['expires_in'])
+    values['created_at'] = datetime.datetime.now(pytz.utc)
+    values['expires_at'] = datetime.datetime.now(pytz.utc) + datetime \
+        .timedelta(seconds=values['expires_in'])
 
     return api_base.entity_create(models.AccessToken, values)
 

@@ -109,7 +109,7 @@ class CronPluginBase(plugin_base.PluginBase):
 
         lr_file = os.path.join(cron_directory, plugin_name)
 
-        now = pytz.utc.localize(datetime.datetime.utcnow())
+        now = datetime.datetime.now(pytz.utc)
 
         start_time = self._get_file_mtime(path=lr_file)
         end_time = self._get_file_mtime(path=lr_file,

@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from datetime import datetime
+import pytz
 
 from storyboard.db.api import access_tokens
 from storyboard.db.api import users
@@ -29,7 +30,7 @@ class TokenTest(base.BaseDbTestCase):
             "access_token": u'an_access_token',
             "refresh_token": u'a_refresh_token',
             "expires_in": 3600,
-            "expires_at": datetime.utcnow(),
+            "expires_at": datetime.now(pytz.utc),
             "user_id": 1
         }
 
