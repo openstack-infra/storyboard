@@ -156,14 +156,16 @@ class SkeletonValidator(RequestValidator):
         if not db_code:
             return False
 
-        return True
-
-        # yolanda.robla: TEMPORARILY COMMENT THAT UNTIL FIX IS ON PLACE
         # Calculate the expiration date.
-        # expires_on = db_code.created_at + datetime.timedelta(
-        # seconds=db_code.expires_in)
-        #
-        # return expires_on > datetime.datetime.now()
+        expires_on = db_code.created_at + datetime.timedelta(
+            seconds=db_code.expires_in)
+
+        # Generate a UTC now() with timezone attached so we can run a
+        # comparison against the timezone-sensitive result that comes from
+        # the database.
+        now = datetime.datetime.now(tz=pytz.utc)
+
+        return expires_on > now
 
     def confirm_redirect_uri(self, client_id, code, redirect_uri, client,
                              *args, **kwargs):

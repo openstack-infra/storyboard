@@ -13,6 +13,8 @@
 # under the License.
 
 import datetime
+import os
+import pytz
 import requests
 from urlparse import parse_qs
 from urlparse import urlparse
@@ -565,36 +567,27 @@ class TestOAuthAccessToken(BaseOAuthTest):
             authorization_code.code
         ))
 
-    def test_expired_access_token(self):
-        self.skipTest("Skip until expiration date is solved")
-
-        """This test ensures that an access token will expire after a
-        reasonable TTL.
+    def test_valid_access_token_time(self):
+        """Assert that a newly created access token is valid if storyboard is
+        installed in a multitude of timezones.
         """
 
-        # Build a few expired access codes, so that we have some coverage on
-        # weird timezone problems. We will assume that they all expire after
-        # 5 minutes
-        times = [
-            datetime.datetime.now() - datetime.timedelta(minutes=6),
-            datetime.datetime.now() - datetime.timedelta(hours=1),
-            datetime.datetime.now() - datetime.timedelta(hours=2),
-            datetime.datetime.now() - datetime.timedelta(hours=3),
-            datetime.datetime.now() - datetime.timedelta(hours=4),
-            datetime.datetime.now() - datetime.timedelta(hours=5),
-            datetime.datetime.now() - datetime.timedelta(hours=6),
-            datetime.datetime.now() - datetime.timedelta(hours=12),
-            datetime.datetime.now() - datetime.timedelta(hours=18),
-            datetime.datetime.now() - datetime.timedelta(hours=24),
-        ]
+        # Store the old TZ info, if it exists.
+        old_tz = None
+        if 'TZ' in os.environ:
+            old_tz = os.environ['TZ']
 
-        for created_at in times:
-            # Generate a valid auth token
+        # Convert now into every possible timezone out there :)
+        for name in pytz.all_timezones:
+
+            # Override the 'default timezone' for the current runtime.
+            os.environ['TZ'] = name
+
+            # Create a token.
             authorization_code = auth_api.authorization_code_save({
                 'user_id': 2,
                 'state': 'test_state',
                 'code': 'test_valid_code',
-                'created_at': created_at,
                 'expires_in': 300
             })
 
@@ -608,10 +601,61 @@ class TestOAuthAccessToken(BaseOAuthTest):
                                      'application/x-www-form-urlencoded',
                                      expect_errors=True)
 
-            # Assert that this is the expected error.
+            # Assert that this is a valid call.
+            self.assertEqual(200, response.status_code)
+
+            # Reset the timezone.
+            if old_tz:
+                os.environ['TZ'] = old_tz
+            else:
+                del os.environ['TZ']
+
+    def test_expired_access_token_time(self):
+        """This test ensures that an access token is seen as expired if
+        storyboard is installed in multiple timezones.
+        """
+
+        expired = datetime.datetime.now(pytz.utc) - datetime.timedelta(
+            minutes=6)
+
+        # Store the old TZ info, if it exists.
+        old_tz = None
+        if 'TZ' in os.environ:
+            old_tz = os.environ['TZ']
+
+        # Convert now into every possible timezone out there :)
+        for name in pytz.all_timezones:
+
+            # Override the 'default timezone' for the current runtime.
+            os.environ['TZ'] = name
+
+            # Create a token.
+            authorization_code = auth_api.authorization_code_save({
+                'user_id': 2,
+                'state': 'test_state',
+                'code': 'test_valid_code',
+                'expires_in': 300,
+                'created_at': expired
+            })
+
+            # POST with content: application/x-www-form-urlencoded
+            response = self.app.post('/v1/openid/token',
+                                     params={
+                                         'code': authorization_code.code,
+                                         'grant_type': 'authorization_code'
+                                     },
+                                     content_type=
+                                     'application/x-www-form-urlencoded',
+                                     expect_errors=True)
+
+            # Assert that this is a valid call.
             self.assertEqual(401, response.status_code)
-            self.assertIsNotNone(response.json)
-            self.assertEqual('invalid_grant', response.json['error'])
+
+            # Reset the timezone.
+            if old_tz:
+                os.environ['TZ'] = old_tz
+            else:
+                del os.environ['TZ']
 
     def test_invalid_grant_type(self):
         """This test ensures that invalid grant_type parameters get the
