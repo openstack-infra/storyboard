@@ -13,10 +13,10 @@
 # under the License.
 
 from storyboard.db.api.subscriptions import subscription_get_all_subscriber_ids
-from storyboard.tests import base
+from storyboard.tests.db import base
 
 
-class TestSubscription(base.FunctionalTest):
+class TestSubscription(base.BaseDbTestCase):
     '''Tests for the subscription db interface.
     '''
 

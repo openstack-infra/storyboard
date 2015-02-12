@@ -21,10 +21,10 @@ import testscenarios
 from storyboard.db.api import base as db_api_base
 from storyboard.db.migration import cli
 from storyboard.db import models
-from storyboard.tests import base
+from storyboard.tests.db import base
 
 
-class TestLoadProjects(base.DbTestCase):
+class TestLoadProjects(base.BaseDbTestCase):
 
     scenarios = [
         ('do_load_projects',
@@ -43,7 +43,9 @@ class TestLoadProjects(base.DbTestCase):
             self.assertIsNotNone(project_groups)
             self.assertIsNotNone(projects)
 
-            project_names = ["Test-Project", "Test-Project-Two"]
+            # Loaded + mock_data
+            project_names = ["Test-Project", "Test-Project-Two",
+                             "project1", "project2", "project3"]
             project_ids = []
             for project in projects:
                 self.assertIn(project.name, project_names)

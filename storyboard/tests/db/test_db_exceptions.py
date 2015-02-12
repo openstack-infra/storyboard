@@ -18,10 +18,10 @@ import six
 from storyboard.common import exception as exc
 from storyboard.db.api import projects
 from storyboard.db.api import tasks
-from storyboard.tests import base
+from storyboard.tests.db import base
 
 
-class TestDBDuplicateEntry(base.DbTestCase):
+class TestDBDuplicateEntry(base.BaseDbTestCase):
     def setUp(self):
         super(TestDBDuplicateEntry, self).setUp()
 
@@ -38,7 +38,7 @@ class TestDBDuplicateEntry(base.DbTestCase):
                           lambda: projects.project_create(project))
 
 
-class TestDBReferenceError(base.DbTestCase):
+class TestDBReferenceError(base.BaseDbTestCase):
     def setUp(self):
         super(TestDBReferenceError, self).setUp()
 
@@ -53,7 +53,7 @@ class TestDBReferenceError(base.DbTestCase):
                           lambda: tasks.task_create(task))
 
 
-class TestDbInvalidSortKey(base.DbTestCase):
+class TestDbInvalidSortKey(base.BaseDbTestCase):
     def setUp(self):
         super(TestDbInvalidSortKey, self).setUp()
 

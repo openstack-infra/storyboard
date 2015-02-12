@@ -18,11 +18,11 @@ from storyboard.api.v1.wmodels import Task as TaskWmodel
 import storyboard.common.hook_priorities as priority
 from storyboard.db.models import Task
 from storyboard.notifications.notification_hook import NotificationHook
-import storyboard.tests.base as base
+from storyboard.tests.db import base
 from wsme.rest.json import tojson
 
 
-class TestNotificationHook(base.DbTestCase):
+class TestNotificationHook(base.BaseDbTestCase):
 
     def test_priority(self):
         """Assert that this hook has default priority."""
