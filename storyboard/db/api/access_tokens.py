@@ -107,7 +107,7 @@ def access_token_build_query(**kwargs):
 def access_token_delete(access_token_id):
     session = api_base.get_session()
 
-    with session.begin():
+    with session.begin(subtransactions=True):
         access_token = access_token_get(access_token_id, session=session)
 
         if access_token:

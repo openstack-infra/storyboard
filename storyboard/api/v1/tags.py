@@ -84,6 +84,8 @@ class TagsController(rest.RestController):
 
         for tag in tags:
             stories_api.story_add_tag(story_id, tag)
+        # For some reason the story gets cached and the tags do not appear.
+        stories_api.api_base.get_session().expunge(story)
 
         story = stories_api.story_get(story_id)
         return wmodels.Story.from_db_model(story)

@@ -55,7 +55,7 @@ def is_valid(refresh_token):
 def get_access_token_id(refresh_token_id):
     session = api_base.get_session()
 
-    with session.begin():
+    with session.begin(subtransactions=True):
         refresh_token = refresh_token_get(refresh_token_id, session)
 
         if refresh_token:
@@ -65,7 +65,7 @@ def get_access_token_id(refresh_token_id):
 def refresh_token_create(access_token_id, values):
     session = api_base.get_session()
 
-    with session.begin():
+    with session.begin(subtransactions=True):
         values['expires_at'] = datetime.datetime.now(pytz.utc) + datetime.\
             timedelta(seconds=values['expires_in'])
         access_token = access_tokens_api.access_token_get(access_token_id,
@@ -97,7 +97,7 @@ def refresh_token_build_query(**kwargs):
 def refresh_token_delete(refresh_token_id):
     session = api_base.get_session()
 
-    with session.begin():
+    with session.begin(subtransactions=True):
         refresh_token = refresh_token_get(refresh_token_id)
 
         if refresh_token:

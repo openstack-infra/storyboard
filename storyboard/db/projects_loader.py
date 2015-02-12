@@ -35,7 +35,7 @@ LOG = log.getLogger(__name__)
 
 def do_load_models(filename):
     config_file = open(filename)
-    session = db_api.get_session(autocommit=False)
+    session = db_api.get_session(autocommit=False, in_request=False)
     projects_list = yaml.load(config_file)
 
     project_groups = list()

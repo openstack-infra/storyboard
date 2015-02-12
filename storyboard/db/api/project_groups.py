@@ -63,7 +63,7 @@ def project_group_update(project_group_id, values):
 def project_group_add_project(project_group_id, project_id):
     session = api_base.get_session()
 
-    with session.begin():
+    with session.begin(subtransactions=True):
         project_group = _entity_get(project_group_id, session)
         if project_group is None:
             raise exc.NotFound(_("%(name)s %(id)s not found")
@@ -90,7 +90,7 @@ def project_group_add_project(project_group_id, project_id):
 def project_group_delete_project(project_group_id, project_id):
     session = api_base.get_session()
 
-    with session.begin():
+    with session.begin(subtransactions=True):
         project_group = _entity_get(project_group_id, session)
         if project_group is None:
             raise exc.NotFound(_("%(name)s %(id)s not found")

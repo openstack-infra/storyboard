@@ -17,10 +17,12 @@
 # information, please see the pecan documentation at
 # https://github.com/stackforge/pecan/blob/master/pecan/hooks.py
 
+# Low-level hooks. Example setup db session.
+PRE_AUTH = 1
 
 # Authentication must occur relatively early in the hook processing,
 # as subsequent logic may depend on ACLs.
-AUTH = 1
+AUTH = 10
 
 # Data validation occurs after we've figured out who is making the request,
 # but before we perform any cleaning on the data. It's there to make sure

@@ -389,7 +389,9 @@ class TestOAuthAuthorizeReturn(BaseOAuthTest):
         location = response.headers.get('Location')
         location_url = urlparse.urlparse(location)
         parameters = urlparse.parse_qs(location_url[4])
-        token = auth_api.authorization_code_get(parameters['code'])
+
+        with base.HybridSessionManager():
+            token = auth_api.authorization_code_get(parameters['code'])
 
         # Validate the redirect response
         self.assertValidRedirect(response=response,
@@ -543,11 +545,12 @@ class TestOAuthAccessToken(BaseOAuthTest):
         """
 
         # Generate a valid auth token
-        authorization_code = auth_api.authorization_code_save({
-            'user_id': 2,
-            'state': 'test_state',
-            'code': 'test_valid_code'
-        })
+        with base.HybridSessionManager():
+            authorization_code = auth_api.authorization_code_save({
+                'user_id': 2,
+                'state': 'test_state',
+                'code': 'test_valid_code'
+            })
 
         # POST with content: application/x-www-form-urlencoded
         response = self.app.post('/v1/openid/token',
@@ -572,8 +575,9 @@ class TestOAuthAccessToken(BaseOAuthTest):
         self.assertEqual('Bearer', token['token_type'])
 
         # Assert that the access token is in the database
-        access_token = \
-            token_api.access_token_get_by_token(token['access_token'])
+        with base.HybridSessionManager():
+            access_token = \
+                token_api.access_token_get_by_token(token['access_token'])
         self.assertIsNotNone(access_token)
 
         # Assert that system configured values is owned by the correct user.
@@ -584,8 +588,11 @@ class TestOAuthAccessToken(BaseOAuthTest):
         self.assertEqual(token['access_token'], access_token.access_token)
 
         # Assert that the refresh token is in the database
-        refresh_token = \
-            refresh_tokens.refresh_token_get_by_token(token['refresh_token'])
+        with base.HybridSessionManager():
+            refresh_token = \
+                refresh_tokens.refresh_token_get_by_token(
+                    token['refresh_token'])
+
         self.assertIsNotNone(refresh_token)
 
         # Assert that system configured values is owned by the correct user.
@@ -595,9 +602,10 @@ class TestOAuthAccessToken(BaseOAuthTest):
         self.assertEqual(token['refresh_token'], refresh_token.refresh_token)
 
         # Assert that the authorization code is no longer in the database.
-        self.assertIsNone(auth_api.authorization_code_get(
-            authorization_code.code
-        ))
+        with base.HybridSessionManager():
+            none_code = \
+                auth_api.authorization_code_get(authorization_code.code)
+        self.assertIsNone(none_code)
 
     def test_valid_access_token_time(self):
         """Assert that a newly created access token is valid if storyboard is
@@ -616,14 +624,14 @@ class TestOAuthAccessToken(BaseOAuthTest):
             os.environ['TZ'] = name
 
             # Create a token.
-            authorization_code = auth_api.authorization_code_save({
-                'user_id': 2,
-                'state': 'test_state',
-                'code': 'test_valid_code',
-                'expires_in': 300
-            })
+            with base.HybridSessionManager():
+                authorization_code = auth_api.authorization_code_save({
+                    'user_id': 2,
+                    'state': 'test_state',
+                    'code': 'test_valid_code',
+                    'expires_in': 300
+                })
 
-            # POST with content: application/x-www-form-urlencoded
             response = self.app.post('/v1/openid/token',
                                      params={
                                          'code': authorization_code.code,
@@ -662,13 +670,14 @@ class TestOAuthAccessToken(BaseOAuthTest):
             os.environ['TZ'] = name
 
             # Create a token.
-            authorization_code = auth_api.authorization_code_save({
-                'user_id': 2,
-                'state': 'test_state',
-                'code': 'test_valid_code',
-                'expires_in': 300,
-                'created_at': expired
-            })
+            with base.HybridSessionManager():
+                authorization_code = auth_api.authorization_code_save({
+                    'user_id': 2,
+                    'state': 'test_state',
+                    'code': 'test_valid_code',
+                    'expires_in': 300,
+                    'created_at': expired
+                })
 
             # POST with content: application/x-www-form-urlencoded
             response = self.app.post('/v1/openid/token',
@@ -695,12 +704,13 @@ class TestOAuthAccessToken(BaseOAuthTest):
         """
 
         # Generate a valid auth token
-        authorization_code = auth_api.authorization_code_save({
-            'user_id': 2,
-            'state': 'test_state',
-            'code': 'test_valid_code',
-            'expires_in': 300
-        })
+        with base.HybridSessionManager():
+            authorization_code = auth_api.authorization_code_save({
+                'user_id': 2,
+                'state': 'test_state',
+                'code': 'test_valid_code',
+                'expires_in': 300
+            })
 
         # POST with content: application/x-www-form-urlencoded
         response = self.app.post('/v1/openid/token',
@@ -747,11 +757,12 @@ class TestOAuthAccessToken(BaseOAuthTest):
         """
 
         # Generate a valid access code
-        authorization_code = auth_api.authorization_code_save({
-            'user_id': 2,
-            'state': 'test_state',
-            'code': 'test_valid_code'
-        })
+        with base.HybridSessionManager():
+            authorization_code = auth_api.authorization_code_save({
+                'user_id': 2,
+                'state': 'test_state',
+                'code': 'test_valid_code'
+            })
 
         # Generate an auth and a refresh token.
         resp_1 = self.app.post('/v1/openid/token',
@@ -770,11 +781,15 @@ class TestOAuthAccessToken(BaseOAuthTest):
         t1 = resp_1.json
 
         # Assert that both are in the database.
-        access_token = \
-            token_api.access_token_get_by_token(t1['access_token'])
+        with base.HybridSessionManager():
+            access_token = \
+                token_api.access_token_get_by_token(t1['access_token'])
         self.assertIsNotNone(access_token)
-        refresh_token = \
-            refresh_tokens.refresh_token_get_by_token(t1['refresh_token'])
+
+        with base.HybridSessionManager():
+            refresh_token = refresh_tokens.refresh_token_get_by_token(
+                t1['refresh_token'])
+
         self.assertIsNotNone(refresh_token)
 
         # Issue a refresh token request.
@@ -801,8 +816,9 @@ class TestOAuthAccessToken(BaseOAuthTest):
         self.assertEqual('Bearer', t2['token_type'])
 
         # Assert that the access token is in the database
-        new_access_token = \
-            token_api.access_token_get_by_token(t2['access_token'])
+        with base.HybridSessionManager():
+            new_access_token = \
+                token_api.access_token_get_by_token(t2['access_token'])
         self.assertIsNotNone(new_access_token)
 
         # Assert that system configured values is owned by the correct user.
@@ -814,8 +830,11 @@ class TestOAuthAccessToken(BaseOAuthTest):
                          new_access_token.access_token)
 
         # Assert that the refresh token is in the database
-        new_refresh_token = \
-            refresh_tokens.refresh_token_get_by_token(t2['refresh_token'])
+
+        with base.HybridSessionManager():
+            new_refresh_token = refresh_tokens.refresh_token_get_by_token(
+                t2['refresh_token'])
+
         self.assertIsNotNone(new_refresh_token)
 
         # Assert that system configured values is owned by the correct user.
@@ -827,10 +846,13 @@ class TestOAuthAccessToken(BaseOAuthTest):
 
         # Assert that the old access tokens are no longer in the database and
         # have been cleaned up.
-        no_access_token = \
-            token_api.access_token_get_by_token(t1['access_token'])
-        no_refresh_token = \
-            refresh_tokens.refresh_token_get_by_token(t1['refresh_token'])
+
+        with base.HybridSessionManager():
+            no_access_token = \
+                token_api.access_token_get_by_token(t1['access_token'])
+        with base.HybridSessionManager():
+            no_refresh_token = \
+                refresh_tokens.refresh_token_get_by_token(t1['refresh_token'])
 
         self.assertIsNone(no_refresh_token)
         self.assertIsNone(no_access_token)

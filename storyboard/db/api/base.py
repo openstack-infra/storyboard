@@ -21,6 +21,7 @@ from oslo.db.sqlalchemy import session as db_session
 from oslo.db.sqlalchemy.utils import InvalidSortKey
 from oslo.db.sqlalchemy.utils import paginate_query as utils_paginate_query
 from oslo_log import log
+from pecan import request
 import six
 import sqlalchemy.types as sqltypes
 
@@ -110,13 +111,19 @@ def paginate_query(query, model, limit, sort_key, marker=None,
                                    sort_key)
 
 
-def get_session(autocommit=True, expire_on_commit=False, **kwargs):
+def get_session(autocommit=True, expire_on_commit=False, in_request=True,
+                **kwargs):
     """Returns a database session from our facade.
     """
     facade = _get_facade_instance()
     try:
-        return facade.get_session(autocommit=autocommit,
-                                  expire_on_commit=expire_on_commit, **kwargs)
+        if in_request:
+            return request.session
+        else:
+            # Ok, no request, just return a new session
+            return facade.get_session(
+                autocommit=autocommit,
+                expire_on_commit=expire_on_commit, **kwargs)
     except db_exc.DBConnectionError:
         raise exc.DBConnectionError()
     except db_exc.DBDeadlock:
@@ -261,8 +268,9 @@ def entity_create(kls, values):
     session = get_session()
 
     try:
-        with session.begin():
+        with session.begin(subtransactions=True):
             session.add(entity)
+        session.expunge(entity)
 
     except db_exc.DBDuplicateEntry as de:
         raise exc.DBDuplicateEntry(object_name=kls.__name__,
@@ -288,7 +296,7 @@ def entity_update(kls, entity_id, values):
     session = get_session()
 
     try:
-        with session.begin():
+        with session.begin(subtransactions=True):
             entity = __entity_get(kls, entity_id, session)
             if entity is None:
                 raise exc.NotFound(_("%(name)s %(id)s not found") %
@@ -298,6 +306,7 @@ def entity_update(kls, entity_id, values):
             values_copy["id"] = entity_id
             entity.update(values_copy)
             session.add(entity)
+        session.expunge(entity)
 
     except db_exc.DBDuplicateEntry as de:
         raise exc.DBDuplicateEntry(object_name=kls.__name__,
@@ -326,7 +335,7 @@ def entity_hard_delete(kls, entity_id):
     session = get_session()
 
     try:
-        with session.begin():
+        with session.begin(subtransactions=True):
             query = model_query(kls, session)
             entity = query.filter_by(id=entity_id).first()
             if entity is None:

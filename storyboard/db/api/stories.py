@@ -174,7 +174,7 @@ def story_update(story_id, values):
 def story_add_tag(story_id, tag_name):
     session = api_base.get_session()
 
-    with session.begin():
+    with session.begin(subtransactions=True):
 
         # Get a tag or create a new one
         tag = story_tags.tag_get_by_name(tag_name, session=session)
@@ -193,12 +193,13 @@ def story_add_tag(story_id, tag_name):
 
         story.tags.append(tag)
         session.add(story)
+    session.expunge(story)
 
 
 def story_remove_tag(story_id, tag_name):
     session = api_base.get_session()
 
-    with session.begin():
+    with session.begin(subtransactions=True):
 
         story = story_get_simple(story_id, session=session)
         if not story:
@@ -213,6 +214,7 @@ def story_remove_tag(story_id, tag_name):
         tag = [t for t in story.tags if t.name == tag_name][0]
         story.tags.remove(tag)
         session.add(story)
+    session.expunge(story)
 
 
 def story_delete(story_id):

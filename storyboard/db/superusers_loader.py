@@ -30,7 +30,7 @@ def do_load_models(filename):
     config_file = open(filename)
     superusers_list = yaml.load(config_file)
 
-    session = db_api.get_session()
+    session = db_api.get_session(in_request=False)
 
     with session.begin():
         for user in superusers_list:

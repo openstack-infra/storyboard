@@ -24,6 +24,11 @@ class TestHookPriority(base.TestCase):
     def test_hook_order(self):
         """Assert that the hook priorities are ordered properly."""
 
+        self.assertLess(priority.PRE_AUTH, priority.AUTH)
+        self.assertLess(priority.PRE_AUTH, priority.VALIDATION)
+        self.assertLess(priority.PRE_AUTH, priority.POST_VALIDATION)
+        self.assertLess(priority.PRE_AUTH, priority.DEFAULT)
+
         self.assertLess(priority.AUTH, priority.VALIDATION)
         self.assertLess(priority.AUTH, priority.POST_VALIDATION)
         self.assertLess(priority.AUTH, priority.DEFAULT)

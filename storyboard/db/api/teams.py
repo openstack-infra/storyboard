@@ -63,7 +63,7 @@ def team_update(team_id, values):
 def team_add_user(team_id, user_id):
     session = api_base.get_session()
 
-    with session.begin():
+    with session.begin(subtransactions=True):
         team = _entity_get(team_id, session)
         if team is None:
             raise exc.NotFound(_("Team %s not found") % team_id)
@@ -86,7 +86,7 @@ def team_add_user(team_id, user_id):
 def team_delete_user(team_id, user_id):
     session = api_base.get_session()
 
-    with session.begin():
+    with session.begin(subtransactions=True):
         team = _entity_get(team_id, session)
         if team is None:
             raise exc.NotFound(_("Team %s not found") % team_id)

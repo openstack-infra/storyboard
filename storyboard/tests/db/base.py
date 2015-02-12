@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from storyboard.db.api import base as db_base
 from storyboard.tests import base
 from storyboard.tests import mock_data
 
@@ -20,7 +21,21 @@ from storyboard.tests import mock_data
 class BaseDbTestCase(base.DbTestCase):
     def setUp(self):
         super(BaseDbTestCase, self).setUp()
+
+        self.original_get_session = db_base.get_session
+        self.addCleanup(self._reset_get_session)
+        db_base.get_session = self._mock_get_session
+
         mock_data.load()
+
+    def _mock_get_session(self, autocommit=True, expire_on_commit=False,
+                          in_request=True, **kwargs):
+        return self.original_get_session(autocommit=autocommit,
+                                         expire_on_commit=expire_on_commit,
+                                         in_request=False, **kwargs)
+
+    def _reset_get_session(self):
+        db_base.get_session = self.original_get_session
 
     def _assert_saved_fields(self, expected, actual):
         for k in expected.keys():

@@ -170,6 +170,22 @@ class DbTestCase(WorkingDirTestCase):
 PATH_PREFIX = '/v1'
 
 
+class HybridSessionManager(object):
+
+    def _mock_get_session(self, autocommit=True, expire_on_commit=False,
+                          in_request=True, **kwargs):
+        return self.original_get_session(autocommit=autocommit,
+                                         expire_on_commit=expire_on_commit,
+                                         in_request=False, **kwargs)
+
+    def __enter__(self):
+        self.original_get_session = db_api_base.get_session
+        db_api_base.get_session = self._mock_get_session
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        db_api_base.get_session = self.original_get_session
+
+
 class FunctionalTest(DbTestCase):
     """Used for functional tests of Pecan controllers where you need to
     test your literal application and its integration with the

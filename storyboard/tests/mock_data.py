@@ -317,7 +317,7 @@ def load_data(data):
 
     :param data An iterable collection of database models.
     """
-    session = db.get_session(autocommit=False)
+    session = db.get_session(autocommit=False, in_request=False)
 
     for entity in data:
         session.add(entity)
