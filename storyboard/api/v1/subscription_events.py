@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 from oslo.config import cfg
 from pecan import abort
 from pecan import request
@@ -90,8 +91,8 @@ class SubscriptionEventsController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose([SubscriptionEvent], int, int, unicode,
-                         int, unicode, unicode)
+    @wsme_pecan.wsexpose([SubscriptionEvent], int, int, wtypes.text,
+                         int, wtypes.text, wtypes.text)
     def get(self, marker=None, limit=None, event_type=None,
             subscriber_id=None, sort_field='id', sort_dir='asc'):
         """Retrieve a list of subscriptions.

@@ -19,6 +19,7 @@ from pecan import request
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
+from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
@@ -61,8 +62,9 @@ class TasksController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.Task], unicode, int, int, int, int,
-                         [unicode], [unicode], int, int, unicode, unicode)
+    @wsme_pecan.wsexpose([wmodels.Task], wtypes.text, int, int, int, int,
+                         [wtypes.text], [wtypes.text], int, int, wtypes.text,
+                         wtypes.text)
     def get_all(self, title=None, story_id=None, assignee_id=None,
                 project_id=None, project_group_id=None, status=None,
                 priority=None, marker=None, limit=None, sort_field='id',
@@ -231,7 +233,7 @@ class TasksController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.Task], unicode, unicode, int, int)
+    @wsme_pecan.wsexpose([wmodels.Task], wtypes.text, wtypes.text, int, int)
     def search(self, q="", marker=None, limit=None):
         """The search endpoint for tasks.
 

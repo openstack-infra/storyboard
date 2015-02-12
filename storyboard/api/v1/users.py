@@ -20,6 +20,7 @@ from pecan import response
 from pecan import rest
 from pecan.secure import secure
 import six
+from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
@@ -55,8 +56,8 @@ class UsersController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.User], int, int, unicode, unicode, unicode,
-                         unicode)
+    @wsme_pecan.wsexpose([wmodels.User], int, int, wtypes.text, wtypes.text,
+                         wtypes.text, wtypes.text)
     def get(self, marker=None, limit=None, username=None, full_name=None,
             sort_field='id', sort_dir='asc'):
         """Page and filter the users in storyboard.
@@ -157,7 +158,7 @@ class UsersController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.User], unicode, int, int)
+    @wsme_pecan.wsexpose([wmodels.User], wtypes.text, int, int)
     def search(self, q="", marker=None, limit=None):
         """The search endpoint for users.
 

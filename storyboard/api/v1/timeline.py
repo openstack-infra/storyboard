@@ -19,6 +19,7 @@ from pecan import request
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
+from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
@@ -61,8 +62,8 @@ class TimeLineEventsController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.TimeLineEvent], int, int, int, unicode,
-                         unicode)
+    @wsme_pecan.wsexpose([wmodels.TimeLineEvent], int, int, int, wtypes.text,
+                         wtypes.text)
     def get_all(self, story_id=None, marker=None, limit=None, sort_field=None,
                 sort_dir=None):
         """Retrieve all events that have happened under specified story.
@@ -122,7 +123,8 @@ class CommentsController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.Comment], int, int, int, unicode, unicode)
+    @wsme_pecan.wsexpose([wmodels.Comment], int, int, int, wtypes.text,
+                         wtypes.text)
     def get_all(self, story_id=None, marker=None, limit=None, sort_field='id',
                 sort_dir='asc'):
         """Retrieve all comments posted under specified story.
@@ -234,7 +236,8 @@ class CommentsController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.Comment], unicode, unicode, int, int)
+    @wsme_pecan.wsexpose([wmodels.Comment], wtypes.text, wtypes.text, int,
+                         int)
     def search(self, q="", marker=None, limit=None):
         """The search endpoint for comments.
 

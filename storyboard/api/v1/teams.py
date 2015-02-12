@@ -19,6 +19,7 @@ from pecan.decorators import expose
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
+from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
@@ -95,7 +96,7 @@ class TeamsController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose(wmodels.Team, unicode)
+    @wsme_pecan.wsexpose(wmodels.Team, wtypes.text)
     def get_one_by_name(self, team_name):
         """Retrieve information about the given team.
 
@@ -111,8 +112,8 @@ class TeamsController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.Team], int, int, unicode, unicode, unicode,
-                         unicode)
+    @wsme_pecan.wsexpose([wmodels.Team], int, int, wtypes.text, wtypes.text,
+                         wtypes.text, wtypes.text)
     def get(self, marker=None, limit=None, name=None, description=None,
             sort_field='id', sort_dir='asc'):
         """Retrieve a list of teams.

@@ -129,13 +129,13 @@ class Story(base.APIBase):
     creator_id = int
     """User ID of the Story creator"""
 
-    status = unicode
+    status = wtypes.text
     """The derived status of the story, one of 'active', 'merged', 'invalid'"""
 
     task_statuses = wtypes.ArrayType(TaskStatusCount)
     """The summary of each tasks/status."""
 
-    tags = wtypes.ArrayType(unicode)
+    tags = wtypes.ArrayType(wtypes.text)
     """Tag list assigned to this story."""
 
     @classmethod

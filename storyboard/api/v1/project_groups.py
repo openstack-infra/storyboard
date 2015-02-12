@@ -19,6 +19,7 @@ from pecan import response
 from pecan import rest
 from pecan.secure import secure
 from wsme.exc import ClientSideError
+import wsme.types as wtypes
 import wsmeext.pecan as wsme_pecan
 
 import storyboard.api.auth.authorization_checks as checks
@@ -107,8 +108,8 @@ class ProjectGroupsController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.ProjectGroup], int, int, unicode, unicode,
-                         unicode, unicode)
+    @wsme_pecan.wsexpose([wmodels.ProjectGroup], int, int, wtypes.text,
+                         wtypes.text, wtypes.text, wtypes.text)
     def get(self, marker=None, limit=None, name=None, title=None,
             sort_field='id', sort_dir='asc'):
         """Retrieve a list of projects groups."""

@@ -16,6 +16,7 @@
 from oslo.config import cfg
 from pecan import rest
 from pecan.secure import secure
+from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
@@ -69,7 +70,7 @@ class TagsController(rest.RestController):
         return [wmodels.Tag.from_db_model(t) for t in story.tags]
 
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose(wmodels.Story, int, body=[unicode])
+    @wsme_pecan.wsexpose(wmodels.Story, int, body=[wtypes.text])
     def put(self, story_id, tags):
         """Add a list of tags to a Story.
 
@@ -88,7 +89,7 @@ class TagsController(rest.RestController):
         return wmodels.Story.from_db_model(story)
 
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose(wmodels.Tag, unicode)
+    @wsme_pecan.wsexpose(wmodels.Tag, wtypes.text)
     def post(self, tag_name):
         """Create a tag not attached to any Story.
 
@@ -100,7 +101,7 @@ class TagsController(rest.RestController):
         return wmodels.Tag.from_db_model(tag)
 
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose(None, int, body=[unicode], status_code=204)
+    @wsme_pecan.wsexpose(None, int, body=[wtypes.text], status_code=204)
     def delete(self, story_id, tags):
         """Remove a list of tags from a Story.
 
