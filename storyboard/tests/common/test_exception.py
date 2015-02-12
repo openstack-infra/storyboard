@@ -12,9 +12,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import httplib
-
 from oslo.config import cfg
+from six.moves import http_client
 
 import storyboard.common.exception as exc
 from storyboard.tests import base
@@ -65,7 +64,7 @@ class OAuthExceptionTest(base.FunctionalTest):
         for uri in invalid_uris:
             e = exc.OAuthException(redirect_uri=uri)
             self.assertIsNone(e.redirect_uri)
-            self.assertEqual(httplib.BAD_REQUEST, e.code)
+            self.assertEqual(http_client.BAD_REQUEST, e.code)
 
         valid_uris = [
             'http://example.com',
@@ -81,4 +80,4 @@ class OAuthExceptionTest(base.FunctionalTest):
         for uri in valid_uris:
             e = exc.OAuthException(redirect_uri=uri)
             self.assertEqual(uri, e.redirect_uri)
-            self.assertEqual(httplib.SEE_OTHER, e.code)
+            self.assertEqual(http_client.SEE_OTHER, e.code)
