@@ -14,8 +14,8 @@
 # under the License.
 
 import json
-from urllib import urlencode
 
+import six.moves.urllib.parse as urlparse
 from webtest.app import AppError
 
 from storyboard.tests import base
@@ -120,7 +120,7 @@ class TestProjectSearch(base.FunctionalTest):
         super(TestProjectSearch, self).setUp()
 
     def build_search_url(self, params):
-        return '/projects?%s' % (urlencode(params))
+        return '/projects?%s' % (urlparse.urlencode(params))
 
     def test_search(self):
         url = self.build_search_url({

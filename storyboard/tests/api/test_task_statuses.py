@@ -12,7 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from urllib import urlencode
+import six.moves.urllib.parse as urlparse
 
 from storyboard.tests import base
 
@@ -25,7 +25,7 @@ class TestTaskStatusesSearch(base.FunctionalTest):
 
     def build_search_url(self, params=None, raw=''):
         if params:
-            raw = urlencode(params)
+            raw = urlparse.urlencode(params)
         return '/task_statuses?%s' % raw
 
     def test_search(self):

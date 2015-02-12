@@ -14,11 +14,11 @@
 # limitations under the License.
 
 import six
-import urllib
+import six.moves.urllib.parse as urlparse
 
 
 def join_params(params, encode=True):
     return '&'.join(
-        ["%s=%s" % (urllib.quote(key, safe='') if encode else key,
-                    urllib.quote(val, safe='') if encode else val)
+        ["%s=%s" % (urlparse.quote(key, safe='') if encode else key,
+                    urlparse.quote(val, safe='') if encode else val)
          for key, val in six.iteritems(params)])
