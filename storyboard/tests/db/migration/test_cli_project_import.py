@@ -15,10 +15,10 @@
 import storyboard.db.api.base as api_base
 from storyboard.db.models import ProjectGroup
 from storyboard.db import projects_loader
-from storyboard.tests import base
+from storyboard.tests.db import base
 
 
-class TestProjectGroupMigration(base.FunctionalTest):
+class TestProjectGroupMigration(base.BaseDbTestCase):
     """Unit tests for the load_projects commandline option, focused on
     groups only.
     """

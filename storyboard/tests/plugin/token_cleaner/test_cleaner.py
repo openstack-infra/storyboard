@@ -20,14 +20,16 @@ import storyboard.db.api.base as db_api
 from storyboard.db.models import AccessToken
 from storyboard.db.models import RefreshToken
 from storyboard.plugin.token_cleaner.cleaner import TokenCleaner
-import storyboard.tests.base as base
+import storyboard.tests.base as functional_base
+import storyboard.tests.db.base as db_base
 from storyboard.tests.mock_data import load_data
 
 
 CONF = cfg.CONF
 
 
-class TestTokenCleaner(base.FunctionalTest, base.WorkingDirTestCase):
+class TestTokenCleaner(db_base.BaseDbTestCase,
+                       functional_base.WorkingDirTestCase):
     """Test cases for our OAuth Token cleaner plugin."""
 
     def test_enabled(self):

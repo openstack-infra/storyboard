@@ -389,12 +389,13 @@ class TestStoryStatuses(base.FunctionalTest):
     def test_story_count(self):
         response = self.get_json(self.individual_resource)
         task_statuses = response.get('task_statuses', [])
-        all_tasks = tasks.task_get_all(story_id=response.get('id', None))
+        story_id = response.get('id', None)
+        all_tasks = self.get_json("/tasks", story_id=story_id)
 
         # get count of all statuses
         statuses_count = {}
         for task in all_tasks:
-            current_status = task.status
+            current_status = task["status"]
             status_count = statuses_count.get(current_status, 0)
             statuses_count[current_status] = status_count + 1
 

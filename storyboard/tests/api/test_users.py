@@ -12,8 +12,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-
-from storyboard.db.api import users as user_api
 from storyboard.tests import base
 
 
@@ -31,8 +29,8 @@ class TestUsersAsSuperuser(base.FunctionalTest):
 
         # Try to modify the enable_login field
         self.put_json(path, {'enable_login': False})
-        user = user_api.user_get(user_id=2)
-        self.assertFalse(user.enable_login)
+        user = self.get_json(path)
+        self.assertFalse(user["enable_login"])
 
 
 class TestUsersAsUser(base.FunctionalTest):
@@ -49,8 +47,8 @@ class TestUsersAsUser(base.FunctionalTest):
 
         # Try to modify the enable_login field
         self.put_json(path, {'enable_login': False})
-        user = user_api.user_get(user_id=2)
-        self.assertTrue(user.enable_login)
+        user = self.get_json(path)
+        self.assertTrue(user["enable_login"])
 
     def test_malicious_update(self):
         # Preload the admin user.
