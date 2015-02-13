@@ -210,7 +210,9 @@ class CommentsController(rest.RestController):
             abort(400, _("You can't update this comment"))
 
         updated_comment = comments_api.comment_update(comment_id,
-                                                      comment_body.as_dict())
+                                                      comment_body.as_dict(
+                                                          omit_unset=True
+                                                      ))
 
         return wmodels.Comment.from_db_model(updated_comment)
 
