@@ -15,13 +15,8 @@
 
 import datetime
 
-from oslo.db.sqlalchemy.utils import InvalidSortKey
-from wsme.exc import ClientSideError
-
-from storyboard.common import exception as exc
 from storyboard.db.api import base as api_base
 from storyboard.db import models
-from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 def access_token_get(access_token_id):
@@ -60,18 +55,12 @@ def access_token_get_all(marker=None, limit=None, sort_field=None,
     # Construct the query
     query = access_token_build_query(**kwargs)
 
-    try:
-        query = api_base.paginate_query(query=query,
-                                        model=models.AccessToken,
-                                        limit=limit,
-                                        sort_keys=[sort_field],
-                                        marker=marker,
-                                        sort_dir=sort_dir)
-    except InvalidSortKey:
-        raise exc.DBInvalidSortKey(
-            _("Invalid sort_field [%s]") % (sort_field,))
-    except ValueError as ve:
-        raise ClientSideError(_("%s") % (ve,), status_code=400)
+    query = api_base.paginate_query(query=query,
+                                    model=models.AccessToken,
+                                    limit=limit,
+                                    sort_key=sort_field,
+                                    marker=marker,
+                                    sort_dir=sort_dir)
 
     # Execute the query
     return query.all()

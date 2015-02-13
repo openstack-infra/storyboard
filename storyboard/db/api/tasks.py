@@ -13,13 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo.db.sqlalchemy.utils import InvalidSortKey
-from wsme.exc import ClientSideError
-
-from storyboard.common import exception as exc
 from storyboard.db.api import base as api_base
 from storyboard.db import models
-from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 def task_get(task_id):
@@ -37,18 +32,12 @@ def task_get_all(marker=None, limit=None, sort_field=None, sort_dir=None,
     # Construct the query
     query = task_build_query(project_group_id, **kwargs)
 
-    try:
-        query = api_base.paginate_query(query=query,
-                                        model=models.Task,
-                                        limit=limit,
-                                        sort_keys=[sort_field],
-                                        marker=marker,
-                                        sort_dir=sort_dir)
-    except InvalidSortKey:
-        raise exc.DBInvalidSortKey(
-            _("Invalid sort_field [%s]") % (sort_field,))
-    except ValueError as ve:
-        raise ClientSideError("%s" % (ve,), status_code=400)
+    query = api_base.paginate_query(query=query,
+                                    model=models.Task,
+                                    limit=limit,
+                                    sort_key=sort_field,
+                                    marker=marker,
+                                    sort_dir=sort_dir)
 
     # Execute the query
     return query.all()

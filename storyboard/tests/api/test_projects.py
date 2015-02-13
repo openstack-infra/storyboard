@@ -104,6 +104,16 @@ class TestProjects(base.FunctionalTest):
         # check for a too short name
         self.assertRaises(AppError, self.put_json, url, delta)
 
+    def test_wrong_order_field(self):
+        response = self.get_json(self.resource, sort_field='wrong_sort_field',
+                                 expect_errors=True)
+        self.assertEqual(400, response.status_code)
+
+    def test_wrong_order_dir(self):
+        response = self.get_json(self.resource, sort_dir='wrong_sort_dir',
+                                 expect_errors=True)
+        self.assertEqual(400, response.status_code)
+
 
 class TestProjectSearch(base.FunctionalTest):
     def setUp(self):

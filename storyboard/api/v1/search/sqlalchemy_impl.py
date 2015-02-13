@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo.db.sqlalchemy import utils
 from sqlalchemy_fulltext import FullTextSearch
 import sqlalchemy_fulltext.modes as FullTextMode
 
@@ -36,11 +35,11 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
         if marker:
             marker_entity = api_base.entity_get(model_cls, marker, True)
 
-        return utils.paginate_query(query=query,
-                                    model=model_cls,
-                                    limit=limit,
-                                    sort_keys=["id"],
-                                    marker=marker_entity)
+        return api_base.paginate_query(query=query,
+                                       model=model_cls,
+                                       limit=limit,
+                                       sort_key="id",
+                                       marker=marker_entity)
 
     def projects_query(self, q, sort_dir=None, marker=None, limit=None):
         session = api_base.get_session()

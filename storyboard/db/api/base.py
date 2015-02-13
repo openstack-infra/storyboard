@@ -19,11 +19,10 @@ from oslo.config import cfg
 from oslo.db import exception as db_exc
 from oslo.db.sqlalchemy import session as db_session
 from oslo.db.sqlalchemy.utils import InvalidSortKey
-from oslo.db.sqlalchemy.utils import paginate_query
+from oslo.db.sqlalchemy.utils import paginate_query as utils_paginate_query
 from oslo_log import log
 import six
 import sqlalchemy.types as types
-from wsme.exc import ClientSideError
 
 from storyboard.common import exception as exc
 from storyboard.db import models
@@ -91,6 +90,23 @@ def get_engine():
         raise exc.DBConnectionError()
     except db_exc.DBDeadlock:
         raise exc.DBDeadLock()
+
+
+def paginate_query(query, model, limit, sort_key, marker=None,
+                   sort_dir=None, sort_dirs=None):
+    try:
+        return utils_paginate_query(query=query,
+                                    model=model,
+                                    limit=limit,
+                                    sort_keys=[sort_key],
+                                    marker=marker,
+                                    sort_dir=sort_dir,
+                                    sort_dirs=sort_dirs)
+    except ValueError as ve:
+        raise exc.DBValueError(message=ve.message)
+    except InvalidSortKey:
+        raise exc.DBInvalidSortKey(_("Invalid sort_field [%s]") %
+                                   sort_key)
 
 
 def get_session(autocommit=True, expire_on_commit=False, **kwargs):
@@ -182,23 +198,18 @@ def entity_get_all(kls, filter_non_public=False, marker=None, limit=None,
         query = paginate_query(query=query,
                                model=kls,
                                limit=limit,
-                               sort_keys=[sort_field],
+                               sort_key=sort_field,
                                marker=marker,
                                sort_dir=sort_dir)
 
         # Execute the query
         entities = query.all()
-    except InvalidSortKey:
-        raise exc.DBInvalidSortKey(_("Invalid sort_field [%s]") %
-                                   (sort_field,))
     except db_exc.DBConnectionError:
         raise exc.DBConnectionError()
     except db_exc.DBDeadlock:
         raise exc.DBDeadLock()
     except db_exc.DBInvalidUnicodeParameter:
         raise exc.DBInvalidUnicodeParameter()
-    except ValueError as ve:
-        raise ClientSideError(_("%s") % (ve,), status_code=400)
 
     if len(entities) > 0 and filter_non_public:
         sample_entity = entities[0] if len(entities) > 0 else None
