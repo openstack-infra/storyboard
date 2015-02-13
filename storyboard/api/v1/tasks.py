@@ -152,10 +152,11 @@ class TasksController(rest.RestController):
         :param task_id: An ID of the task.
         :param task: a task within the request body.
         """
-        if task.creator_id and task.creator_id != request.current_user_id:
-            abort(400, _("You can't change author of task."))
 
         original_task = tasks_api.task_get(task_id)
+
+        if task.creator_id and task.creator_id != original_task.id:
+            abort(400, _("You can't change author of task."))
 
         updated_task = tasks_api.task_update(task_id,
                                              task.as_dict(omit_unset=True))

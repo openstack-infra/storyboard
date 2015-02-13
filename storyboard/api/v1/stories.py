@@ -163,7 +163,9 @@ class StoriesController(rest.RestController):
         :param story: a story within the request body.
         """
 
-        if story.creator_id and story.creator_id != request.current_user_id:
+        original_story = stories_api.story_get_simple(story_id)
+
+        if story.creator_id and story.creator_id != original_story.creator_id:
             abort(400, _("You can't change author of story."))
 
         updated_story = stories_api.story_update(
