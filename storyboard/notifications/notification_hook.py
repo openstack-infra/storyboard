@@ -17,13 +17,14 @@ import json
 import re
 
 from pecan import hooks
+from wsme.rest.json import tojson
 
 from storyboard.api.v1 import wmodels
 import storyboard.common.hook_priorities as priority
 from storyboard.db.api import base as api_base
 from storyboard.db import models
 from storyboard.notifications.publisher import publish
-from wsme.rest.json import tojson
+
 
 class_mappings = {'task': [models.Task, wmodels.Task],
                   'project_group': [models.ProjectGroup, wmodels.ProjectGroup],
@@ -35,7 +36,6 @@ class_mappings = {'task': [models.Task, wmodels.Task],
 
 
 class NotificationHook(hooks.PecanHook):
-
     priority = priority.DEFAULT
 
     def __init__(self):
@@ -82,6 +82,12 @@ class NotificationHook(hooks.PecanHook):
         # the case of a DELETE.
         new_resource = self.get_original_resource(resource, resource_id)
 
+        # Extract the old resource when possible.
+        if hasattr(state, 'old_entity_values'):
+            old_resource = state.old_entity_values
+        else:
+            old_resource = None
+
         # Build the payload. Use of None is included to ensure that we don't
         # accidentally blow up the API call, but we don't anticipate it
         # happening.
@@ -93,7 +99,7 @@ class NotificationHook(hooks.PecanHook):
                 resource_id=resource_id,
                 sub_resource=subresource,
                 sub_resource_id=subresource_id,
-                resource_before=state.old_entity_values,
+                resource_before=old_resource,
                 resource_after=new_resource)
 
     def get_original_resource(self, resource, resource_id):
