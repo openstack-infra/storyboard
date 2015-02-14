@@ -113,7 +113,9 @@ class WorkingDirTestCase(TestCase):
         # First register the teardown.
         self.addCleanup(self._delete_working_dir)
 
-        temp_path = os.path.realpath(os.tempnam())
+        workdir = fixtures.TempDir()
+        self.useFixture(workdir)
+        temp_path = workdir.path
         CONF.set_override('working_directory', temp_path)
 
         # Create the directory
