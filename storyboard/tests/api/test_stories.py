@@ -12,8 +12,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import json
-
 import six.moves.urllib.parse as urlparse
 
 from storyboard.db.api import tasks
@@ -37,7 +35,7 @@ class TestStories(base.FunctionalTest):
 
     def test_create(self):
         response = self.post_json(self.resource, self.story_01)
-        story = json.loads(response.body)
+        story = response.json
 
         url = "%s/%d" % (self.resource, story['id'])
         story = self.get_json(url)
@@ -49,7 +47,7 @@ class TestStories(base.FunctionalTest):
 
     def test_update(self):
         response = self.post_json(self.resource, self.story_01)
-        original = json.loads(response.body)
+        original = response.json
 
         delta = {
             'id': original['id'],
@@ -59,7 +57,7 @@ class TestStories(base.FunctionalTest):
 
         url = "/stories/%d" % original['id']
         response = self.put_json(url, delta)
-        updated = json.loads(response.body)
+        updated = response.json
 
         self.assertEqual(updated['id'], original['id'])
 
@@ -70,14 +68,14 @@ class TestStories(base.FunctionalTest):
     def test_add_tags(self):
         url = "/stories/%d/tags" % 1
         response = self.put_json(url, ["tag_1", "tag_2"])
-        updated = json.loads(response.body)
+        updated = response.json
 
         self.assertEqual(2, len(updated["tags"]))
 
     def test_add_tags_duplicate_error(self):
         url = "/stories/%d/tags" % 1
         response = self.put_json(url, ["tag_1", "tag_2"])
-        updated = json.loads(response.body)
+        updated = response.json
 
         self.assertEqual(2, len(updated["tags"]))
         response = self.put_json(url, ["tag_1", "tag_2"], expect_errors=True)
@@ -86,7 +84,7 @@ class TestStories(base.FunctionalTest):
     def test_remove_unassigned_tags_error(self):
         url = "/stories/%d/tags" % 1
         response = self.put_json(url, ["tag_1", "tag_2"])
-        updated = json.loads(response.body)
+        updated = response.json
 
         self.assertEqual(2, len(updated["tags"]))
         response = self.delete(url + "?tags=tag_4&tags=tag_5",
@@ -96,7 +94,7 @@ class TestStories(base.FunctionalTest):
     def test_remove_tags(self):
         url = "/stories/%d/tags" % 1
         response = self.put_json(url, ["tag_1", "tag_2"])
-        updated = json.loads(response.body)
+        updated = response.json
 
         self.assertEqual(2, len(updated["tags"]))
 

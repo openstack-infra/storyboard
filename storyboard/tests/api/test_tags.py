@@ -12,8 +12,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import json
-
 from storyboard.tests import base
 
 
@@ -34,7 +32,7 @@ class TestTags(base.FunctionalTest):
     def test_create(self):
         response = self.post_json(self.resource, params={
             "tag_name": self.tag_01["name"]})
-        tag = json.loads(response.body)
+        tag = response.json
 
         url = "%s/%d" % (self.resource, tag['id'])
         tag = self.get_json(url)

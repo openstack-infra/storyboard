@@ -48,7 +48,7 @@ class TestEmailFactory(base.TestCase):
         payload_text = msg.get_payload(0)
         self.assertEqual('text/plain; charset="utf-8"',
                          payload_text.get('Content-Type'))
-        self.assertEqual('value',
+        self.assertEqual(b'value',
                          payload_text.get_payload(decode=True))
 
         # Assert that there's only one payload.
@@ -140,13 +140,13 @@ class TestEmailFactory(base.TestCase):
         payload_text = msg.get_payload(0)
         self.assertEqual('text/plain; charset="utf-8"',
                          payload_text.get('Content-Type'))
-        self.assertEqual('value',
+        self.assertEqual(b'value',
                          payload_text.get_payload(decode=True))
 
         payload_html = msg.get_payload(1)
         self.assertEqual('text/html; charset="utf-8"',
                          payload_html.get('Content-Type'))
-        self.assertEqual('value',
+        self.assertEqual(b'value',
                          payload_html.get_payload(decode=True))
 
     def test_no_template(self):

@@ -12,8 +12,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import json
-
 from storyboard.tests import base
 
 
@@ -52,7 +50,7 @@ class TestComments(base.FunctionalTest):
         original = self.post_json(self.comments_resource % self.story_id,
                                   self.comment_01)
 
-        original_event = json.loads(original.body)
+        original_event = original.json
 
         delta = {
             'id': original_event['comment_id'],
@@ -66,6 +64,6 @@ class TestComments(base.FunctionalTest):
         updated = self.put_json(update_url, delta)
 
         original_content = self.comment_01['content']
-        updated_content = json.loads(updated.body)['content']
+        updated_content = updated.json['content']
 
         self.assertNotEqual(original_content, updated_content)

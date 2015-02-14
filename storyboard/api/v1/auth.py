@@ -72,7 +72,8 @@ class AuthController(rest.RestController):
         response.headers = dict((str(k), str(v))
                                 for k, v in six.iteritems(headers))
         response.status_code = code
-        response.body = body or ''
+        body = body or ''
+        response.body = body.encode('utf-8')
 
         return response
 
@@ -95,7 +96,7 @@ class AuthController(rest.RestController):
                 'id_token': code_info.user_id
             })
 
-        response.body = json.dumps(json_body)
+        response.json = json_body
         return response
 
     def _access_token_by_refresh_token(self):
@@ -118,7 +119,7 @@ class AuthController(rest.RestController):
                 'id_token': refresh_token_info.user_id
             })
 
-        response.body = json.dumps(json_body)
+        response.json = json_body
 
         return response
 

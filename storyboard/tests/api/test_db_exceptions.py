@@ -12,8 +12,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import json
-
 from storyboard.tests import base
 
 
@@ -33,7 +31,7 @@ class TestDBExceptions(base.FunctionalTest):
 
         # create project with name 'test-project-duplicate'
         response = self.post_json(resource, project)
-        body = json.loads(response.body)
+        body = response.json
         self.assertEqual(project['name'], body['name'])
         self.assertEqual(project['description'], body['description'])
 
@@ -55,7 +53,7 @@ class TestDBExceptions(base.FunctionalTest):
         }
 
         response = self.post_json(resource, user)
-        users_body = json.loads(response.body)
+        users_body = response.json
         self.assertEqual(user['username'], users_body['username'])
         self.assertEqual(user['full_name'], users_body['full_name'])
         self.assertEqual(user['email'], users_body['email'])
