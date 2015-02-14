@@ -155,7 +155,7 @@ class TasksController(rest.RestController):
 
         original_task = tasks_api.task_get(task_id)
 
-        if task.creator_id and task.creator_id != original_task.id:
+        if task.creator_id and task.creator_id != original_task.creator_id:
             abort(400, _("You can't change author of task."))
 
         updated_task = tasks_api.task_update(task_id,
