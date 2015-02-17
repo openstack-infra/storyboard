@@ -16,8 +16,8 @@
 from oslo.config import cfg
 from oslo_log import log
 import requests
-import rfc3987
 import six
+from six.moves.urllib.parse import urlparse
 
 from storyboard.api.auth import ErrorMessages as e_msg
 from storyboard.api.auth import utils
@@ -45,9 +45,9 @@ class OpenIdClient(object):
         # Sanity Check: Redirect URI
         if not redirect_uri:
             raise InvalidRequest(message=e_msg.NO_REDIRECT_URI)
-        try:
-            rfc3987.parse(redirect_uri, 'URI')
-        except ValueError:
+
+        parts = urlparse(redirect_uri)
+        if not parts.scheme or not parts.path:
             raise InvalidRequest(message=e_msg.INVALID_REDIRECT_URI)
 
         # Sanity Check: response_type

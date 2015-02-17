@@ -14,8 +14,8 @@
 # limitations under the License.
 
 from oslo_log import log
-import rfc3987
 from six.moves import http_client
+from six.moves.urllib.parse import urlparse
 from wsme.exc import ClientSideError
 
 from storyboard.openstack.common.gettextutils import _  # noqa
@@ -268,8 +268,8 @@ class OAuthException(ClientSideError):
             code = http_client.BAD_REQUEST
         else:
             try:
-                parts = rfc3987.parse(redirect_uri, 'URI')
-                if parts['scheme'] not in ['http', 'https']:
+                parts = urlparse(redirect_uri)
+                if parts.scheme not in ['http', 'https']:
                     raise ValueError('Invalid scheme')
                 self.redirect_uri = redirect_uri
                 code = http_client.SEE_OTHER
