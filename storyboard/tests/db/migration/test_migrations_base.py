@@ -22,7 +22,6 @@
 # There is an ongoing work to extact similar code to oslo incubator. Once it is
 # extracted we'll be able to remove this file and use oslo.
 
-import ConfigParser
 import io
 import os
 
@@ -32,6 +31,7 @@ from alembic import migration
 from oslo.config import cfg
 from oslo_log import log as logging
 import six
+from six.moves import configparser
 import six.moves.urllib.parse as urlparse
 
 from storyboard.db import api as db_api
@@ -209,7 +209,7 @@ class BaseMigrationTestCase(base.TestCase):
         # once. No need to re-run this on each test...
         LOG.debug('config_path is %s' % self.CONFIG_FILE_PATH)
         if os.path.exists(self.CONFIG_FILE_PATH):
-            cp = ConfigParser.RawConfigParser()
+            cp = configparser.RawConfigParser()
             try:
                 cp.read(self.CONFIG_FILE_PATH)
                 config = cp.options('unit_tests')
@@ -218,7 +218,7 @@ class BaseMigrationTestCase(base.TestCase):
                 self.snake_walk = cp.getboolean('walk_style', 'snake_walk')
                 self.downgrade = cp.getboolean('walk_style', 'downgrade')
 
-            except ConfigParser.ParsingError as e:
+            except configparser.ParsingError as e:
                 self.fail("Failed to read test_migrations.conf config "
                           "file. Got error: %s" % e)
         else:
@@ -364,7 +364,7 @@ class BaseWalkMigrationTestCase(BaseMigrationTestCase):
         # once. No need to re-run this on each test...
         LOG.debug('config_path is %s' % self.CONFIG_FILE_PATH)
         if os.path.exists(self.CONFIG_FILE_PATH):
-            cp = ConfigParser.RawConfigParser()
+            cp = configparser.RawConfigParser()
             try:
                 cp.read(self.CONFIG_FILE_PATH)
                 config = cp.options('migration_dbs')
@@ -372,7 +372,7 @@ class BaseWalkMigrationTestCase(BaseMigrationTestCase):
                     self.test_databases[key] = cp.get('migration_dbs', key)
                 self.snake_walk = cp.getboolean('walk_style', 'snake_walk')
                 self.downgrade = cp.getboolean('walk_style', 'downgrade')
-            except ConfigParser.ParsingError as e:
+            except configparser.ParsingError as e:
                 self.fail("Failed to read test_migrations.conf config "
                           "file. Got error: %s" % e)
         else:
