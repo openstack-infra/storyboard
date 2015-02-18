@@ -110,7 +110,7 @@ lock_path = $state_path/lock
 [database]
 # This line MUST be changed to actually run storyboard
 # Example:
-# connection = mysql://root:pass@127.0.0.1:3306/storyboard
+# connection = mysql+pymysql://root:pass@127.0.0.1:3306/storyboard
 # Replace 127.0.0.1 above with the IP address of the database used by the
 # main storyboard server. (Leave it as is if the database runs on this host.)
 # connection=sqlite://

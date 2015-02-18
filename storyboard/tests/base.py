@@ -69,8 +69,8 @@ class TestCase(testtools.TestCase):
         if env_test_db is not None:
             self.test_connection = env_test_db
         else:
-            self.test_connection = ("mysql://openstack_citest:openstack_citest"
-                                    "@127.0.0.1:3306")
+            self.test_connection = ("mysql+pymysql://openstack_citest:"
+                                    "openstack_citest@127.0.0.1:3306")
 
         self.useFixture(fixtures.NestedTempfile())
         self.useFixture(fixtures.TempHomeDir())

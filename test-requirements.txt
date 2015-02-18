@@ -14,9 +14,6 @@ testtools>=0.9.34
 posix_ipc>=0.9.8
 
 
-# Some of the tests use real MySQL and Postgres databases
-MySQL-python
-
 # Doc requirements
 sphinx>=1.1.2,<1.2
 sphinxcontrib-pecanwsme>=0.5
