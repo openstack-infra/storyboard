@@ -13,10 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import httplib
-
 from oslo_log import log
 import rfc3987
+from six.moves import http_client
 from wsme.exc import ClientSideError
 
 from storyboard.openstack.common.gettextutils import _  # noqa
@@ -266,18 +265,18 @@ class OAuthException(ClientSideError):
     def __init__(self, message=None, redirect_uri=None):
 
         if not redirect_uri:
-            code = httplib.BAD_REQUEST
+            code = http_client.BAD_REQUEST
         else:
             try:
                 parts = rfc3987.parse(redirect_uri, 'URI')
                 if parts['scheme'] not in ['http', 'https']:
                     raise ValueError('Invalid scheme')
                 self.redirect_uri = redirect_uri
-                code = httplib.SEE_OTHER
+                code = http_client.SEE_OTHER
             except ValueError:
                 LOG.warning('Provided redirect_uri is invalid: %s'
                             % (redirect_uri,))
-                code = httplib.BAD_REQUEST
+                code = http_client.BAD_REQUEST
 
         super(OAuthException, self) \
             .__init__(msg=message, status_code=code)
