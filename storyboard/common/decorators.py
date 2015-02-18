@@ -17,8 +17,9 @@ import functools
 from pecan import abort
 from pecan import redirect
 from pecan import response
-import rfc3987
-import six.moves.urllib.parse as urlparse
+from six.moves.urllib.parse import urlencode
+from six.moves.urllib.parse import urlparse
+from six.moves.urllib.parse import urlunparse
 
 from storyboard.common import exception as exc
 from storyboard.openstack.common.gettextutils import _  # noqa
@@ -49,19 +50,20 @@ def oauth_exceptions(func):
             # If we have a redirect URL, build the error redirect.
             if o_exc.redirect_uri:
                 # Split the redirect_url apart
-                parts = rfc3987.parse(o_exc.redirect_uri, 'URI')
+                parts = urlparse(o_exc.redirect_uri)
 
                 # Add the error and error_description
-                if parts['query']:
-                    params = urlparse.parse_qsl(parts['query'])
+                if parts.query:
+                    params = urlparse.parse_qsl(parts.query)
                 else:
                     params = []
                 params.append(('error', error))
                 params.append(('error_description', error_description))
 
                 # Overwrite the old query params and reconstruct the URL
-                parts['query'] = urlparse.urlencode(params)
-                location = rfc3987.compose(**parts)
+                parts_list = list(parts)
+                parts_list[4] = urlencode(params)
+                location = urlunparse(parts_list)
 
                 redirect(location)
             else:
