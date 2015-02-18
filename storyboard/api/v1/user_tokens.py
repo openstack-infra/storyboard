@@ -23,6 +23,7 @@ from pecan import response
 from pecan import rest
 from pecan.secure import secure
 import six
+from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
@@ -40,8 +41,8 @@ LOG = log.getLogger(__name__)
 class UserTokensController(rest.RestController):
     @decorators.db_exceptions
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose([wmodels.AccessToken], int, int, int, unicode,
-                         unicode)
+    @wsme_pecan.wsexpose([wmodels.AccessToken], int, int, int, wtypes.text,
+                         wtypes.text)
     def get_all(self, user_id, marker=None, limit=None, sort_field='id',
                 sort_dir='asc'):
         """Returns all the access tokens for the provided user.

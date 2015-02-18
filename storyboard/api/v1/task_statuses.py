@@ -17,6 +17,7 @@ from oslo.config import cfg
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
+from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
@@ -30,7 +31,7 @@ class TaskStatusesController(rest.RestController):
     """Manages tasks statuses."""
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([TaskStatus], int, unicode)
+    @wsme_pecan.wsexpose([TaskStatus], int, wtypes.text)
     def get_all(self, limit=None, name=None):
         """Retrieve the possible task statuses.
         """

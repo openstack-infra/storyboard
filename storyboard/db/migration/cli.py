@@ -29,7 +29,7 @@ from storyboard.db import projects_loader
 from storyboard.db import superusers_loader
 from storyboard.openstack.common.gettextutils import _  # noqa
 
-gettext.install('storyboard', unicode=1)
+gettext.install('storyboard')
 
 CONF = cfg.CONF
 

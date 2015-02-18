@@ -83,8 +83,8 @@ class SubscriptionsController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose([Subscription], int, int, [unicode], int, int,
-                         unicode, unicode)
+    @wsme_pecan.wsexpose([Subscription], int, int, [wtypes.text], int, int,
+                         wtypes.text, wtypes.text)
     def get(self, marker=None, limit=None, target_type=None, target_id=None,
             user_id=None, sort_field='id', sort_dir='asc'):
         """Retrieve a list of subscriptions.

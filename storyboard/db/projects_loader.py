@@ -18,6 +18,7 @@ import yaml
 
 from oslo.config import cfg
 from oslo_log import log
+import six
 from sqlalchemy.exc import SADeprecationWarning
 
 from storyboard.common.custom_types import NameType
@@ -90,9 +91,9 @@ def do_load_models(filename):
 
 def _get_project(project, session):
     validator = NameType()
-    name = unicode(project['project'])
+    name = six.text_type(project['project'])
     if 'description' in project:
-        description = unicode(project['description'])
+        description = six.text_type(project['description'])
     else:
         description = ''
 

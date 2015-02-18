@@ -18,6 +18,7 @@ from pecan.decorators import expose
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
+from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
@@ -64,7 +65,7 @@ class ProjectsController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose(wmodels.Project, unicode)
+    @wsme_pecan.wsexpose(wmodels.Project, wtypes.text)
     def get_one_by_name(self, project_name):
         """Retrieve information about the given project.
 
@@ -80,8 +81,8 @@ class ProjectsController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.Project], int, int, unicode, unicode, int,
-                         unicode, unicode)
+    @wsme_pecan.wsexpose([wmodels.Project], int, int, wtypes.text, wtypes.text,
+                         int, wtypes.text, wtypes.text)
     def get(self, marker=None, limit=None, name=None, description=None,
             project_group_id=None, sort_field='id', sort_dir='asc'):
         """Retrieve a list of projects.
@@ -162,7 +163,8 @@ class ProjectsController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.Project], unicode, unicode, int, int)
+    @wsme_pecan.wsexpose([wmodels.Project], wtypes.text, wtypes.text, int,
+                         int)
     def search(self, q="", marker=None, limit=None):
         """The search endpoint for projects.
 

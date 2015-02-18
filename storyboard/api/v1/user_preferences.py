@@ -19,7 +19,7 @@ from pecan import abort
 from pecan import request
 from pecan import rest
 from pecan.secure import secure
-import wsme.types as types
+from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
 from storyboard.api.auth import authorization_checks as checks
@@ -38,7 +38,7 @@ class UserPreferencesController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose(types.DictType(unicode, unicode), int)
+    @wsme_pecan.wsexpose(wtypes.DictType(wtypes.text, wtypes.text), int)
     def get_all(self, user_id):
         """Return all preferences for the current user.
         """
@@ -50,8 +50,8 @@ class UserPreferencesController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose(types.DictType(unicode, unicode), int,
-                         body=types.DictType(unicode, unicode))
+    @wsme_pecan.wsexpose(wtypes.DictType(wtypes.text, wtypes.text), int,
+                         body=wtypes.DictType(wtypes.text, wtypes.text))
     def post(self, user_id, body):
         """Allow a user to update their preferences. Note that a user must
         explicitly set a preference value to Null/None to have it deleted.
