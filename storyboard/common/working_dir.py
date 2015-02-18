@@ -46,9 +46,12 @@ def get_working_directory():
         path = os.path.realpath(path)
 
         try:
-            # Make sure the directory exists (this will noop if it already
-            # exists.
-            os.makedirs(path)
+            try:
+                os.makedirs(path)
+            except OSError as e:
+                if e.errno != 17:
+                    # Not an already exists error
+                    raise
 
             # Now that we know it exists, assert that it's a directory
             if not os.path.isdir(path):
