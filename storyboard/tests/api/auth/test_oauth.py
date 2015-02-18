@@ -14,13 +14,12 @@
 
 import datetime
 import requests
-from urlparse import parse_qs
-from urlparse import urlparse
 import uuid
 
 from mock import patch
 from oslo.config import cfg
 import six
+import six.moves.urllib.parse as urlparse
 
 from storyboard.api.auth import ErrorMessages as e_msg
 from storyboard.db.api import access_tokens as token_api
@@ -51,12 +50,12 @@ class BaseOAuthTest(base.FunctionalTest):
         self.assertEqual(expected_status_code, response.status_code)
         # Split the url into parts.
         location = response.headers.get('Location')
-        location_url = urlparse(location)
-        parameters = parse_qs(location_url[4])
+        location_url = urlparse.urlparse(location)
+        parameters = urlparse.parse_qs(location_url[4])
 
         # Break out the redirect uri to compare and make sure we're headed
         # back to the redirect URI with the appropriate error codes.
-        configured_url = urlparse(redirect_uri)
+        configured_url = urlparse.urlparse(redirect_uri)
         self.assertEqual(configured_url[0], location_url[0])
         self.assertEqual(configured_url[1], location_url[1])
         self.assertEqual(configured_url[2], location_url[2])
@@ -109,8 +108,8 @@ class TestOAuthAuthorize(BaseOAuthTest):
 
         # Assert that the redirect request goes to launchpad.
         location = response.headers.get('Location')
-        location_url = urlparse(location)
-        parameters = parse_qs(location_url[4])
+        location_url = urlparse.urlparse(location)
+        parameters = urlparse.parse_qs(location_url[4])
 
         # Check the URL
         conf_openid_url = CONF.oauth.openid_url
@@ -123,8 +122,8 @@ class TestOAuthAuthorize(BaseOAuthTest):
 
         # Check redirect URL
         redirect = parameters['openid.return_to'][0]
-        redirect_url = urlparse(redirect)
-        redirect_params = parse_qs(redirect_url[4])
+        redirect_url = urlparse.urlparse(redirect)
+        redirect_params = urlparse.parse_qs(redirect_url[4])
 
         self.assertIn('/openid/authorize_return', redirect)
         self.assertEqual(random_state,
@@ -385,8 +384,8 @@ class TestOAuthAuthorizeReturn(BaseOAuthTest):
 
         # Try to pull the code out of the response
         location = response.headers.get('Location')
-        location_url = urlparse(location)
-        parameters = parse_qs(location_url[4])
+        location_url = urlparse.urlparse(location)
+        parameters = urlparse.parse_qs(location_url[4])
         token = auth_api.authorization_code_get(parameters['code'])
 
         # Validate the redirect response

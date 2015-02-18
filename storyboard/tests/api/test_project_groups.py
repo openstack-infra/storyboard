@@ -13,8 +13,8 @@
 # under the License.
 
 import json
-from urllib import urlencode
 
+import six.moves.urllib.parse as urlparse
 from webtest.app import AppError
 
 from storyboard.tests import base
@@ -137,7 +137,7 @@ class TestProjectGroupSearch(base.FunctionalTest):
         self.resource = '/project_groups'
 
     def build_search_url(self, params):
-        return '/project_groups?%s' % (urlencode(params))
+        return '/project_groups?%s' % (urlparse.urlencode(params))
 
     def test_search_by_name(self):
         url = self.build_search_url({
