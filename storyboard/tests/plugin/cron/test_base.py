@@ -105,8 +105,7 @@ class TestCronPluginBase(base.WorkingDirTestCase):
 
         # Current timestamp, remove microseconds so that we don't run into
         # execution time delay problems.
-        now = pytz.utc.localize(datetime.datetime.utcnow()) \
-            .replace(microsecond=0)
+        now = datetime.datetime.now(pytz.utc).replace(microsecond=0)
 
         # Check the plugin's params.
         self.assertEqual(last_run_date, plugin.last_invocation_parameters[0])

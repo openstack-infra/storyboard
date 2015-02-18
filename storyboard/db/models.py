@@ -17,11 +17,15 @@
 SQLAlchemy Models for storing storyboard
 """
 
+import datetime
+import pytz
+import six
+import six.moves.urllib.parse as urlparse
+
 from oslo.config import cfg
 from oslo.db.sqlalchemy import models
 from sqlalchemy import Boolean
 from sqlalchemy import Column
-from sqlalchemy import DateTime
 from sqlalchemy.dialects.mysql import MEDIUMTEXT
 from sqlalchemy import Enum
 from sqlalchemy.ext import declarative
@@ -38,8 +42,7 @@ from sqlalchemy import Unicode
 from sqlalchemy import UnicodeText
 from sqlalchemy_fulltext import FullText
 
-import six
-import six.moves.urllib.parse as urlparse
+from storyboard.db.decorators import UTCDateTime
 
 CONF = cfg.CONF
 
@@ -71,7 +74,18 @@ class IdMixin(object):
     id = Column(Integer, primary_key=True)
 
 
-class StoriesBase(models.TimestampMixin,
+class UTCTimestampMixin(object):
+    """A Database model mixin that automatically manages our creation and
+    updating timestamps. This mixin was copied from oslo.db, and adapted to
+    use our own internal UTCDateTime type decorator.
+    """
+    created_at = Column(UTCDateTime,
+                        default=lambda: datetime.datetime.now(tz=pytz.utc))
+    updated_at = Column(UTCDateTime,
+                        onupdate=lambda: datetime.datetime.now(tz=pytz.utc))
+
+
+class StoriesBase(UTCTimestampMixin,
                   IdMixin,
                   models.ModelBase):
     metadata = None
@@ -134,7 +148,7 @@ class User(FullText, ModelBuilder, Base):
     is_staff = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
     is_superuser = Column(Boolean, default=False)
-    last_login = Column(DateTime)
+    last_login = Column(UTCDateTime)
     teams = relationship("Team", secondary="team_membership")
     permissions = relationship("Permission", secondary="user_permissions")
     enable_login = Column(Boolean, default=True)
@@ -316,7 +330,7 @@ class AccessToken(ModelBuilder, Base):
     access_token = Column(Unicode(CommonLength.top_middle_length),
                           nullable=False)
     expires_in = Column(Integer, nullable=False)
-    expires_at = Column(DateTime, nullable=False)
+    expires_at = Column(UTCDateTime, nullable=False)
     refresh_tokens = relationship("RefreshToken",
                                   cascade="save-update, merge, delete",
                                   passive_updates=False,
@@ -331,7 +345,7 @@ class RefreshToken(ModelBuilder, Base):
     refresh_token = Column(Unicode(CommonLength.top_middle_length),
                            nullable=False)
     expires_in = Column(Integer, nullable=False)
-    expires_at = Column(DateTime, nullable=False)
+    expires_at = Column(UTCDateTime, nullable=False)
 
 
 def _story_build_summary_query():

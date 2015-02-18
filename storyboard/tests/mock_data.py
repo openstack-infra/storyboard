@@ -13,6 +13,7 @@
 # under the License.
 
 import datetime
+import pytz
 
 import storyboard.common.event_types as event
 from storyboard.db.api import base as db
@@ -31,7 +32,7 @@ def load():
     """Load a batch of useful data into the database that our tests can work
     with.
     """
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now(tz=pytz.utc)
     expires_at = now + datetime.timedelta(seconds=3600)
     expired_at = now + datetime.timedelta(seconds=-3600)
 
@@ -63,22 +64,22 @@ def load():
             user_id=1,
             access_token='valid_superuser_token',
             expires_in=3600,
-            expires_at=expires_at.strftime('%Y-%m-%d %H:%M:%S')),
+            expires_at=expires_at),
         AccessToken(
             user_id=1,
             access_token='expired_superuser_token',
             expires_in=3600,
-            expires_at=expired_at.strftime('%Y-%m-%d %H:%M:%S')),
+            expires_at=expired_at),
         AccessToken(
             user_id=2,
             access_token='valid_user_token',
             expires_in=3600,
-            expires_at=expires_at.strftime('%Y-%m-%d %H:%M:%S')),
+            expires_at=expires_at),
         AccessToken(
             user_id=2,
             access_token='expired_user_token',
             expires_in=3600,
-            expires_at=expired_at.strftime('%Y-%m-%d %H:%M:%S'))
+            expires_at=expired_at)
     ])
 
     # Create some test projects.

@@ -150,12 +150,12 @@ class LaunchpadWriter(object):
         """
 
         if hasattr(bug, 'date_created'):
-            created_at = bug.date_created.strftime('%Y-%m-%d %H:%M:%S')
+            created_at = bug.date_created
         else:
             created_at = None
 
         if hasattr(bug, 'date_last_updated'):
-            updated_at = bug.date_last_updated.strftime('%Y-%m-%d %H:%M:%S')
+            updated_at = bug.date_last_updated
         else:
             updated_at = None
 
@@ -263,8 +263,7 @@ class LaunchpadWriter(object):
         for i in range(current_count, desired_count):
             print '- Importing comment %s of %s' % (i + 1, desired_count)
             message = bug.messages[i]
-            message_created_at = message.date_created \
-                .strftime('%Y-%m-%d %H:%M:%S')
+            message_created_at = message.date_created
             message_owner = self.write_user(message.owner)
 
             comment = comments_api.comment_create({
