@@ -13,8 +13,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import json
-
 import six.moves.urllib.parse as urlparse
 from webtest.app import AppError
 
@@ -52,7 +50,7 @@ class TestProjects(base.FunctionalTest):
 
     def test_create(self):
         response = self.post_json(self.resource, self.project_01)
-        project = json.loads(response.body)
+        project = response.json
 
         self.assertEqual(self.project_01['name'], project['name'])
         self.assertEqual(self.project_01['description'],
@@ -67,7 +65,7 @@ class TestProjects(base.FunctionalTest):
 
     def test_update(self):
         response = self.post_json(self.resource, self.project_01)
-        original = json.loads(response.body)
+        original = response.json
 
         delta = {
             'id': original['id'],
@@ -77,7 +75,7 @@ class TestProjects(base.FunctionalTest):
 
         url = "/projects/%d" % original['id']
         response = self.put_json(url, delta)
-        updated = json.loads(response.body)
+        updated = response.json
 
         self.assertEqual(original['id'], updated['id'])
 
@@ -87,7 +85,7 @@ class TestProjects(base.FunctionalTest):
 
     def test_update_invalid(self):
         response = self.post_json(self.resource, self.project_01)
-        original = json.loads(response.body)
+        original = response.json
 
         delta = {
             'id': original['id'],

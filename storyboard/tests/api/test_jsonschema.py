@@ -12,7 +12,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import json
 import six
 
 from storyboard.tests import base
@@ -22,8 +21,7 @@ LONG_STRING = ''.join(['a' for i in range(0, 260)])
 
 
 def create(test_class, entity, resource):
-    response = test_class.post_json(resource, entity)
-    response_body = json.loads(response.body)
+    response_body = test_class.post_json(resource, entity).json
 
     for key, value in six.iteritems(entity):
         test_class.assertEqual(value, response_body[key])
@@ -31,14 +29,14 @@ def create(test_class, entity, resource):
 
 def create_invalid_length(test_class, entity, resource, field=""):
     response = test_class.post_json(resource, entity, expect_errors=True)
-    response_body = json.loads(response.body)
+    response_body = response.json
     test_class.assertEqual(400, response.status_code)
     test_class.assertEqual(field, response_body["field"])
 
 
 def create_invalid_required(test_class, entity, resource, field=""):
     response = test_class.post_json(resource, entity, expect_errors=True)
-    response_body = json.loads(response.body)
+    response_body = response.json
     test_class.assertEqual(400, response.status_code)
     test_class.assertEqual(six.text_type('\'%s\' is a required property') %
                            field, response_body["message"])
@@ -46,7 +44,7 @@ def create_invalid_required(test_class, entity, resource, field=""):
 
 def update(test_class, entity, resource):
     response = test_class.put_json(resource, entity)
-    response_body = json.loads(response.body)
+    response_body = response.json
 
     for key, value in six.iteritems(entity):
         test_class.assertEqual(value, response_body[key])
@@ -54,7 +52,7 @@ def update(test_class, entity, resource):
 
 def update_invalid(test_class, entity, resource, field=""):
     response = test_class.put_json(resource, entity, expect_errors=True)
-    response_body = json.loads(response.body)
+    response_body = response.json
     test_class.assertEqual(400, response.status_code)
     test_class.assertEqual(field, response_body["field"])
 

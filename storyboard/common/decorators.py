@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-
 import functools
 from pecan import abort
 from pecan import redirect
@@ -46,7 +44,7 @@ def oauth_exceptions(func):
 
             # Extract the parameters
             error = o_exc.error
-            error_description = o_exc.message or _("No details available.")
+            error_description = o_exc.msg or _("No details available.")
 
             # If we have a redirect URL, build the error redirect.
             if o_exc.redirect_uri:
@@ -71,7 +69,7 @@ def oauth_exceptions(func):
                     'error': error,
                     'error_description': error_description
                 }
-                response.body = json.dumps(error_body)
+                response.json = error_body
                 abort(o_exc.code, error_description, json_body=error_body)
 
     return decorate

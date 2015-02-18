@@ -12,8 +12,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import json
-
 import six.moves.urllib.parse as urlparse
 from webtest.app import AppError
 
@@ -49,7 +47,7 @@ class TestProjectGroups(base.FunctionalTest):
 
     def test_create(self):
         response = self.post_json(self.resource, self.group_01)
-        project_group = json.loads(response.body)
+        project_group = response.json
 
         self.assertEqual(self.group_01['name'], project_group['name'])
         self.assertEqual(self.group_01['title'], project_group['title'])
@@ -63,7 +61,7 @@ class TestProjectGroups(base.FunctionalTest):
 
     def test_update(self):
         response = self.post_json(self.resource, self.group_01)
-        original = json.loads(response.body)
+        original = response.json
 
         delta = {
             'id': original['id'],
@@ -73,7 +71,7 @@ class TestProjectGroups(base.FunctionalTest):
 
         url = "/project_groups/%d" % original['id']
         response = self.put_json(url, delta)
-        updated = json.loads(response.body)
+        updated = response.json
 
         self.assertEqual(original['id'], updated['id'])
 
@@ -82,7 +80,7 @@ class TestProjectGroups(base.FunctionalTest):
 
     def test_update_invalid(self):
         response = self.post_json(self.resource, self.group_01)
-        original = json.loads(response.body)
+        original = response.json
 
         delta = {
             'id': original['id'],
@@ -112,7 +110,7 @@ class TestProjectGroups(base.FunctionalTest):
         response = self.post_json(self.resource,
                                   {'name': 'testProjectGroup',
                                    'title': 'testProjectGroupTitle'})
-        body = json.loads(response.body)
+        body = response.json
         self.assertEqual('testProjectGroup', body['name'])
         self.assertEqual('testProjectGroupTitle', body['title'])
 

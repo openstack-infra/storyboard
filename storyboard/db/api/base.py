@@ -103,7 +103,7 @@ def paginate_query(query, model, limit, sort_key, marker=None,
                                     sort_dir=sort_dir,
                                     sort_dirs=sort_dirs)
     except ValueError as ve:
-        raise exc.DBValueError(message=ve.message)
+        raise exc.DBValueError(message=str(ve))
     except InvalidSortKey:
         raise exc.DBInvalidSortKey(_("Invalid sort_field [%s]") %
                                    sort_key)

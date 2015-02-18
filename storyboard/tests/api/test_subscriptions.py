@@ -12,8 +12,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import json
-
 import six
 
 from storyboard.tests import base
@@ -46,7 +44,7 @@ class TestSubscriptionsAsUser(base.FunctionalTest):
             'target_id': 1,
             'target_type': 'project'
         })
-        subscription = json.loads(response.body)
+        subscription = response.json
 
         self.assertEquals('project', subscription['target_type'])
         self.assertEquals(1, subscription['target_id'])
@@ -58,7 +56,7 @@ class TestSubscriptionsAsUser(base.FunctionalTest):
             'target_id': 2,
             'target_type': 'project'
         })
-        subscription2 = json.loads(response2.body)
+        subscription2 = response2.json
 
         self.assertEquals('project', subscription2['target_type'])
         self.assertEquals(2, subscription2['target_id'])
@@ -71,7 +69,7 @@ class TestSubscriptionsAsUser(base.FunctionalTest):
             'target_id': 1,
             'target_type': 'project'
         })
-        subscription = json.loads(response.body)
+        subscription = response.json
 
         search_response_1 = self.get_json(self.resource)
         self.assertEqual(1, len(search_response_1))
@@ -187,7 +185,7 @@ class TestSubscriptionsAsSuperuser(base.FunctionalTest):
             'target_id': 1,
             'target_type': 'project'
         })
-        subscription = json.loads(response.body)
+        subscription = response.json
 
         self.assertEquals('project', subscription['target_type'])
         self.assertEquals(1, subscription['target_id'])
@@ -213,7 +211,7 @@ class TestSubscriptionsAsSuperuser(base.FunctionalTest):
             'target_id': 1,
             'target_type': 'project'
         })
-        subscription = json.loads(response.body)
+        subscription = response.json
 
         search_response_1 = self.get_json(self.resource + '?user_id=3')
         self.assertEqual(2, len(search_response_1))

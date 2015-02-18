@@ -12,8 +12,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import json
-
 from storyboard.tests import base
 
 
@@ -26,7 +24,7 @@ class TestTeams(base.FunctionalTest):
     def test_delete_invalid(self):
         # create new empty team with name 'testTeam'
         response = self.post_json(self.resource, {'name': 'testTeam'})
-        body = json.loads(response.body)
+        body = response.json
         self.assertEqual('testTeam', body['name'])
 
         # add user with id = 2 to team with name 'testTeam'
@@ -43,7 +41,7 @@ class TestTeams(base.FunctionalTest):
     def test_delete(self):
         # create new team with name 'testTeam'
         response = self.post_json(self.resource, {'name': 'testTeam'})
-        body = json.loads(response.body)
+        body = response.json
         self.assertEqual('testTeam', body['name'])
         resource = (self.resource + '/%d') % body['id']
 
