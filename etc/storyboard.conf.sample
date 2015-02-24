@@ -63,10 +63,10 @@ lock_path = $state_path/lock
 # A list of valid client id's that may connect to StoryBoard.
 # valid_oauth_clients = storyboard.openstack.org, localhost
 
-[cron]
-# Storyboard's cron management configuration
+[scheduler]
+# Storyboard's scheduled task management configuration
 
-# Enable or disable cron (Default disabled)
+# Enable or disable scheduling (Default disabled)
 # enable = true
 
 [cors]
@@ -148,7 +148,7 @@ lock_path = $state_path/lock
 # pool_timeout = 10
 
 [plugin_token_cleaner]
-# Enable/Disable the token cleaning cron plugin. This requires cron
+# Enable/Disable the periodic token cleaner plugin. This requires scheduled
 # management to be enabled.
 # enable = True
 

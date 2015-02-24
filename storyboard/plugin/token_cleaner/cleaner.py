@@ -16,12 +16,14 @@ from datetime import datetime
 from datetime import timedelta
 import pytz
 
+from apscheduler.triggers.interval import IntervalTrigger
+
 import storyboard.db.api.base as api_base
 from storyboard.db.models import AccessToken
-from storyboard.plugin.cron.base import CronPluginBase
+from storyboard.plugin.scheduler.base import SchedulerPluginBase
 
 
-class TokenCleaner(CronPluginBase):
+class TokenCleaner(SchedulerPluginBase):
     """A Cron Plugin which checks periodically for expired auth tokens and
     removes them from the database. By default it only cleans up expired
     tokens that are more than a week old, to permit some historical debugging
@@ -36,18 +38,12 @@ class TokenCleaner(CronPluginBase):
             return self.config.plugin_token_cleaner.enable or False
         return False
 
-    def interval(self):
-        """This plugin executes on startup, and once every hour after that.
+    def trigger(self):
+        """This plugin executes every hour."""
+        return IntervalTrigger(hours=1, timezone=pytz.utc)
 
-        :return: "? * * * *"
-        """
-        return "? * * * *"
-
-    def run(self, start_time, end_time):
+    def run(self):
         """Remove all oauth tokens that are more than a week old.
-
-        :param start_time: The last time the plugin was run.
-        :param end_time: The current timestamp.
         """
         # Calculate last week.
         lastweek = datetime.now(pytz.utc) - timedelta(weeks=1)
