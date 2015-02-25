@@ -182,9 +182,6 @@ class Task(base.APIBase):
     Human readable versions are left to the UI.
     """
 
-    is_active = bool
-    """Is this an active task, or has it been deleted?"""
-
     creator_id = int
     """Id of the User who has created this Task"""
 
