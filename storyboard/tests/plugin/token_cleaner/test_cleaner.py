@@ -47,10 +47,12 @@ class TestTokenCleaner(db_base.BaseDbTestCase,
 
         CONF.clear_override('enable', 'plugin_token_cleaner')
 
-    def test_interval(self):
-        """Assert that the cron manager runs every 5 minutes."""
+    def test_trigger(self):
+        """Assert that the this plugin runs every minute."""
         plugin = TokenCleaner(CONF)
-        self.assertEqual("? * * * *", plugin.interval())
+        trigger = plugin.trigger()
+
+        self.assertEqual(3600, trigger.interval_length)
 
     def test_token_removal(self):
         """Assert that the plugin deletes tokens whose expiration date passed
@@ -100,7 +102,7 @@ class TestTokenCleaner(db_base.BaseDbTestCase,
 
         # Run the plugin.
         plugin = TokenCleaner(CONF)
-        plugin.execute()
+        plugin.run()
 
         # Make sure we have 8 tokens left (since one plugin starts today).
         self.assertEqual(8, db_api.model_query(AccessToken).count())
