@@ -200,6 +200,9 @@ class Task(base.APIBase):
     branch_id = int
     """The ID of corresponding Branch"""
 
+    milestone_id = int
+    """The ID of corresponding Milestone"""
+
 
 class Branch(base.APIBase):
     """Represents a branch."""
@@ -232,6 +235,34 @@ class Branch(base.APIBase):
             expired=True,
             expiration_date=datetime(2015, 1, 1, 1, 1),
             autocreated=False
+        )
+
+
+class Milestone(base.APIBase):
+    """Represents a milestone."""
+
+    name = wtypes.text
+    """The milestone unique name. This name will be displayed in the URL.
+    At least 3 alphanumeric symbols.
+    """
+
+    branch_id = int
+    """The ID of the corresponding Branch."""
+
+    expired = bool
+    """a binary flag that marks milestones that should no longer be
+    selectable in completed tasks."""
+
+    expiration_date = datetime
+    """Last date the expired flag was switched to True."""
+
+    @classmethod
+    def sample(cls):
+        return cls(
+            name="Storyboard-milestone",
+            branch_id=1,
+            expired=True,
+            expiration_date=datetime(2015, 1, 1, 1, 1)
         )
 
 

@@ -18,6 +18,7 @@ import pytz
 import storyboard.common.event_types as event
 from storyboard.db.api import base as db
 from storyboard.db.models import AccessToken
+from storyboard.db.models import Branch
 from storyboard.db.models import Comment
 from storyboard.db.models import Project
 from storyboard.db.models import ProjectGroup
@@ -237,6 +238,25 @@ def load():
             target_type='story',
             target_id=1
         ),
+    ])
+
+    # Load some branches
+    load_data([
+        Branch(
+            id=1,
+            project_id=1,
+            name='master',
+        ),
+        Branch(
+            id=2,
+            project_id=2,
+            name='master'
+        ),
+        Branch(
+            id=3,
+            project_id=3,
+            name='master'
+        )
     ])
 
 

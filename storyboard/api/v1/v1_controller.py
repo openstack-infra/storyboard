@@ -15,6 +15,7 @@
 
 from storyboard.api.v1.auth import AuthController
 from storyboard.api.v1.branches import BranchesController
+from storyboard.api.v1.milestones import MilestonesController
 from storyboard.api.v1.project_groups import ProjectGroupsController
 from storyboard.api.v1.projects import ProjectsController
 from storyboard.api.v1.stories import StoriesController
@@ -35,6 +36,7 @@ class V1Controller(object):
     users = UsersController()
     teams = TeamsController()
     branches = BranchesController()
+    milestones = MilestonesController()
     stories = StoriesController()
     tags = TagsController()
     tasks = TasksController()

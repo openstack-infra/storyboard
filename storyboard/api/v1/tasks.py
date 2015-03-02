@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#    http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,6 +28,7 @@ from storyboard.api.v1 import validations
 from storyboard.api.v1 import wmodels
 from storyboard.common import decorators
 from storyboard.common import exception as exc
+from storyboard.db.api import milestones as milestones_api
 from storyboard.db.api import tasks as tasks_api
 from storyboard.db.api import timeline_events as events_api
 from storyboard.openstack.common.gettextutils import _  # noqa
@@ -63,12 +64,12 @@ class TasksController(rest.RestController):
     @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Task], wtypes.text, int, int, int, int, int,
-                         [wtypes.text], [wtypes.text], int, int, wtypes.text,
-                         wtypes.text)
+                         int, [wtypes.text], [wtypes.text], int, int,
+                         wtypes.text, wtypes.text)
     def get_all(self, title=None, story_id=None, assignee_id=None,
                 project_id=None, project_group_id=None, branch_id=None,
-                status=None, priority=None, marker=None, limit=None,
-                sort_field='id', sort_dir='asc'):
+                milestone_id=None, status=None, priority=None, marker=None,
+                limit=None, sort_field='id', sort_dir='asc'):
         """Retrieve definitions of all of the tasks.
 
         :param title: search by task title.
@@ -77,6 +78,7 @@ class TasksController(rest.RestController):
         :param project_id: filter the tasks based on project.
         :param project_group_id: filter tasks based on project group.
         :param branch_id: filter tasks based on branch_id.
+        :param milestone_id: filter tasks based on milestone.
         :param status: filter tasks by status.
         :param priority: filter tasks by priority.
         :param marker: The resource id where the page should begin.
@@ -100,6 +102,7 @@ class TasksController(rest.RestController):
                           project_id=project_id,
                           project_group_id=project_group_id,
                           branch_id=branch_id,
+                          milestone_id=milestone_id,
                           status=status,
                           priority=priority,
                           sort_field=sort_field,
@@ -113,6 +116,7 @@ class TasksController(rest.RestController):
                             project_id=project_id,
                             project_group_id=project_group_id,
                             branch_id=branch_id,
+                            milestone_id=milestone_id,
                             status=status,
                             priority=priority)
 
@@ -123,6 +127,16 @@ class TasksController(rest.RestController):
             response.headers['X-Marker'] = str(marker_task.id)
 
         return [wmodels.Task.from_db_model(s) for s in tasks]
+
+    def _milestone_is_valid(self, milestone_id):
+        milestone = milestones_api.milestone_get(milestone_id)
+
+        if not milestone:
+            raise exc.NotFound(_("Milestone %d not found.") %
+                               milestone_id)
+
+        if milestone['expired']:
+            abort(400, _("Can't associate task to expired milestone."))
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
@@ -135,6 +149,13 @@ class TasksController(rest.RestController):
 
         if task.creator_id and task.creator_id != request.current_user_id:
             abort(400, _("You can't select author of task."))
+
+        if task.milestone_id:
+            if task.status != 'merged':
+                abort(400,
+                      _("Milestones can only be associated with merged tasks"))
+
+            self._milestone_is_valid(task.milestone_id)
 
         creator_id = request.current_user_id
         task.creator_id = creator_id
@@ -165,6 +186,25 @@ class TasksController(rest.RestController):
 
         updated_task = tasks_api.task_update(task_id,
                                              task.as_dict(omit_unset=True))
+
+        if task.milestone_id:
+            if original_task['status'] != 'merged' and task.status != 'merged':
+                abort(400,
+                      _("Milestones can only be associated with merged tasks"))
+
+            if (original_task['status'] == 'merged' and
+                    task.status and task.status != 'merged'):
+                abort(400,
+                      _("Milestones can only be associated with merged tasks"))
+
+            self._milestone_is_valid(task.milestone_id)
+
+        task_dict = task.as_dict(omit_unset=True)
+
+        if task.status and task.status != 'merged':
+            task_dict['milestone_id'] = None
+
+        updated_task = tasks_api.task_update(task_id, task_dict)
 
         if updated_task:
             self._post_timeline_events(original_task, updated_task)
