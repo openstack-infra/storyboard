@@ -42,6 +42,7 @@ from sqlalchemy import Unicode
 from sqlalchemy import UnicodeText
 from sqlalchemy_fulltext import FullText
 
+from storyboard.common import event_types
 from storyboard.db.decorators import UTCDateTime
 
 CONF = cfg.CONF
@@ -449,8 +450,7 @@ class TimeLineEvent(ModelBuilder, Base):
     comment_id = Column(Integer, ForeignKey('comments.id'), nullable=True)
     author_id = Column(Integer, ForeignKey('users.id'), nullable=True)
 
-    event_type = Column(Unicode(CommonLength.top_middle_length),
-                        nullable=False)
+    event_type = Column(Enum(*event_types.ALL), nullable=False)
 
     # this info field should contain additional fields to describe the event
     # ex. {'old_status': 'Todo', 'new_status': 'In progress'}

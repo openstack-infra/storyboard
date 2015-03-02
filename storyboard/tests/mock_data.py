@@ -154,25 +154,6 @@ def load():
             description="Test Description - oh hai"
         )
     ])
-    # Create a comment.
-    load_data([
-        Comment(
-            id=1,
-            content="Test Comment",
-            is_active=True
-        )
-    ])
-
-    # Create a timeline event for the above comment.
-    load_data([
-        TimeLineEvent(
-            id=1,
-            story_id=1,
-            comment_id=1,
-            author_id=1,
-            event_type=event.USER_COMMENT
-        )
-    ])
 
     # Create some tasks
     load_data([
@@ -215,6 +196,77 @@ def load():
             project_id=2,
             assignee_id=1,
             priority='medium'
+        )
+    ])
+
+    # Generate some timeline events for the above stories.
+    load_data([
+        TimeLineEvent(
+            id=1,
+            story_id=1,
+            author_id=1,
+            event_type=event.STORY_CREATED,
+            event_info='{"story_id": 1, "story_title": "E Test story 1 - foo"}'
+        ),
+        TimeLineEvent(
+            id=2,
+            story_id=2,
+            author_id=1,
+            event_type=event.STORY_CREATED,
+            event_info='{"story_id": 1, "story_title": "D Test story 2 - bar"}'
+        ),
+        TimeLineEvent(
+            id=3,
+            story_id=3,
+            author_id=1,
+            event_type=event.STORY_CREATED,
+            event_info='{"story_id": 1, "story_title": "C Test story 3 - foo"}'
+        ),
+        TimeLineEvent(
+            id=4,
+            story_id=4,
+            author_id=1,
+            event_type=event.STORY_CREATED,
+            event_info='{"story_id": 1, "story_title": "B Test story 4 - bar"}'
+        ),
+        TimeLineEvent(
+            id=5,
+            story_id=5,
+            author_id=1,
+            event_type=event.STORY_CREATED,
+            event_info='{"story_id": 1, '
+                       '"story_title": "A Test story 5 - oh hai"}'
+        ),
+        # Reassign task 1 to user 2.
+        TimeLineEvent(
+            id=6,
+            story_id=1,
+            author_id=1,
+            event_type=event.TASK_ASSIGNEE_CHANGED,
+            event_info='{"story_id": 1, "task_title": "A Test Task 1 - foo", '
+                       '"old_assignee_id": null, '
+                       '"task_id": 1, '
+                       '"new_assignee_id": 2}'
+        )
+    ])
+
+    # Create a comment.
+    load_data([
+        Comment(
+            id=1,
+            content="Test Comment",
+            is_active=True
+        )
+    ])
+
+    # Create a timeline event for the above comment.
+    load_data([
+        TimeLineEvent(
+            id=7,
+            story_id=1,
+            comment_id=1,
+            author_id=1,
+            event_type=event.USER_COMMENT
         )
     ])
 

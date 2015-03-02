@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#    http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,3 +28,16 @@ TASK_STATUS_CHANGED = "task_status_changed"
 TASK_PRIORITY_CHANGED = "task_priority_changed"
 TASK_ASSIGNEE_CHANGED = "task_assignee_changed"
 TASK_DELETED = "task_deleted"
+
+ALL = (
+    STORY_CREATED,
+    STORY_DETAILS_CHANGED,
+    STORY_DETAILS_CHANGED,
+    USER_COMMENT,
+    TASK_CREATED,
+    TASK_ASSIGNEE_CHANGED,
+    TASK_DETAILS_CHANGED,
+    TASK_STATUS_CHANGED,
+    TASK_PRIORITY_CHANGED,
+    TASK_DELETED
+)

@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#    http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -62,13 +62,14 @@ class TimeLineEventsController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.TimeLineEvent], int, int, int, wtypes.text,
-                         wtypes.text)
-    def get_all(self, story_id=None, marker=None, limit=None, sort_field=None,
-                sort_dir=None):
+    @wsme_pecan.wsexpose([wmodels.TimeLineEvent], int, [wtypes.text], int, int,
+                         wtypes.text, wtypes.text)
+    def get_all(self, story_id=None, event_type=None, marker=None,
+                limit=None, sort_field=None, sort_dir=None):
         """Retrieve all events that have happened under specified story.
 
         :param story_id: filter events by story ID.
+        :param event_type: A selection of event types to get.
         :param marker: The resource id where the page should begin.
         :param limit: The number of events to retrieve.
         :param sort_field: The name of the field to sort on.
@@ -80,11 +81,22 @@ class TimeLineEventsController(rest.RestController):
             limit = CONF.page_size_default
         limit = min(CONF.page_size_maximum, max(1, limit))
 
+        # Sanity check on event types.
+        if event_type:
+            for r_type in event_type:
+                if r_type not in event_types.ALL:
+                    msg = _('Invalid event_type requested. Event type must be '
+                            'one of the following: %s')
+                    msg = msg % (', '.join(event_types.ALL),)
+                    abort(400, msg)
+
         # Resolve the marker record.
         marker_event = events_api.event_get(marker)
 
-        event_count = events_api.events_get_count(story_id=story_id)
+        event_count = events_api.events_get_count(story_id=story_id,
+                                                  event_type=event_type)
         events = events_api.events_get_all(story_id=story_id,
+                                           event_type=event_type,
                                            marker=marker_event,
                                            limit=limit,
                                            sort_field=sort_field,

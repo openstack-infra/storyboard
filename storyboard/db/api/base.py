@@ -22,7 +22,7 @@ from oslo.db.sqlalchemy.utils import InvalidSortKey
 from oslo.db.sqlalchemy.utils import paginate_query as utils_paginate_query
 from oslo_log import log
 import six
-import sqlalchemy.types as types
+import sqlalchemy.types as sqltypes
 
 from storyboard.common import exception as exc
 from storyboard.db import models
@@ -67,9 +67,10 @@ def apply_query_filters(query, model, **kwargs):
         if v and hasattr(model, k):
             column = getattr(model, k)
             if column.is_attribute:
-                if isinstance(column.type, types.Enum):
+                if isinstance(v, list):
+                    # List() style parameters receive WHERE IN logic.
                     query = query.filter(column.in_(v))
-                elif isinstance(column.type, types.String):
+                elif isinstance(column.type, sqltypes.String):
                     # Filter strings with LIKE
                     query = query.filter(column.like("%" + v + "%"))
                 else:
