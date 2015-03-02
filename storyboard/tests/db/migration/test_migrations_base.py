@@ -83,13 +83,6 @@ def _have_mysql(user, passwd, database):
     return present.lower() in ('', 'true')
 
 
-def _have_postgresql(user, passwd, database):
-    present = os.environ.get('STORYBOARD_TEST_POSTGRESQL_PRESENT')
-    if present is None:
-        return _is_backend_avail('postgres', user, passwd, database)
-    return present.lower() in ('', 'true')
-
-
 def get_mysql_connection_info(conn_pieces):
     database = conn_pieces.path.strip('/')
     loc_pieces = conn_pieces.netloc.split('@')
@@ -100,20 +93,6 @@ def get_mysql_connection_info(conn_pieces):
     if len(auth_pieces) > 1:
         if auth_pieces[1].strip():
             password = "-p\"%s\"" % auth_pieces[1]
-
-    return (user, password, database, host)
-
-
-def get_pgsql_connection_info(conn_pieces):
-    database = conn_pieces.path.strip('/')
-    loc_pieces = conn_pieces.netloc.split('@')
-    host = loc_pieces[1]
-
-    auth_pieces = loc_pieces[0].split(':')
-    user = auth_pieces[0]
-    password = ""
-    if len(auth_pieces) > 1:
-        password = auth_pieces[1].strip()
 
     return (user, password, database, host)
 
@@ -141,17 +120,6 @@ class CommonTestsMixIn(object):
         gracefully to ensure we don't break people without mysql
         """
         if _is_backend_avail('mysql', "openstack_cifail", self.PASSWD,
-                             self.DATABASE):
-            self.fail("Shouldn't have connected")
-
-    def test_postgresql_opportunistically(self):
-        self._test_postgresql_opportunistically()
-
-    def test_postgresql_connect_fail(self):
-        """Test that we can trigger a postgres connection failure and we fail
-        gracefully to ensure we don't break people without postgres
-        """
-        if _is_backend_avail('postgres', "openstack_cifail", self.PASSWD,
                              self.DATABASE):
             self.fail("Shouldn't have connected")
 
@@ -240,30 +208,6 @@ class BaseMigrationTestCase(base.TestCase):
         self.assertEqual('', err,
                          "Failed to run: %s\n%s" % (cmd, output))
 
-    @synchronized('pgadmin', external=True)
-    def _reset_pg(self, conn_pieces):
-        (user, password, database, host) = \
-            get_pgsql_connection_info(conn_pieces)
-        os.environ['PGPASSWORD'] = password
-        os.environ['PGUSER'] = user
-        # note(boris-42): We must create and drop database, we can't
-        # drop database which we have connected to, so for such
-        # operations there is a special database template1.
-        sqlcmd = ("psql -w -U %(user)s -h %(host)s -c"
-                  " '%(sql)s' -d template1")
-        sqldict = {'user': user, 'host': host}
-
-        sqldict['sql'] = ("drop database if exists %s;") % database
-        droptable = sqlcmd % sqldict
-        self.execute_cmd(droptable)
-
-        sqldict['sql'] = ("create database %s;") % database
-        createtable = sqlcmd % sqldict
-        self.execute_cmd(createtable)
-
-        os.unsetenv('PGPASSWORD')
-        os.unsetenv('PGUSER')
-
     @synchronized('mysql', external=True)
     def _reset_mysql(self, conn_pieces):
         # We can execute the MySQL client to destroy and re-create
@@ -306,29 +250,6 @@ class BaseMigrationTestCase(base.TestCase):
                    "-e \"%(sql)s\"" % {'user': user, 'password': password,
                                        'host': host, 'sql': sql})
             self.execute_cmd(cmd)
-        elif conn_string.startswith('postgresql'):
-            (user, password, database, host) = \
-                get_pgsql_connection_info(conn_pieces)
-            os.environ['PGPASSWORD'] = password
-            os.environ['PGUSER'] = user
-
-            sqlcmd = ("psql -w -U %(user)s -h %(host)s -c"
-                      " '%(sql)s' -d template1")
-
-            sql = ("create database if not exists %s;") % database
-            createtable = sqlcmd % {'user': user, 'host': host, 'sql': sql}
-            # 0 means databases is created
-            # 256 means it already exists (which is fine)
-            # otherwise raise an error
-            out, err = processutils.trycmd(createtable, shell=True,
-                                           check_exit_code=[0, 256],
-                                           discard_warnings=True)
-            output = out or err
-            if err != '':
-                self.fail("Failed to run: %s\n%s" % (createtable, output))
-
-            os.unsetenv('PGPASSWORD')
-            os.unsetenv('PGUSER')
 
     def _reset_databases(self):
         """Reset all configured databases."""
@@ -345,8 +266,6 @@ class BaseMigrationTestCase(base.TestCase):
             self._reset_sqlite(conn_pieces)
         elif conn_string.startswith('mysql'):
             self._reset_mysql(conn_pieces)
-        elif conn_string.startswith('postgresql'):
-            self._reset_pg(conn_pieces)
 
 
 class BaseWalkMigrationTestCase(BaseMigrationTestCase):
@@ -424,26 +343,6 @@ class BaseWalkMigrationTestCase(BaseMigrationTestCase):
 
         connection.close()
 
-        del(self.engines[database])
-        del(self.test_databases[database])
-
-    def _test_postgresql_opportunistically(self):
-        # Test postgresql database migration walk
-        if not _have_postgresql(self.USER, self.PASSWD, self.DATABASE):
-            self.skipTest("postgresql not available")
-        # add this to the global lists to make reset work with it, it's removed
-        # automatically in tearDown so no need to clean it up here.
-        connect_string = _get_connect_string("postgres", self.USER,
-                self.PASSWD, self.DATABASE)
-        engine = db_api.get_engine()
-        (user, password, database, host) = \
-            get_mysql_connection_info(urlparse.urlparse(connect_string))
-        self.engines[database] = engine
-        self.test_databases[database] = connect_string
-
-        # build a fully populated postgresql database with all the tables
-        self._reset_database(database)
-        self._walk_versions(engine, self.snake_walk, self.downgrade)
         del(self.engines[database])
         del(self.test_databases[database])
 
