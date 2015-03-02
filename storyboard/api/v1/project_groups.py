@@ -18,7 +18,7 @@ from pecan import abort
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
-from wsme.exc import ClientSideError
+
 import wsme.types as wtypes
 import wsmeext.pecan as wsme_pecan
 
@@ -151,9 +151,6 @@ class ProjectGroupsController(rest.RestController):
         created_group = project_groups.project_group_create(
             project_group.as_dict())
 
-        if not created_group:
-            raise ClientSideError(_("Could not create ProjectGroup"))
-
         return wmodels.ProjectGroup.from_db_model(created_group)
 
     @decorators.db_exceptions
@@ -169,10 +166,6 @@ class ProjectGroupsController(rest.RestController):
         updated_group = project_groups.project_group_update(
             project_group_id,
             project_group.as_dict(omit_unset=True))
-
-        if not updated_group:
-            raise ClientSideError(_("Could not update group %s") %
-                                  project_group_id)
 
         return wmodels.ProjectGroup.from_db_model(updated_group)
 
