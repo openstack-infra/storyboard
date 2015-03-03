@@ -27,3 +27,4 @@ email>=4.0.2
 Jinja2>=2.7.3
 PyMySQL>=0.6.2,!=0.6.4
 apscheduler>=3.0.1
+python_dateutil>=2.4.0
