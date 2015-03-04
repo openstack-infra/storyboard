@@ -238,6 +238,7 @@ class Project(FullText, ModelBuilder, Base):
     team_id = Column(Integer, ForeignKey('teams.id'))
     team = relationship(Team, primaryjoin=team_id == Team.id)
     tasks = relationship('Task', backref='project')
+    branches = relationship('Branch', backref='project')
     repo_url = Column(String(CommonLength.top_large_length), default=None)
     is_active = Column(Boolean, default=True)
     project_groups = relationship("ProjectGroup",
@@ -312,16 +313,16 @@ class Task(FullText, ModelBuilder, Base):
                       "milestone_id"]
 
 
-class Branch(FullText, ModelBuilder, Base):
+class Branch(ModelBuilder, Base):
     __tablename__ = 'branches'
 
     __table_args__ = (
         schema.UniqueConstraint('name', 'project_id', name='branch_un_constr'),
     )
 
-    __fulltext_columns__ = ['name']
-
     name = Column(String(CommonLength.top_middle_length))
+    tasks = relationship('Task', backref='branch')
+    milestones = relationship('Milestone', backref='branch')
     project_id = Column(Integer, ForeignKey('projects.id'))
     expired = Column(Boolean, default=False)
     expiration_date = Column(UTCDateTime, default=None)
@@ -331,7 +332,7 @@ class Branch(FullText, ModelBuilder, Base):
                       "expiration_date", "autocreated"]
 
 
-class Milestone(FullText, ModelBuilder, Base):
+class Milestone(ModelBuilder, Base):
     __tablename__ = 'milestones'
 
     __table_args__ = (
@@ -339,9 +340,8 @@ class Milestone(FullText, ModelBuilder, Base):
                                 name='milestone_un_constr'),
     )
 
-    __fulltext_columns__ = ['name']
-
     name = Column(String(CommonLength.top_middle_length))
+    tasks = relationship('Task', backref='milestone')
     branch_id = Column(Integer, ForeignKey('branches.id'))
     expired = Column(Boolean, default=False)
     expiration_date = Column(UTCDateTime, default=None)
