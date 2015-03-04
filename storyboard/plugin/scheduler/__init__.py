@@ -19,7 +19,6 @@ from oslo.config import cfg
 from oslo_log import log
 from pytz import utc
 
-from apscheduler.executors.pool import ProcessPoolExecutor
 from apscheduler.executors.pool import ThreadPoolExecutor
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -63,12 +62,11 @@ def initialize_scheduler():
         'default': SQLAlchemyJobStore(engine=get_engine())
     }
 
-    # Two executors: The default is for all plugins, so that they load in a
-    # different process that does not impact the API. The second one is for
+    # Two executors: The default is for all plugins. The second one is for
     # the scheduler manager, which makes sure this scheduler instance is
     # aware of all of our plugins.
     executors = {
-        'default': ProcessPoolExecutor(10),
+        'default': ThreadPoolExecutor(10),
         'manager': ThreadPoolExecutor(1),
     }
 
@@ -122,13 +120,6 @@ def update_scheduler():
     if not SCHEDULER:
         LOG.warning("Scheduler does not exist, cannot update it.")
         return
-
-    # This may be running in a separate thread and/or process, so the log may
-    # not have been initialized.
-    try:
-        log.register_options(CONF)
-    except cfg.ArgsAlreadyParsedError:
-        pass
 
     # Load all plugins that are registered and load them into the scheduler.
     loader = StoryboardPluginLoader(namespace="storyboard.plugin.scheduler")
@@ -204,17 +195,7 @@ def add_plugins(ext, loaded_plugins=list()):
 
 
 def execute_plugin(plugin_class):
-    """Run a specific cron plugin from the scheduler. Preloads our
-    environment, and then invokes the run method on the plugin. This will
-    only work properly if run in a separate process.
-    """
-    try:
-        log.register_options(CONF)
-    except cfg.ArgsAlreadyParsedError:
-        pass
-
-    CONF(project='storyboard')
-    log.setup(CONF, 'storyboard')
+    """Run a specific cron plugin from the scheduler."""
 
     plugin_instance = plugin_class(CONF)
     LOG.info('Running plugin: %s' % (plugin_instance.get_name(),))
