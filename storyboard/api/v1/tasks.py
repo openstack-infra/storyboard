@@ -30,6 +30,8 @@ from storyboard.common import decorators
 from storyboard.common import exception as exc
 from storyboard.db.api import branches as branches_api
 from storyboard.db.api import milestones as milestones_api
+from storyboard.db.api import stories as stories_api
+from storyboard.db.api import story_types as story_types_api
 from storyboard.db.api import tasks as tasks_api
 from storyboard.db.api import timeline_events as events_api
 from storyboard.openstack.common.gettextutils import _  # noqa
@@ -80,6 +82,24 @@ def branch_is_valid(task):
         abort(400, _("You can't associate task with expired branch %s.") %
               task.branch_id)
 
+    return branch
+
+
+def story_is_valid(task, branch):
+    """Check that branch is restricted if story type is restricted.
+    """
+
+    story = stories_api.story_get(task.story_id)
+
+    if not story:
+        raise exc.NotFound("Story %s not found." % task.story_id)
+
+    story_type = story_types_api.story_type_get(story.story_type_id)
+
+    if story_type.restricted:
+        if not branch.restricted:
+            abort(400, _("Branch %s must be restricted.") % branch.id)
+
 
 def task_is_valid_post(task):
     """Check that task can be created.
@@ -93,14 +113,24 @@ def task_is_valid_post(task):
     if not task.project_id:
         abort(400, _("You must select a project for task."))
 
+    # Check that story_id is in request
+        if not task.story_id:
+            abort(400, _("You must select a story for task."))
+
     # Set branch_id to 'master' branch defaults and check that
     # branch is valid for this task.
+    branch = None
+
     if not task.branch_id:
-        task.branch_id = branches_api.branch_get_master_branch(
+        branch = branches_api.branch_get_master_branch(
             task.project_id
-        ).id
+        )
+        task.branch_id = branch.id
     else:
-        branch_is_valid(task)
+        branch = branch_is_valid(task)
+
+    # Check that branch is restricted if story type is restricted
+    story_is_valid(task, branch)
 
     # Check that task status is merged and milestone is valid for this task
     # if milestone_id is in request.

@@ -215,6 +215,29 @@ project_group_mapping = Table(
 )
 
 
+may_mutate_to = Table(
+    'may_mutate_to', Base.metadata,
+    Column('story_type_id_from', Integer, ForeignKey('story_types.id'),
+           nullable=False),
+    Column('story_type_id_to', Integer, ForeignKey('story_types.id'),
+           nullable=False),
+    schema.UniqueConstraint('story_type_id_from', 'story_type_id_to')
+)
+
+
+class StoryType(ModelBuilder, Base):
+    __tablename__ = 'story_types'
+
+    name = Column(String(CommonLength.top_middle_length))
+    icon = Column(String(CommonLength.top_middle_length))
+    restricted = Column(Boolean, default=False)
+    private = Column(Boolean, default=False)
+    visible = Column(Boolean, default=True)
+
+    _public_fields = ["id", "name", "icon", "restricted", "private",
+                      "visible"]
+
+
 class Permission(ModelBuilder, Base):
     __table_args__ = (
         schema.UniqueConstraint('name', name='uniq_permission_name'),
@@ -275,6 +298,8 @@ class Story(FullText, ModelBuilder, Base):
     __fulltext_columns__ = ['title', 'description']
 
     creator_id = Column(Integer, ForeignKey('users.id'))
+    story_type_id = Column(Integer, ForeignKey('story_types.id'),
+                           default=1)
     creator = relationship(User, primaryjoin=creator_id == User.id)
     title = Column(Unicode(CommonLength.top_large_length))
     description = Column(UnicodeText())
@@ -327,6 +352,7 @@ class Branch(ModelBuilder, Base):
     expired = Column(Boolean, default=False)
     expiration_date = Column(UTCDateTime, default=None)
     autocreated = Column(Boolean, default=False)
+    restricted = Column(Boolean, default=False)
 
     _public_fields = ["id", "name", "project_id", "expired",
                       "expiration_date", "autocreated"]

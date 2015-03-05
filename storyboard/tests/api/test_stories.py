@@ -12,6 +12,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import unittest
+
 import six.moves.urllib.parse as urlparse
 
 from storyboard.db.api import tasks
@@ -44,6 +46,47 @@ class TestStories(base.FunctionalTest):
         self.assertIn('created_at', story)
         self.assertEqual(story['title'], self.story_01['title'])
         self.assertEqual(story['description'], self.story_01['description'])
+        self.assertEqual(1, story['story_type_id'])
+
+    def test_create_feature(self):
+        story = {
+            'title': 'StoryBoard',
+            'description': 'Awesome Task Tracker',
+            'story_type_id': 2
+        }
+        response = self.post_json(self.resource, story)
+        created_story = response.json
+
+        self.assertEqual(story['title'], created_story['title'])
+        self.assertEqual(story['description'], created_story['description'])
+        self.assertEqual(story['story_type_id'],
+                         created_story['story_type_id'])
+
+    @unittest.skip("vulnerabilities are not supported.")
+    def test_create_private_vulnerability(self):
+        story = {
+            'title': 'StoryBoard',
+            'description': 'Awesome Task Tracker',
+            'story_type_id': 3
+        }
+        response = self.post_json(self.resource, story)
+        created_story = response.json
+
+        self.assertEqual(story['title'], created_story['title'])
+        self.assertEqual(story['description'], created_story['description'])
+        self.assertEqual(story['story_type_id'],
+                         created_story['story_type_id'])
+
+    @unittest.skip("vulnerabilities are not supported.")
+    def test_create_public_vulnerability(self):
+        story = {
+            'title': 'StoryBoard',
+            'description': 'Awesome Task Tracker',
+            'story_type_id': 4
+        }
+        response = self.post_json(self.resource, story,
+                                  expect_errors=True)
+        self.assertEqual(400, response.status_code)
 
     def test_update(self):
         response = self.post_json(self.resource, self.story_01)
@@ -64,6 +107,57 @@ class TestStories(base.FunctionalTest):
         self.assertNotEqual(updated['title'], original['title'])
         self.assertNotEqual(updated['description'],
                             original['description'])
+
+    def test_update_story_types(self):
+        story = {
+            'title': 'StoryBoard',
+            'description': 'Awesome Task Tracker',
+            'story_type_id': 1
+        }
+
+        response = self.post_json(self.resource, story)
+        created_story = response.json
+
+        self.assertEqual(story['story_type_id'],
+                         created_story['story_type_id'])
+
+        story_types = [2, 1]
+
+        for story_type_id in story_types:
+            response = self.put_json(self.resource +
+                                     ('/%s' % created_story["id"]),
+                                     {'story_type_id': story_type_id})
+            self.assertEqual(story_type_id, response.json['story_type_id'])
+
+    @unittest.skip("vulnerabilities are not supported.")
+    def test_update_private_to_public_vulnerability(self):
+        story = {
+            'title': 'StoryBoard',
+            'description': 'Awesome Task Tracker',
+            'story_type_id': 3
+        }
+
+        response = self.post_json(self.resource, story)
+        created_story = response.json
+
+        self.assertEqual(story["story_type_id"],
+                         created_story["story_type_id"])
+
+        response = self.put_json(self.resource +
+                                 ('/%s' % created_story["id"]),
+                                 {'story_type_id': 4})
+        created_story = response.json
+        self.assertEqual(4, created_story['story_type_id'])
+
+    def test_update_restricted_branches(self):
+        response = self.put_json(self.resource + '/1', {'story_type_id': 2},
+                                 expect_errors=True)
+        self.assertEqual(400, response.status_code)
+
+    def test_update_invalid(self):
+        response = self.put_json(self.resource + '/1', {'story_type_id': 2},
+                                 expect_errors=True)
+        self.assertEqual(400, response.status_code)
 
     def test_add_tags(self):
         url = "/stories/%d/tags" % 1

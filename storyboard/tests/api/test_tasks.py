@@ -144,6 +144,34 @@ class TestTasksPrimary(base.FunctionalTest):
                                   expect_errors=True)
         self.assertEqual(400, response.status_code)
 
+    def test_create_invalid_restricted(self):
+        branch = {
+            'name': 'some_branch',
+            'project_id': 1,
+            'restricted': False
+        }
+
+        story = {
+            'title': 'some_story',
+            'description': 'some_description',
+            'story_type_id': 2
+        }
+
+        branch = self.post_json('/branches', branch)
+        branch = branch.json
+        story = self.post_json('/stories', story)
+        story = story.json
+
+        task = {
+            'title': 'some_task',
+            'project_id': 1,
+            'story_id': story["id"],
+            'branch_id': branch["id"]
+        }
+
+        response = self.post_json(self.resource, task, expect_errors=True)
+        self.assertEqual(400, response.status_code)
+
     def test_create_invalid_expired(self):
         response = self.put_json('/branches/1', {'expired': True})
         branch = response.json

@@ -20,6 +20,7 @@ class MasterBranchHelper:
     expired = False
     expiration_date = None
     autocreated = False
+    restricted = True
 
     def __init__(self, project_id):
         self.project_id = project_id
@@ -30,7 +31,8 @@ class MasterBranchHelper:
             "project_id": self.project_id,
             "expired": self.expired,
             "expiration_date": self.expiration_date,
-            "autocreated": self.autocreated
+            "autocreated": self.autocreated,
+            "restricted": self.restricted
         }
 
         return master_branch_dict

@@ -134,6 +134,9 @@ class Story(base.APIBase):
     creator_id = int
     """User ID of the Story creator"""
 
+    story_type_id = int
+    """ID of story type"""
+
     status = wtypes.text
     """The derived status of the story, one of 'active', 'merged', 'invalid'"""
 
@@ -151,6 +154,7 @@ class Story(base.APIBase):
             is_bug=False,
             creator_id=1,
             task_statuses=[TaskStatusCount],
+            story_type_id=1,
             status="active",
             tags=["t1", "t2"])
 
@@ -227,6 +231,9 @@ class Branch(base.APIBase):
     be auto-expired when the corresponding branch is deleted in the git repo.
     """
 
+    restricted = bool
+    """This flag marks branch as restricted."""
+
     @classmethod
     def sample(cls):
         return cls(
@@ -234,7 +241,8 @@ class Branch(base.APIBase):
             project_id=1,
             expired=True,
             expiration_date=datetime(2015, 1, 1, 1, 1),
-            autocreated=False
+            autocreated=False,
+            restricted=False
         )
 
 

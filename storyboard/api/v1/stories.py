@@ -137,8 +137,14 @@ class StoriesController(rest.RestController):
 
         :param story: A story within the request body.
         """
-        story_dict = story.as_dict()
 
+        # Reject private story types while ACL is not created.
+        if (story.story_type_id and
+                (story.story_type_id == 3 or story.story_type_id == 4)):
+            abort(400, _("Now you can't add story with type %s.") %
+                  story.story_type_id)
+
+        story_dict = story.as_dict()
         user_id = request.current_user_id
 
         if story.creator_id and story.creator_id != user_id:
@@ -146,11 +152,13 @@ class StoriesController(rest.RestController):
 
         story_dict.update({"creator_id": user_id})
 
+        if not stories_api.story_can_create_story(story.story_type_id):
+            abort(400, _("Can't create story of this type."))
+
         if not "tags" in story_dict or not story_dict["tags"]:
             story_dict["tags"] = []
 
         created_story = stories_api.story_create(story_dict)
-
         events_api.story_created_event(created_story.id, user_id, story.title)
 
         return wmodels.Story.from_db_model(created_story)
@@ -165,23 +173,36 @@ class StoriesController(rest.RestController):
         :param story: A story within the request body.
         """
 
+        # Reject private story types while ACL is not created.
+        if (story.story_type_id and
+                (story.story_type_id == 3 or story.story_type_id == 4)):
+            abort(400, _("Now you can't change story type to %s.") %
+                  story.story_type_id)
+
         original_story = stories_api.story_get_simple(story_id)
+
+        if not original_story:
+            raise exc.NotFound(_("Story %s not found") % story_id)
 
         if story.creator_id and story.creator_id != original_story.creator_id:
             abort(400, _("You can't change author of story."))
 
+        story_dict = story.as_dict(omit_unset=True)
+        stories_api.story_check_story_type_id(story_dict)
+
+        if not stories_api.story_can_mutate(original_story,
+                                            story.story_type_id):
+            abort(400, _("Can't change story type."))
+
         updated_story = stories_api.story_update(
             story_id,
-            story.as_dict(omit_unset=True))
+            story_dict)
 
-        if updated_story:
-            user_id = request.current_user_id
-            events_api.story_details_changed_event(story_id, user_id,
-                                                   updated_story.title)
+        user_id = request.current_user_id
+        events_api.story_details_changed_event(story_id, user_id,
+                                               updated_story.title)
 
-            return wmodels.Story.from_db_model(updated_story)
-        else:
-            raise exc.NotFound(_("Story %s not found") % story_id)
+        return wmodels.Story.from_db_model(updated_story)
 
     @decorators.db_exceptions
     @secure(checks.superuser)

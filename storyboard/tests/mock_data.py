@@ -300,16 +300,19 @@ def load():
             id=1,
             project_id=1,
             name='master',
+            restricted=True
         ),
         Branch(
             id=2,
             project_id=2,
-            name='master'
+            name='master',
+            restricted=True
         ),
         Branch(
             id=3,
             project_id=3,
-            name='master'
+            name='master',
+            restricted=True
         )
     ])
 

@@ -19,6 +19,7 @@ from storyboard.api.v1 import wmodels
 from storyboard.common import exception as exc
 from storyboard.db.api import base as api_base
 from storyboard.db.api import story_tags
+from storyboard.db.api import story_types
 from storyboard.db import models
 from storyboard.openstack.common.gettextutils import _  # noqa
 
@@ -222,3 +223,69 @@ def story_delete(story_id):
 
     if story:
         api_base.entity_hard_delete(models.Story, story_id)
+
+
+def story_check_story_type_id(story_dict):
+    if "story_type_id" in story_dict and not story_dict["story_type_id"]:
+        del story_dict["story_type_id"]
+
+
+def story_can_create_story(story_type_id):
+    if not story_type_id:
+        return True
+
+    story_type = story_types.story_type_get(story_type_id)
+
+    if not story_type:
+        raise exc.NotFound("Story type %s not found." % story_type_id)
+
+    if not story_type.visible:
+        return False
+
+    return True
+
+
+def story_can_mutate(story, new_story_type_id):
+    if not new_story_type_id:
+        return True
+
+    if story.story_type_id == new_story_type_id:
+        return True
+
+    old_story_type = story_types.story_type_get(story.story_type_id)
+    new_story_type = story_types.story_type_get(new_story_type_id)
+
+    if not new_story_type:
+        raise exc.NotFound(_("Story type %s not found.") % new_story_type_id)
+
+    if not old_story_type.private and new_story_type.private:
+        return False
+
+    mutation = story_types.story_type_get_mutations(story.story_type_id,
+                                                    new_story_type_id)
+
+    if not mutation:
+        return False
+
+    if not new_story_type.restricted:
+        return True
+
+    query = api_base.model_query(models.Task)
+    query = query.filter_by(story_id=story.id)
+    tasks = query.all()
+    branch_ids = set()
+
+    for task in tasks:
+        if task.branch_id:
+            branch_ids.add(task.branch_id)
+
+    branch_ids = list(branch_ids)
+
+    query = api_base.model_query(models.Branch)
+    branch = query.filter(models.Branch.id.in_(branch_ids),
+                          models.Branch.restricted.__eq__(1)).first()
+
+    if not branch:
+        return True
+
+    return False
