@@ -13,8 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from storyboard.common import exception as exc
 from storyboard.db.api import base as api_base
 from storyboard.db import models
+from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 def branch_get(branch_id):
@@ -65,5 +67,16 @@ def branch_build_query(project_group_id, **kwargs):
 
     query = api_base.apply_query_filters(query=query, model=models.Branch,
                                          **kwargs)
+
+    return query
+
+
+def branch_get_master_branch(project_id):
+    query = api_base.model_query(models.Branch)
+    query = query.filter_by(project_id=project_id, name='master').first()
+
+    if not query:
+        raise exc.NotFound(_("Master branch of project %d not found.")
+                           % project_id)
 
     return query

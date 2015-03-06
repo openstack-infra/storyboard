@@ -30,6 +30,7 @@ from storyboard.api.v1.search import search_engine
 from storyboard.api.v1 import validations
 from storyboard.api.v1 import wmodels
 from storyboard.common import decorators
+from storyboard.common import exception as exc
 from storyboard.db.api import branches as branches_api
 from storyboard.openstack.common.gettextutils import _  # noqa
 
@@ -60,7 +61,7 @@ class BranchesController(rest.RestController):
         if branch:
             return wmodels.Branch.from_db_model(branch)
         else:
-            abort(404, _("Branch %s not found") % branch_id)
+            raise exc.NotFound(_("Branch %s not found") % branch_id)
 
     @decorators.db_exceptions
     @secure(checks.guest)
@@ -146,9 +147,19 @@ class BranchesController(rest.RestController):
             else:
                 branch_dict["expiration_date"] = None
 
+        if branch.project_id:
+            original_branch = branches_api.branch_get(branch_id)
+
+            if not original_branch:
+                raise exc.NotFound(_("Branch %s not found") % branch_id)
+
+            if branch.project_id != original_branch.project_id:
+                abort(400, _("You can't associate branch %s "
+                             "with another project.") % branch_id)
+
         result = branches_api.branch_update(branch_id, branch_dict)
 
         if result:
             return wmodels.Branch.from_db_model(result)
         else:
-            abort(404, _("Branch %s not found") % branch_id)
+            raise exc.NotFound(_("Branch %s not found") % branch_id)

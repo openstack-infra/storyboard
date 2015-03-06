@@ -28,6 +28,7 @@ from storyboard.api.v1 import validations
 from storyboard.api.v1 import wmodels
 from storyboard.common import decorators
 from storyboard.common import exception as exc
+from storyboard.db.api import branches as branches_api
 from storyboard.db.api import milestones as milestones_api
 from storyboard.db.api import tasks as tasks_api
 from storyboard.db.api import timeline_events as events_api
@@ -38,15 +39,133 @@ CONF = cfg.CONF
 SEARCH_ENGINE = search_engine.get_engine()
 
 
-def milestone_is_valid(milestone_id):
-        milestone = milestones_api.milestone_get(milestone_id)
+def milestone_is_valid(task):
+    """Check that milestone exists, milestone and task associated with the
+    same branch and milestone is not expired.
+    """
 
-        if not milestone:
-            raise exc.NotFound(_("Milestone %d not found.") %
-                               milestone_id)
+    milestone_id = task.milestone_id
+    milestone = milestones_api.milestone_get(milestone_id)
 
-        if milestone['expired']:
-            abort(400, _("Can't associate task to expired milestone."))
+    if not milestone:
+        raise exc.NotFound(_("Milestone %s not found.") %
+                           milestone_id)
+
+    if milestone['expired']:
+        abort(400, _("You can't associate task to expired milestone %s.")
+              % milestone_id)
+
+    if task.branch_id and milestone.branch_id != task.branch_id:
+        abort(400, _("Milestone %(m_id)s doesn't associate "
+                     "with branch %(b_id)s.")
+              % {'m_id': milestone_id, 'b_id': task.branch_id})
+
+
+def branch_is_valid(task):
+    """Check that branch exists, branch and task associated with the same
+    project and branch is not expired.
+    """
+
+    branch = branches_api.branch_get(task.branch_id)
+
+    if not branch:
+        raise exc.NotFound(_("Branch %s not found.") % task.branch_id)
+
+    if branch.project_id != task.project_id:
+        abort(400, _("Branch %(b_id)s doesn't associate with "
+                     "project %(p_id)s.")
+              % {'b_id': branch.id, 'p_id': task.project_id})
+
+    if branch["expired"]:
+        abort(400, _("You can't associate task with expired branch %s.") %
+              task.branch_id)
+
+
+def task_is_valid_post(task):
+    """Check that task can be created.
+    """
+
+    # Check that task author didn't change creator_id.
+    if task.creator_id and task.creator_id != request.current_user_id:
+        abort(400, _("You can't select author of task."))
+
+    # Check that project_id is in request
+    if not task.project_id:
+        abort(400, _("You must select a project for task."))
+
+    # Set branch_id to 'master' branch defaults and check that
+    # branch is valid for this task.
+    if not task.branch_id:
+        task.branch_id = branches_api.branch_get_master_branch(
+            task.project_id
+        ).id
+    else:
+        branch_is_valid(task)
+
+    # Check that task status is merged and milestone is valid for this task
+    # if milestone_id is in request.
+    if task.milestone_id:
+        if task.status != 'merged':
+            abort(400,
+                  _("Milestones can only be associated with merged tasks"))
+
+        milestone_is_valid(task)
+
+    return task
+
+
+def task_is_valid_put(task, original_task):
+    """Check that task can be update.
+    """
+
+    # Check that creator_id of task can't be changed.
+    if task.creator_id and task.creator_id != original_task.creator_id:
+        abort(400, _("You can't change author of task."))
+
+    # Set project_id if it isn't in request.
+    if not task.project_id:
+        task.project_id = original_task.project_id
+
+    # Set branch_id if it isn't in request.
+    if not task.branch_id:
+        task.branch_id = original_task.branch_id
+
+    # Check that branch is valid for this task. If project_id was changed,
+    # task will be associated with master branch of this project, because
+    # client doesn't support branches.
+    if task.project_id == original_task.project_id:
+        branch_is_valid(task)
+    else:
+        task.branch_id = branches_api.branch_get_master_branch(
+            task.project_id
+        ).id
+
+    # Check that task ready to associate with milestone if milestone_id in
+    # request.
+    if task.milestone_id:
+        if original_task.status != 'merged' and task.status != 'merged':
+            abort(400,
+                  _("Milestones can only be associated with merged tasks"))
+
+        if (original_task.status == 'merged' and
+                task.status and task.status != 'merged'):
+            abort(400,
+                  _("Milestones can only be associated with merged tasks"))
+    elif 'milestone_id' in task.as_dict(omit_unset=True):
+        return task
+
+    # Set milestone id if task status isn't 'merged' or if original task
+    # has milestone_id.
+    if task.status and task.status != 'merged':
+        task.milestone_id = None
+    elif not task.milestone_id and original_task.milestone_id:
+        task.milestone_id = original_task.milestone_id
+
+    # Check that milestone is valid for this task.
+    if task.milestone_id:
+        milestone_is_valid(task)
+
+    return task
 
 
 def post_timeline_events(original_task, updated_task):
@@ -190,18 +309,10 @@ class TasksPrimaryController(rest.RestController):
     def post(self, task):
         """Create a new task.
 
-        :param task: A task within the request body.
+        :param task: a task within the request body.
         """
 
-        if task.creator_id and task.creator_id != request.current_user_id:
-            abort(400, _("You can't select author of task."))
-
-        if task.milestone_id:
-            if task.status != 'merged':
-                abort(400,
-                      _("Milestones can only be associated with merged tasks"))
-
-            milestone_is_valid(task.milestone_id)
+        task = task_is_valid_post(task)
 
         creator_id = request.current_user_id
         task.creator_id = creator_id
@@ -227,33 +338,16 @@ class TasksPrimaryController(rest.RestController):
 
         original_task = tasks_api.task_get(task_id)
 
-        if task.creator_id and task.creator_id != original_task.creator_id:
-            abort(400, _("You can't change author of task."))
+        if not original_task:
+            raise exc.NotFound(_("Task %s not found.") % task_id)
 
-        if task.milestone_id:
-            if original_task['status'] != 'merged' and task.status != 'merged':
-                abort(400,
-                      _("Milestones can only be associated with merged tasks"))
+        task = task_is_valid_put(task, original_task)
 
-            if (original_task['status'] == 'merged' and
-                    task.status and task.status != 'merged'):
-                abort(400,
-                      _("Milestones can only be associated with merged tasks"))
+        updated_task = tasks_api.task_update(task_id, task.as_dict(
+            omit_unset=True))
 
-            milestone_is_valid(task.milestone_id)
-
-        task_dict = task.as_dict(omit_unset=True)
-
-        if task.status and task.status != 'merged':
-            task_dict['milestone_id'] = None
-
-        updated_task = tasks_api.task_update(task_id, task_dict)
-
-        if updated_task:
-            post_timeline_events(original_task, updated_task)
-            return wmodels.Task.from_db_model(updated_task)
-        else:
-            raise exc.NotFound(_("Task %s not found") % task_id)
+        post_timeline_events(original_task, updated_task)
+        return wmodels.Task.from_db_model(updated_task)
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
@@ -394,24 +488,16 @@ class TasksNestedController(rest.RestController):
         :param task: a task within the request body.
         """
 
-        if task.creator_id and task.creator_id != request.current_user_id:
-            abort(400, _("You can't select author of task."))
-
-        creator_id = request.current_user_id
-        task.creator_id = creator_id
-
         if not task.story_id:
             task.story_id = story_id
 
         if task.story_id != story_id:
             abort(400, _("URL story_id and task.story_id do not match"))
 
-        if task.milestone_id:
-            if task.status != 'merged':
-                abort(400,
-                      _("Milestones can only be associated with merged tasks"))
+        task = task_is_valid_post(task)
 
-            milestone_is_valid(task.milestone_id)
+        creator_id = request.current_user_id
+        task.creator_id = creator_id
 
         created_task = tasks_api.task_create(task.as_dict())
 
@@ -435,36 +521,19 @@ class TasksNestedController(rest.RestController):
 
         original_task = tasks_api.task_get(task_id)
 
+        if not original_task:
+            raise exc.NotFound(_("Task %s not found") % task_id)
+
         if original_task.story_id != story_id:
             abort(400, _("URL story_id and task.story_id do not match"))
 
-        if task.creator_id and task.creator_id != original_task.creator_id:
-            abort(400, _("You can't change author of task."))
+        task = task_is_valid_put(task, original_task)
 
-        if task.milestone_id:
-            if original_task['status'] != 'merged' and task.status != 'merged':
-                abort(400,
-                      _("Milestones can only be associated with merged tasks"))
+        updated_task = tasks_api.task_update(task_id, task.as_dict(
+            omit_unset=True))
 
-            if (original_task['status'] == 'merged' and
-                    task.status and task.status != 'merged'):
-                abort(400,
-                      _("Milestones can only be associated with merged tasks"))
-
-            milestone_is_valid(task.milestone_id)
-
-        task_dict = task.as_dict(omit_unset=True)
-
-        if task.status and task.status != 'merged':
-            task_dict['milestone_id'] = None
-
-        updated_task = tasks_api.task_update(task_id, task_dict)
-
-        if updated_task:
-            post_timeline_events(original_task, updated_task)
-            return wmodels.Task.from_db_model(updated_task)
-        else:
-            raise exc.NotFound(_("Task %s not found") % task_id)
+        post_timeline_events(original_task, updated_task)
+        return wmodels.Task.from_db_model(updated_task)
 
     @decorators.db_exceptions
     @secure(checks.authenticated)

@@ -143,6 +143,16 @@ class MilestonesController(rest.RestController):
             else:
                 milestone_dict["expiration_date"] = None
 
+        if milestone.branch_id:
+            original_milestone = milestones_api.milestone_get(milestone_id)
+
+            if not original_milestone:
+                raise exc.NotFound(_("Milestone %s not found") % milestone_id)
+
+            if milestone.branch_id != original_milestone.branch_id:
+                abort(400, _("You can't associate milestone %s "
+                             "with another branch.") % milestone_id)
+
         result = milestones_api.milestone_update(milestone_id, milestone_dict)
 
         if result:

@@ -22,7 +22,7 @@ class TestMilestones(base.FunctionalTest):
         self.resource = '/milestones'
 
         self.milestone_01 = {
-            'name': 'test_milestone_01',
+            'name': 'test_milestone_1',
             'branch_id': 1
         }
 
@@ -38,7 +38,7 @@ class TestMilestones(base.FunctionalTest):
         }
 
         self.put_milestone_01 = {
-            'branch_id': 2
+            'name': 'new_milestone_name'
         }
 
         self.put_milestone_02 = {
@@ -83,9 +83,9 @@ class TestMilestones(base.FunctionalTest):
 
         response = self.put_json(resource, self.put_milestone_01)
         milestone = response.json
-        self.assertEqual(milestone['name'], self.milestone_01['name'])
+        self.assertEqual(milestone['name'], self.put_milestone_01['name'])
         self.assertEqual(milestone['branch_id'],
-                         self.put_milestone_01['branch_id'])
+                         self.milestone_01['branch_id'])
 
         response = self.put_json(resource, self.put_milestone_02)
         milestone = response.json
@@ -114,6 +114,19 @@ class TestMilestones(base.FunctionalTest):
         response = self.put_json(resource, self.put_milestone_04,
                                  expect_errors=True)
         self.assertEqual(response.status_code, 400)
+
+    def test_change_branch(self):
+        response = self.post_json(self.resource, self.milestone_01)
+        milestone = response.json
+        self.assertIn("id", milestone)
+        self.assertEqual(milestone['name'], self.milestone_01['name'])
+        self.assertEqual(milestone['branch_id'],
+                         self.milestone_01['branch_id'])
+        resource = "".join([self.resource, ("/%d" % milestone['id'])])
+
+        response = self.put_json(resource, {'branch_id': 2},
+                                 expect_errors=True)
+        self.assertEqual(400, response.status_code)
 
     def test_get_one(self):
         response = self.post_json(self.resource, self.milestone_01)

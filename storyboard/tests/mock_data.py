@@ -20,6 +20,7 @@ from storyboard.db.api import base as db
 from storyboard.db.models import AccessToken
 from storyboard.db.models import Branch
 from storyboard.db.models import Comment
+from storyboard.db.models import Milestone
 from storyboard.db.models import Project
 from storyboard.db.models import ProjectGroup
 from storyboard.db.models import Story
@@ -161,6 +162,7 @@ def load():
             status='inprogress',
             story_id=1,
             project_id=1,
+            branch_id=1,
             assignee_id=2,
             priority='medium'
         ),
@@ -171,6 +173,7 @@ def load():
             status='merged',
             story_id=1,
             project_id=2,
+            branch_id=2,
             assignee_id=1,
             priority='high'
         ),
@@ -181,6 +184,7 @@ def load():
             status='invalid',
             story_id=1,
             project_id=3,
+            branch_ud=3,
             assignee_id=1,
             priority='low'
         ),
@@ -191,6 +195,7 @@ def load():
             status='merged',
             story_id=2,
             project_id=2,
+            branch_id=2,
             assignee_id=1,
             priority='medium'
         )
@@ -305,6 +310,18 @@ def load():
             id=3,
             project_id=3,
             name='master'
+        )
+    ])
+
+    # Load some milestones
+    load_data([
+        Milestone(
+            name='test_milestone_01',
+            branch_id=1
+        ),
+        Milestone(
+            name='test_milestone_02',
+            branch_id=2
         )
     ])
 

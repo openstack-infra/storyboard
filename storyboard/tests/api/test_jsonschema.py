@@ -357,21 +357,25 @@ class TestTasks(base.FunctionalTest):
 
         self.task_01 = {
             'title': 'jsonschema_task_01',
-            'story_id': 1
+            'story_id': 1,
+            'project_id': 1
         }
 
         self.task_02 = {
             'title': 'ts',
-            'story_id': 1
+            'story_id': 1,
+            'project_id': 1
         }
 
         self.task_03 = {
             'title': LONG_STRING,
-            'story_id': 1
+            'story_id': 1,
+            'project_id': 1
         }
 
         self.task_04 = {
-            'story_id': 1
+            'story_id': 1,
+            'project_id': 1
         }
 
         self.put_task_01 = {

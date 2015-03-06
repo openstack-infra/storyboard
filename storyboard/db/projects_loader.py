@@ -22,7 +22,9 @@ import six
 from sqlalchemy.exc import SADeprecationWarning
 
 from storyboard.common.custom_types import NameType
+from storyboard.common.master_branch_helper import MasterBranchHelper
 from storyboard.db.api import base as db_api
+from storyboard.db.models import Branch
 from storyboard.db.models import Project
 from storyboard.db.models import ProjectGroup
 from storyboard.openstack.common.gettextutils import _LW  # noqa
@@ -114,6 +116,14 @@ def _get_project(project, session):
         db_project.groups = []
 
     session.add(db_project)
+
+    master_branch = session.query(Branch).\
+        filter_by(name='master', project_id=db_project.id).first()
+
+    if not master_branch:
+        master_branch = Branch()
+        master_branch.update(MasterBranchHelper(db_project.id).as_dict())
+        session.add(master_branch)
 
     return db_project
 

@@ -38,7 +38,7 @@ class TestBranches(base.FunctionalTest):
         }
 
         self.put_branch_01 = {
-            'project_id': 2
+            'name': 'new_branch_name'
         }
 
         self.put_branch_02 = {
@@ -52,11 +52,6 @@ class TestBranches(base.FunctionalTest):
         self.put_branch_04 = {
             'expired': False,
             'expiration_date': '2014-01-01T00:00:00+00:00'
-        }
-
-        self.project_01 = {
-            'name': 'project-for-put',
-            'description': 'test_description'
         }
 
         self.default_headers['Authorization'] = 'Bearer valid_superuser_token'
@@ -84,20 +79,11 @@ class TestBranches(base.FunctionalTest):
         self.assertIn("id", branch)
         resource = "".join([self.resource, ("/%d" % branch['id'])])
 
-        response_project = self.post_json('/projects', self.project_01)
-        project = response_project.json
-
-        self.assertEqual(self.project_01['name'], project['name'])
-        self.assertEqual(self.project_01['description'],
-                         project['description'])
-        self.assertIn("id", project)
-        self.put_branch_01["id"] = project["id"]
-
         response = self.put_json(resource, self.put_branch_01)
         branch = response.json
-        self.assertEqual(branch['name'], self.branch_01['name'])
+        self.assertEqual(branch['name'], self.put_branch_01['name'])
         self.assertEqual(branch['project_id'],
-                         self.put_branch_01['project_id'])
+                         self.branch_01['project_id'])
 
         response = self.put_json(resource, self.put_branch_02)
         branch = response.json
@@ -125,6 +111,18 @@ class TestBranches(base.FunctionalTest):
         response = self.put_json(resource, self.put_branch_04,
                                  expect_errors=True)
         self.assertEqual(response.status_code, 400)
+
+    def test_change_project(self):
+        response = self.post_json(self.resource, self.branch_01)
+        branch = response.json
+        self.assertIn("id", branch)
+        self.assertEqual(branch['name'], self.branch_01['name'])
+        self.assertEqual(branch['project_id'], self.branch_01['project_id'])
+        resource = "".join([self.resource, ("/%d" % branch['id'])])
+
+        response = self.put_json(resource, {'project_id': 2},
+                                 expect_errors=True)
+        self.assertEqual(400, response.status_code)
 
     def test_get_one(self):
         response = self.post_json(self.resource, self.branch_01)

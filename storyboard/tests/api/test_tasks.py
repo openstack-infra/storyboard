@@ -21,32 +21,200 @@ class TestTasksPrimary(base.FunctionalTest):
     def setUp(self):
         super(TestTasksPrimary, self).setUp()
         self.resource = '/tasks'
+        self.default_headers['Authorization'] = 'Bearer valid_superuser_token'
 
         self.task_01 = {
             'title': 'StoryBoard',
             'status': 'todo',
-            'story_id': 1
+            'story_id': 1,
+            'project_id': 1
         }
-        self.default_headers['Authorization'] = 'Bearer valid_superuser_token'
+
+        self.task_02 = {
+            'title': 'StoryBoard',
+            'status': 'merged',
+            'story_id': 1,
+            'project_id': 1,
+            'branch_id': 1,
+            'milestone_id': 1
+        }
+
+        self.task_03 = {
+            'title': 'StoryBoard',
+            'status': 'todo',
+            'story_id': 1,
+            'project_id': 1,
+            'branch_id': 2
+        }
+
+        self.task_04 = {
+            'title': 'StoryBoard',
+            'status': 'merged',
+            'story_id': 1,
+            'project_id': 1,
+            'branch_id': 1,
+            'milestone_id': 2
+        }
+
+        self.task_05 = {
+            'title': 'StoryBoard',
+            'status': 'todo',
+            'story_id': 1,
+            'project_id': 1,
+            'branch_id': 1,
+            'milestone_id': 1
+        }
+
+        self.updated_task_01 = {
+            'title': 'StoryBoardUpdated'
+        }
+
+        self.updated_task_02 = {
+            'project_id': 2,
+            'branch_id': 2
+        }
+
+        self.updated_task_03 = {
+            'project_id': 2
+        }
+
+        self.updated_task_04 = {
+            'branch_id': 2
+        }
+
+        self.updated_task_05 = {
+            'milestone_id': 2
+        }
+
+        self.updated_task_06 = {
+            'milestone_id': 1
+        }
+
+        self.updated_task_07 = {
+            'project_id': 1,
+            'branch_id': 1
+        }
+
+        self.updated_task_08 = {
+            'project_id': 2,
+            'branch_id': 2,
+        }
+
+        self.helper_branch_01 = {
+            'name': 'test_branch_01',
+            'project_id': 1
+        }
 
     def test_tasks_endpoint(self):
         response = self.get_json(self.resource)
         self.assertEqual(4, len(response))
 
     def test_create(self):
-        result = self.post_json(self.resource, {
-            'title': 'StoryBoard',
-            'status': 'todo',
-            'story_id': 1
-        })
+        result = self.post_json(self.resource, self.task_01)
 
         # Retrieve the created task
         created_task = self \
             .get_json('%s/%d' % (self.resource, result.json['id']))
-        self.assertEqual(result.json['id'], created_task['id'])
-        self.assertEqual('StoryBoard', created_task['title'])
-        self.assertEqual('todo', created_task['status'])
-        self.assertEqual(1, created_task['story_id'])
+        self.assertEqual(self.task_01['title'], created_task['title'])
+        self.assertEqual(self.task_01['status'], created_task['status'])
+        self.assertEqual(self.task_01['story_id'], created_task['story_id'])
+        self.assertEqual(self.task_01['project_id'],
+                         created_task['project_id'])
+        self.assertEqual(1, created_task['branch_id'])
+
+    def test_create_merged_task(self):
+        response = self.post_json(self.resource, self.task_02)
+        created_task = response.json
+
+        self.assertEqual(self.task_02['title'], created_task['title'])
+        self.assertEqual(self.task_02['status'], created_task['status'])
+        self.assertEqual(self.task_02['story_id'], created_task['story_id'])
+        self.assertEqual(self.task_02['project_id'],
+                         created_task['project_id'])
+        self.assertEqual(self.task_02['branch_id'], created_task['branch_id'])
+        self.assertEqual(self.task_02['milestone_id'],
+                         created_task['milestone_id'])
+
+    def test_create_invalid_associations(self):
+        response = self.post_json(self.resource, self.task_03,
+                                  expect_errors=True)
+        self.assertEqual(400, response.status_code)
+
+        response = self.post_json(self.resource, self.task_04,
+                                  expect_errors=True)
+        self.assertEqual(400, response.status_code)
+
+    def test_create_invalid_expired(self):
+        response = self.put_json('/branches/1', {'expired': True})
+        branch = response.json
+        self.assertTrue(branch['expired'])
+        response = self.post_json(self.resource, self.task_02,
+                                  expect_errors=True)
+        self.assertEqual(400, response.status_code)
+
+        response = self.post_json(self.resource, self.task_02,
+                                  expect_errors=True)
+        self.assertEqual(400, response.status_code)
+
+    def test_create_invalid_with_milestone(self):
+        response = self.post_json(self.resource, self.task_05,
+                                  expect_errors=True)
+        self.assertEqual(400, response.status_code)
+
+    def test_task_update(self):
+        response = self.put_json(self.resource + '/1', self.updated_task_01)
+        updated_task = response.json
+        self.assertEqual(self.updated_task_01['title'], updated_task['title'])
+
+    def test_task_update_another_project(self):
+        response = self.put_json(self.resource + '/1', self.updated_task_02)
+        updated_task = response.json
+        self.assertEqual(self.updated_task_02['project_id'],
+                         updated_task['project_id'])
+        self.assertEqual(self.updated_task_02['branch_id'],
+                         updated_task['branch_id'])
+
+    def test_task_update_invalid_associations(self):
+        response = self.put_json(self.resource + '/1', self.updated_task_04,
+                                 expect_errors=True)
+        self.assertEqual(400, response.status_code)
+
+        response = self.put_json(self.resource + '/2', self.updated_task_05)
+        updated_task = response.json
+        self.assertEqual(self.updated_task_05['milestone_id'],
+                         updated_task['milestone_id'])
+
+        response = self.put_json(self.resource + '/2', self.updated_task_06,
+                                 expect_errors=True)
+        self.assertEqual(400, response.status_code)
+
+        response = self.put_json(self.resource + '/2', self.updated_task_07,
+                                 expect_errors=True)
+        self.assertEqual(400, response.status_code)
+
+    def test_task_update_invalid_expired(self):
+        response = self.post_json('/branches', {'name': 'expired_branch',
+                                                'project_id': 1})
+        branch = response.json
+        branch_id = branch['id']
+
+        response = self.put_json('/branches/%s' % branch_id, {'expired': True})
+        branch = response.json
+
+        self.assertEqual(True, branch['expired'])
+
+        response = self.put_json(self.resource + '/1',
+                                 {'branch_id': branch_id},
+                                 expect_errors=True)
+        self.assertEqual(400, response.status_code)
+
+        response = self.put_json('/milestones/1', {'expired': True})
+        milestone = response.json
+        self.assertTrue(milestone['expired'])
+
+        response = self.put_json(self.resource + '/1', self.updated_task_06,
+                                 expect_errors=True)
+        self.assertEqual(400, response.status_code)
 
 
 class TestTasksNestedController(base.FunctionalTest):
@@ -57,6 +225,7 @@ class TestTasksNestedController(base.FunctionalTest):
         self.task_01 = {
             'title': 'StoryBoard',
             'status': 'todo',
+            'project_id': 1,
             'story_id': 1
         }
         self.default_headers['Authorization'] = 'Bearer valid_superuser_token'
@@ -81,6 +250,7 @@ class TestTasksNestedController(base.FunctionalTest):
         result = self.post_json(self.resource, {
             'title': 'StoryBoard',
             'status': 'todo',
+            'project_id': 1,
             'story_id': 1
         })
 
@@ -90,12 +260,14 @@ class TestTasksNestedController(base.FunctionalTest):
         self.assertEqual(result.json['id'], created_task['id'])
         self.assertEqual('StoryBoard', created_task['title'])
         self.assertEqual('todo', created_task['status'])
+        self.assertEqual(1, created_task['project_id'])
         self.assertEqual(1, created_task['story_id'])
 
     def test_create_id_in_url(self):
         result = self.post_json(self.resource, {
             'title': 'StoryBoard',
             'status': 'todo',
+            'project_id': 1
         })
         # story_id is not set in the body. URL should handle that
 
@@ -105,6 +277,7 @@ class TestTasksNestedController(base.FunctionalTest):
         self.assertEqual(result.json['id'], created_task['id'])
         self.assertEqual('StoryBoard', created_task['title'])
         self.assertEqual('todo', created_task['status'])
+        self.assertEqual(1, created_task['project_id'])
         self.assertEqual(1, created_task['story_id'])
 
     def test_create_error(self):
