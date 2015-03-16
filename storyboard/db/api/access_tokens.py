@@ -20,8 +20,10 @@ from storyboard.db.api import base as api_base
 from storyboard.db import models
 
 
-def access_token_get(access_token_id):
-    return api_base.entity_get(models.AccessToken, access_token_id)
+def access_token_get(access_token_id, session=None):
+    return api_base.entity_get(models.AccessToken,
+                               access_token_id,
+                               session=session)
 
 
 def access_token_get_by_token(access_token):
@@ -102,15 +104,29 @@ def access_token_build_query(**kwargs):
     return query
 
 
+def access_token_delete(access_token_id):
+    session = api_base.get_session()
+
+    with session.begin():
+        access_token = access_token_get(access_token_id, session=session)
+
+        if access_token:
+            query = api_base.model_query(models.RefreshToken)
+            refresh_tokens = []
+
+            for refresh_token in access_token.refresh_tokens:
+                refresh_tokens.append(refresh_token.id)
+
+            query = query.filter(models.RefreshToken.id.in_(
+                refresh_tokens
+            ))
+
+            api_base.entity_hard_delete(models.AccessToken, access_token_id)
+            query.delete(synchronize_session=False)
+
+
 def access_token_delete_by_token(access_token):
     access_token = access_token_get_by_token(access_token)
 
     if access_token:
-        api_base.entity_hard_delete(models.AccessToken, access_token.id)
-
-
-def access_token_delete(access_token_id):
-    access_token = access_token_get(access_token_id)
-
-    if access_token:
-        api_base.entity_hard_delete(models.AccessToken, access_token_id)
+        access_token_delete(access_token.id)

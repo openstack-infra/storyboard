@@ -389,6 +389,27 @@ class User(base.APIBase):
             last_login=datetime(2014, 1, 1, 16, 42))
 
 
+class RefreshToken(base.APIBase):
+    """Represents a user refresh token."""
+
+    user_id = int
+    """The ID of corresponding user."""
+
+    refresh_token = wtypes.text
+    """The refresh token."""
+
+    expires_in = int
+    """The number of seconds after creation when this token expires."""
+
+    @classmethod
+    def sample(cls):
+        return cls(
+            user_id=1,
+            refresh_token="a_unique_refresh_token",
+            expires_in=3600
+        )
+
+
 class AccessToken(base.APIBase):
     """Represents a user access token."""
 
@@ -400,6 +421,9 @@ class AccessToken(base.APIBase):
 
     expires_in = int
     """The number of seconds after creation when this token expires."""
+
+    refresh_tokens = wtypes.ArrayType(RefreshToken)
+    """Array of corresponding refresh tokens."""
 
     @classmethod
     def sample(cls):

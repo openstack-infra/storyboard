@@ -18,6 +18,7 @@ import pytz
 
 from apscheduler.triggers.interval import IntervalTrigger
 
+from storyboard.db.api import access_tokens as access_tokens_api
 import storyboard.db.api.base as api_base
 from storyboard.db.models import AccessToken
 from storyboard.plugin.scheduler.base import SchedulerPluginBase
@@ -57,4 +58,4 @@ class TokenCleaner(SchedulerPluginBase):
         # Manually deleting each record, because batch deletes are an
         # exception to ORM Cascade markup.
         for token in query.all():
-            api_base.entity_hard_delete(AccessToken, token.id)
+            access_tokens_api.access_token_delete(token.id)

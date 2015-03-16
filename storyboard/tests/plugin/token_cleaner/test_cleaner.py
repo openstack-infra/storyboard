@@ -69,31 +69,33 @@ class TestTokenCleaner(db_base.BaseDbTestCase,
         # 8-day-old-token to remain valid.
         new_access_tokens = []
         new_refresh_tokens = []
+
         for i in range(0, 100):
             created_at = datetime.now(pytz.utc) - timedelta(days=i)
             expires_in = (60 * 60 * 24) - 5  # Minus five seconds, see above.
             expires_at = created_at + timedelta(seconds=expires_in)
-
             new_access_tokens.append(
                 AccessToken(
                     user_id=1,
                     created_at=created_at,
                     expires_in=expires_in,
                     expires_at=expires_at,
-                    access_token='test_token_%s' % (i,))
+                    access_token='test_token_%s' % (i,)),
             )
+
         new_access_tokens = load_data(new_access_tokens)
 
         for token in new_access_tokens:
             new_refresh_tokens.append(
                 RefreshToken(
                     user_id=1,
-                    access_token_id=token.id,
                     created_at=token.created_at,
+                    expires_in=token.expires_in,
                     expires_at=token.expires_at,
-                    expires_in=300,
+                    access_tokens=[token],
                     refresh_token='test_refresh_%s' % (token.id,))
             )
+
         new_refresh_tokens = load_data(new_refresh_tokens)
 
         # Make sure we have 100 tokens.

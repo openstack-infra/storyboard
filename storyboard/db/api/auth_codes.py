@@ -32,25 +32,3 @@ def authorization_code_delete(code):
 
     if del_code:
         api_base.entity_hard_delete(models.AuthorizationCode, del_code.id)
-
-
-def refresh_token_get(refresh_token):
-    try:
-        query = api_base.model_query(models.RefreshToken,
-                                     api_base.get_session())
-        return query.filter_by(refresh_token=refresh_token).first()
-    except Exception:
-        # If anything goes wrong while fetching a token None will be returned
-        # anyway.
-        return None
-
-
-def refresh_token_save(values):
-    return api_base.entity_create(models.RefreshToken, values)
-
-
-def refresh_token_delete(refresh_token):
-    del_token = refresh_token_get(refresh_token)
-
-    if del_token:
-        api_base.entity_hard_delete(models.RefreshToken, del_token.id)
