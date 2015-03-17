@@ -112,12 +112,10 @@ class SkeletonValidator(RequestValidator):
         openid = request._params["openid.claimed_id"]
         email = request._params["openid.sreg.email"]
         full_name = request._params["openid.sreg.fullname"]
-        username = request._params["openid.sreg.nickname"]
         last_login = datetime.datetime.now(pytz.utc)
 
         user = user_api.user_get_by_openid(openid)
         user_dict = {"full_name": full_name,
-                     "username": username,
                      "email": email,
                      "last_login": last_login}
 

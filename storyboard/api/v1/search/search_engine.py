@@ -41,7 +41,7 @@ class SearchEngine(object):
         models.Story: ["title", "description"],
         models.Task: ["title"],
         models.Comment: ["content"],
-        models.User: ['username', 'full_name', 'email']
+        models.User: ['full_name', 'email']
     }
 
     @abc.abstractmethod

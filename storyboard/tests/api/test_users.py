@@ -87,5 +87,5 @@ class TestSearchUsers(base.FunctionalTest):
         self.default_headers['Authorization'] = 'Bearer valid_user_token'
 
     def testBrowse(self):
-        result = self.get_json(self.resource + '?username=regularuser')
+        result = self.get_json(self.resource + '?full_name=Regular')
         self.assertEqual(1, len(result))

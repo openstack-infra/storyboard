@@ -65,17 +65,15 @@ class TestUsers(base.FunctionalTest):
         self.default_headers['Authorization'] = 'Bearer valid_superuser_token'
 
         self.user_01 = {
-            'username': 'jsonschema_test_user1',
             'full_name': 'jsonschema_test_user1',
             'email': 'jsonschema_test_user1@test.ru',
             'openid': 'qwerty'
         }
 
         self.user_02 = {
-            'username': 't2',
-            'full_name': 'jsonschema_test_user2',
-            'email': 'jsonschema_test_user2@test.ru',
-            'openid': 'qwertyu'
+            'full_name': LONG_STRING,
+            'email': 'jsonschema_test_user3@test.ru',
+            'openid': 'qwertyui'
         }
 
         self.user_03 = {
@@ -83,12 +81,6 @@ class TestUsers(base.FunctionalTest):
             'full_name': LONG_STRING,
             'email': 'jsonschema_test_user3@test.ru',
             'openid': 'qwertyui'
-        }
-
-        self.user_04 = {
-            'full_name': 'jsonschema_test_user4',
-            'email': 'jsonschema_test_user4@test.ru',
-            'openid': 'qwertyuio'
         }
 
         self.put_user_01 = {
@@ -107,9 +99,7 @@ class TestUsers(base.FunctionalTest):
         create(self, self.user_01, self.resource)
 
     def test_create_invalid(self):
-        create_invalid_length(self, self.user_02, self.resource, 'username')
-        create_invalid_length(self, self.user_03, self.resource, 'full_name')
-        create_invalid_required(self, self.user_04, self.resource, 'username')
+        create_invalid_length(self, self.user_02, self.resource, 'full_name')
 
     def test_update(self):
         resource = "".join([self.resource, "/2"])

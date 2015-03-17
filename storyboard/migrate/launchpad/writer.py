@@ -97,7 +97,6 @@ class LaunchpadWriter(object):
         if lp_user is None:
             return lp_user
 
-        username = lp_user.name
         display_name = lp_user.display_name
         user_link = lp_user.web_link
 
@@ -114,9 +113,10 @@ class LaunchpadWriter(object):
             except DiscoveryFailure:
                 # If we encounter a launchpad maintenance user,
                 # give it an invalid openid.
-                print "WARNING: Invalid OpenID for user \'%s\'" % (username,)
+                print "WARNING: Invalid OpenID for user \'%s\'" \
+                      % (display_name,)
                 self._openid_map[user_link] = \
-                    'http://example.com/invalid/~%s' % (username,)
+                    'http://example.com/invalid/~%s' % (display_name,)
 
         openid = self._openid_map[user_link]
 
@@ -131,10 +131,9 @@ class LaunchpadWriter(object):
                 # Use a temporary email address, since LP won't give this to
                 # us and it'll be updated on first login anyway.
                 user = users_api.user_create({
-                    'username': username,
                     'openid': openid,
                     'full_name': display_name,
-                    'email': "%s@example.com" % (username)
+                    'email': "%s@example.com" % (display_name)
                 })
 
             self._user_map[openid] = user

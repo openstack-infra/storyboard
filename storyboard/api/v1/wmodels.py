@@ -354,10 +354,6 @@ class TimeLineEvent(base.APIBase):
 class User(base.APIBase):
     """Represents a user."""
 
-    username = wtypes.text
-    """A short unique name, beginning with a lower-case letter or number, and
-    containing only letters, numbers, dots, hyphens, or plus signs"""
-
     full_name = wtypes.text
     """Full (Display) name."""
 
@@ -379,7 +375,6 @@ class User(base.APIBase):
     @classmethod
     def sample(cls):
         return cls(
-            username="elbarto",
             full_name="Bart Simpson",
             openid="https://login.launchpad.net/+id/Abacaba",
             email="skinnerstinks@springfield.net",

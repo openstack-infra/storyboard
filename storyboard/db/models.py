@@ -140,9 +140,8 @@ class User(FullText, ModelBuilder, Base):
         schema.UniqueConstraint('email', name='uniq_user_email'),
     )
 
-    __fulltext_columns__ = ['username', 'full_name', 'email']
+    __fulltext_columns__ = ['full_name', 'email']
 
-    username = Column(Unicode(CommonLength.name_length))
     full_name = Column(Unicode(CommonLength.top_large_length), nullable=True)
     email = Column(String(CommonLength.top_large_length))
     openid = Column(String(CommonLength.top_large_length))
@@ -156,7 +155,7 @@ class User(FullText, ModelBuilder, Base):
 
     preferences = relationship("UserPreference")
 
-    _public_fields = ["id", "openid", "full_name", "username", "last_login",
+    _public_fields = ["id", "openid", "full_name", "last_login",
                       "enable_login"]
 
 
