@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from oslo.config import cfg
+from pecan import request
 from pecan import rest
 from pecan.secure import secure
 from wsme import types as wtypes
@@ -24,6 +25,7 @@ from storyboard.api.v1 import wmodels
 from storyboard.common import exception as exc
 from storyboard.db.api import stories as stories_api
 from storyboard.db.api import story_tags as tags_api
+from storyboard.db.api import timeline_events as events_api
 from storyboard.openstack.common.gettextutils import _  # noqa
 
 CONF = cfg.CONF
@@ -86,6 +88,9 @@ class TagsController(rest.RestController):
             stories_api.story_add_tag(story_id, tag)
 
         story = stories_api.story_get(story_id)
+        events_api.tags_added_event(story_id=story_id,
+                                    author_id=request.current_user_id,
+                                    tags=tags)
         return wmodels.Story.from_db_model(story)
 
     @secure(checks.authenticated)
@@ -116,3 +121,7 @@ class TagsController(rest.RestController):
 
         for tag in tags:
             stories_api.story_remove_tag(story_id, tag)
+
+        events_api.tags_deleted_event(story_id=story_id,
+                                      author_id=request.current_user_id,
+                                      tags=tags)

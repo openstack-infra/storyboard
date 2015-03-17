@@ -350,6 +350,12 @@ class TimeLineEvent(base.APIBase):
         elif event.event_type == event_types.TASK_DELETED:
             return event_resolvers.task_deleted(event)
 
+        elif event.event_type == event_types.TAGS_ADDED:
+            return event_resolvers.tags_added(event)
+
+        elif event.event_type == event_types.TAGS_DELETED:
+            return event_resolvers.tags_deleted(event)
+
 
 class User(base.APIBase):
     """Represents a user."""

@@ -74,3 +74,11 @@ def task_deleted(event):
     # the info. There is no way to store an id because the task is hard deleted
     # at the moment we would query it.
     return event
+
+
+def tags_added(event):
+    return event
+
+
+def tags_deleted(event):
+    return event

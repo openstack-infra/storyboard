@@ -185,3 +185,34 @@ def task_deleted_event(story_id, task_id, task_title, author_id):
         "event_type": event_types.TASK_DELETED,
         "event_info": json.dumps(event_info)
     })
+
+
+def tags_added_event(story_id, author_id, tags):
+    event_info = {
+        "story_id": story_id,
+        "author_id": author_id,
+        "tags": tags
+    }
+    k = event_create({
+        "story_id": story_id,
+        "author_id": author_id,
+        "event_type": event_types.TAGS_ADDED,
+        "event_info": json.dumps(event_info)
+    })
+
+    return k
+
+
+def tags_deleted_event(story_id, author_id, tags):
+    event_info = {
+        "story_id": story_id,
+        "author_id": author_id,
+        "tags": tags
+    }
+
+    return event_create({
+        "story_id": story_id,
+        "author_id": author_id,
+        "event_type": event_types.TAGS_DELETED,
+        "event_info": json.dumps(event_info)
+    })

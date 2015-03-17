@@ -71,6 +71,10 @@ class TestStories(base.FunctionalTest):
         updated = response.json
 
         self.assertEqual(2, len(updated["tags"]))
+        response = self.get_json('/stories/1/events')
+
+        self.assertEqual(4, len(response))
+        self.assertEqual('tags_added', response[3]['event_type'])
 
     def test_add_tags_duplicate_error(self):
         url = "/stories/%d/tags" % 1
@@ -102,6 +106,11 @@ class TestStories(base.FunctionalTest):
         response = self.get_json(self.resource + "/1")
 
         self.assertEqual(1, len(response["tags"]))
+
+        response = self.get_json('/stories/1/events')
+
+        self.assertEqual(5, len(response))
+        self.assertEqual('tags_deleted', response[4]['event_type'])
 
 
 class TestStorySearch(base.FunctionalTest):

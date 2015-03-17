@@ -20,6 +20,9 @@ This module defines types for comment entries.
 STORY_CREATED = "story_created"
 STORY_DETAILS_CHANGED = "story_details_changed"
 
+TAGS_ADDED = "tags_added"
+TAGS_DELETED = "tags_deleted"
+
 USER_COMMENT = "user_comment"
 
 TASK_CREATED = "task_created"
