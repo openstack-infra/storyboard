@@ -64,11 +64,11 @@ class UsersController(rest.RestController):
         """Page and filter the users in storyboard.
 
         :param marker: The resource id where the page should begin.
-        :param limit The number of users to retrieve.
-        :param username A string of characters to filter the username with.
-        :param full_name A string of characters to filter the full_name with.
+        :param limit: The number of users to retrieve.
+        :param username: A string of characters to filter the username with.
+        :param full_name: A string of characters to filter the full_name with.
         :param sort_field: The name of the field to sort on.
-        :param sort_dir: sort direction for results (asc, desc).
+        :param sort_dir: Sort direction for results (asc, desc).
         """
 
         # Boundary check on limit.
@@ -119,7 +119,7 @@ class UsersController(rest.RestController):
     def post(self, user):
         """Create a new user.
 
-        :param user: a user within the request body.
+        :param user: A user within the request body.
         """
 
         created_user = users_api.user_create(user.as_dict())
@@ -131,8 +131,8 @@ class UsersController(rest.RestController):
     def put(self, user_id, user):
         """Modify this user.
 
-        :param user_id: unique id to identify the user.
-        :param user: a user within the request body.
+        :param user_id: Unique id to identify the user.
+        :param user: A user within the request body.
         """
         current_user = users_api.user_get(request.current_user_id)
 

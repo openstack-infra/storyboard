@@ -41,7 +41,10 @@ class UserPreferencesController(rest.RestController):
     @wsme_pecan.wsexpose(wtypes.DictType(wtypes.text, wtypes.text), int)
     def get_all(self, user_id):
         """Return all preferences for the current user.
+
+        :param user_id: An ID of the user.
         """
+
         if request.current_user_id != user_id:
             abort(403, _("You can't read preferences of other users."))
             return
@@ -56,9 +59,10 @@ class UserPreferencesController(rest.RestController):
         """Allow a user to update their preferences. Note that a user must
         explicitly set a preference value to Null/None to have it deleted.
 
-        :param user_id The ID of the user whose preferences we're updating.
-        :param body A dictionary of preference values.
+        :param user_id: The ID of the user whose preferences we're updating.
+        :param body: A dictionary of preference values.
         """
+
         if request.current_user_id != user_id:
             abort(403, _("You can't change preferences of other users."))
 

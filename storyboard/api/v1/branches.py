@@ -52,7 +52,7 @@ class BranchesController(rest.RestController):
     def get_one(self, branch_id):
         """Retrieve information about the given branch.
 
-        :param branch_id: branch ID.
+        :param branch_id: Branch ID.
         """
 
         branch = branches_api.branch_get(branch_id)
@@ -76,7 +76,7 @@ class BranchesController(rest.RestController):
         :param project_id: Filter branches based on project.
         :param project_group_id: Filter branches based on project group.
         :param sort_field: The name of the field to sort on.
-        :param sort_dir: sort direction for results (asc, desc).
+        :param sort_dir: Sort direction for results (asc, desc).
         """
         # Boundary check on limit.
         if limit is None:
@@ -113,7 +113,7 @@ class BranchesController(rest.RestController):
     def post(self, branch):
         """Create a new branch.
 
-        :param branch: a branch within the request body.
+        :param branch: A branch within the request body.
         """
 
         branch_dict = branch.as_dict()
@@ -132,7 +132,7 @@ class BranchesController(rest.RestController):
         """Modify this branch.
 
         :param branch_id: An ID of the branch.
-        :param branch: a branch within the request body.
+        :param branch: A branch within the request body.
         """
 
         branch_dict = branch.as_dict(omit_unset=True)

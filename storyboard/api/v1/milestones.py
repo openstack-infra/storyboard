@@ -53,7 +53,7 @@ class MilestonesController(rest.RestController):
     def get_one(self, milestone_id):
         """Retrieve information about the given milestone.
 
-        :param milestone_id: milestone ID.
+        :param milestone_id: Milestone ID.
         """
 
         milestones = milestones_api.milestone_get(milestone_id)
@@ -76,7 +76,7 @@ class MilestonesController(rest.RestController):
         :param name: Filter milestones based on name.
         :param branch_id: Filter milestones based on branch_id.
         :param sort_field: The name of the field to sort on.
-        :param sort_dir: sort direction for results (asc, desc).
+        :param sort_dir: Sort direction for results (asc, desc).
         """
         # Boundary check on limit.
         if limit is None:
@@ -112,7 +112,7 @@ class MilestonesController(rest.RestController):
     def post(self, milestone):
         """Create a new milestone.
 
-        :param milestone: a milestone within the request body.
+        :param milestone: A milestone within the request body.
         """
 
         # we can't create expired milestones
@@ -129,7 +129,7 @@ class MilestonesController(rest.RestController):
         """Modify this milestone.
 
         :param milestone_id: An ID of the milestone.
-        :param milestone: a milestone within the request body.
+        :param milestone: A milestone within the request body.
         """
 
         milestone_dict = milestone.as_dict(omit_unset=True)

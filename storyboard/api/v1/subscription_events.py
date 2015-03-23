@@ -102,7 +102,7 @@ class SubscriptionEventsController(rest.RestController):
         :param event_type: The type of resource to search by.
         :param subscriber_id: The unique ID of the subscriber to search by.
         :param sort_field: The name of the field to sort on.
-        :param sort_dir: sort direction for results (asc, desc).
+        :param sort_dir: Sort direction for results (asc, desc).
         """
 
         # Boundary check on limit.
@@ -147,7 +147,7 @@ class SubscriptionEventsController(rest.RestController):
         """Delete a specific subscription.
 
         :param subscription_event_id: The unique id of the
-        subscription_event to delete.
+                                      subscription_event to delete.
         """
         subscription_event = subscription_events_api \
             .subscription_events_get(subscription_event_id)

@@ -46,7 +46,7 @@ class ProjectsSubcontroller(rest.RestController):
     def get(self, project_group_id):
         """Get projects inside a project group.
 
-        :param project_group_id: An ID of the project group
+        :param project_group_id: An ID of the project group.
         """
 
         project_group = project_groups.project_group_get(project_group_id)
@@ -62,7 +62,10 @@ class ProjectsSubcontroller(rest.RestController):
     @secure(checks.superuser)
     @wsme_pecan.wsexpose(wmodels.Project, int, int)
     def put(self, project_group_id, project_id):
-        """Add a project to a project_group
+        """Add a project to a project_group.
+
+        :param project_group_id: An ID of the project group.
+        :param project_id: An ID of project in this project group.
         """
 
         project_groups.project_group_add_project(project_group_id, project_id)
@@ -73,8 +76,12 @@ class ProjectsSubcontroller(rest.RestController):
     @secure(checks.superuser)
     @wsme_pecan.wsexpose(None, int, int, status_code=204)
     def delete(self, project_group_id, project_id):
-        """Delete a project from a project_group
+        """Delete a project from a project_group.
+
+        :param project_group_id: An ID of the project group.
+        :param project_id: An ID of project in this project group.
         """
+
         project_groups.project_group_delete_project(project_group_id,
                                                     project_id)
 
@@ -84,7 +91,7 @@ class ProjectGroupsController(rest.RestController):
 
     NOTE: PUT requests should be used to update only top-level fields.
     The nested fields (projects) should be updated using requests to a
-    /projects subcontroller
+    projects subcontroller.
     """
 
     validation_post_schema = validations.PROJECT_GROUPS_POST_SCHEMA
@@ -96,7 +103,7 @@ class ProjectGroupsController(rest.RestController):
     def get_one(self, project_group_id):
         """Retrieve information about the given project group.
 
-        :param project_group_id: project group id.
+        :param project_group_id: Project group id.
         """
 
         group = project_groups.project_group_get(project_group_id)
@@ -112,7 +119,15 @@ class ProjectGroupsController(rest.RestController):
                          wtypes.text, wtypes.text, wtypes.text)
     def get(self, marker=None, limit=None, name=None, title=None,
             sort_field='id', sort_dir='asc'):
-        """Retrieve a list of projects groups."""
+        """Retrieve a list of projects groups.
+
+        :param marker: The resource id where the page should begin.
+        :param limit: The number of project groups to retrieve.
+        :param name: A string to filter the name by.
+        :param title: A string to filter the title by.
+        :param sort_field: The name of the field to sort on.
+        :param sort_dir: Sort direction for results (asc, desc).
+        """
 
         if limit is None:
             limit = CONF.page_size_default
@@ -145,7 +160,7 @@ class ProjectGroupsController(rest.RestController):
     def post(self, project_group):
         """Create a new project group.
 
-        :param project_group: a project group within the request body.
+        :param project_group: A project group within the request body.
         """
 
         created_group = project_groups.project_group_create(
@@ -160,7 +175,7 @@ class ProjectGroupsController(rest.RestController):
         """Modify this project group.
 
         :param project_group_id: An ID of the project group.
-        :param project_group: a project group within the request body.
+        :param project_group: A project group within the request body.
         """
 
         updated_group = project_groups.project_group_update(

@@ -52,7 +52,7 @@ class TagsController(rest.RestController):
         """Retrieve all tags for a given Story. If no story_id is provided
         all tags will be returned.
 
-        :param story_id: filter tags by story ID.
+        :param story_id: Filter tags by story ID.
         """
 
         if not story_id:
@@ -72,8 +72,8 @@ class TagsController(rest.RestController):
     def put(self, story_id, tags):
         """Add a list of tags to a Story.
 
-        :param story_id: an id of a Story to which the tags should be added.
-        :param tags: a list of tags to be added
+        :param story_id: An id of a Story to which the tags should be added.
+        :param tags: A list of tags to be added.
         """
 
         story = stories_api.story_get(story_id)
@@ -91,8 +91,7 @@ class TagsController(rest.RestController):
     def post(self, tag_name):
         """Create a tag not attached to any Story.
 
-        :param tag_name: The name of a new tag
-        :return: the tag
+        :param tag_name: The name of a new tag.
         """
 
         tag = tags_api.tag_create({"name": tag_name})
@@ -103,9 +102,9 @@ class TagsController(rest.RestController):
     def delete(self, story_id, tags):
         """Remove a list of tags from a Story.
 
-        :param story_id: an id of a Story from which the tags should be
-        removed.
-        :param tags: a list of tags to be removed
+        :param story_id: An id of a Story from which the tags should be
+                         removed.
+        :param tags: A list of tags to be removed.
         """
 
         story = stories_api.story_get(story_id)

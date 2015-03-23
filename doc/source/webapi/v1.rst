@@ -37,15 +37,53 @@ Tasks
 .. rest-controller:: storyboard.api.v1.tasks:TasksController
    :webprefix: /v1/tasks
 
+Branches
+========
+.. rest-controller:: storyboard.api.v1.branches:BranchesController
+   :webprefix: /v1/branches
+
+Milestones
+==========
+.. rest-controller:: storyboard.api.v1.milestones:MilestonesController
+   :webprefix: /v1/milestones
+
+Tags
+====
+.. rest-controller:: storyboard.api.v1.tags:TagsController
+   :webprefix: /v1/tags
+
+Subscriptions
+=============
+.. rest-controller:: storyboard.api.v1.subscriptions:SubscriptionsController
+   :webprefix: /v1/subscriptions
+
 Users
 =====
 .. rest-controller:: storyboard.api.v1.users:UsersController
    :webprefix: /v1/users
 
+Teams
+=====
+.. rest-controller:: storyboard.api.v1.teams:TeamsController
+   :webprefix: /v1/teams
+
+.. rest-controller:: storyboard.api.v1.teams:UsersSubcontroller
+   :webprefix: /v1/teams/<team_id>/users
+
+User Preferences
+================
+.. rest-controller:: storyboard.api.v1.user_preferences:UserPreferencesController
+   :webprefix: /v1/users/<user_id>/preferences
+
 System Info
 ===========
 .. rest-controller:: storyboard.api.v1.system_info:SystemInfoController
    :webprefix: /v1/systeminfo
+
+User Tokens
+===========
+.. rest-controller:: storyboard.api.v1.user_tokens:UserTokensController
+   :webprefix: /v1/users/<user_id>/tokens
 
 ############
 Object model

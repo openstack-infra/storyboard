@@ -95,7 +95,7 @@ class SubscriptionsController(rest.RestController):
         :param target_id: The unique ID of the resource to search by.
         :param user_id: The unique ID of the user to search by.
         :param sort_field: The name of the field to sort on.
-        :param sort_dir: sort direction for results (asc, desc).
+        :param sort_dir: Sort direction for results (asc, desc).
         """
 
         # Boundary check on limit.
