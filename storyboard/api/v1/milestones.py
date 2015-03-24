@@ -44,8 +44,6 @@ class MilestonesController(rest.RestController):
     """REST controller for milestones.
     """
 
-    _custom_actions = {"search": ["GET"]}
-
     validation_post_schema = validations.MILESTONES_POST_SCHEMA
     validation_put_schema = validations.MILESTONES_PUT_SCHEMA
 

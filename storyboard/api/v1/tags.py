@@ -32,8 +32,6 @@ CONF = cfg.CONF
 class TagsController(rest.RestController):
     """Manages tags."""
 
-    _custom_actions = {"search": ["GET"]}
-
     @secure(checks.guest)
     @wsme_pecan.wsexpose(wmodels.Tag, int)
     def get_one(self, tag_id):
