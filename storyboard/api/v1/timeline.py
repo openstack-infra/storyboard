@@ -81,7 +81,7 @@ class TimeLineEventsController(rest.RestController):
         # Boundary check on limit.
         if limit is None:
             limit = CONF.page_size_default
-        limit = min(CONF.page_size_maximum, max(1, limit))
+        limit = max(0, limit)
 
         # Sanity check on event types.
         if event_type:
@@ -155,7 +155,7 @@ class CommentsController(rest.RestController):
         # Boundary check on limit.
         if limit is None:
             limit = CONF.page_size_default
-        limit = min(CONF.page_size_maximum, max(1, limit))
+        limit = max(0, limit)
 
         # Resolve the marker record.
         marker_event = None

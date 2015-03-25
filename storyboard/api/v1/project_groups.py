@@ -131,7 +131,7 @@ class ProjectGroupsController(rest.RestController):
 
         if limit is None:
             limit = CONF.page_size_default
-        limit = min(CONF.page_size_maximum, max(1, limit))
+        limit = max(0, limit)
 
         # Resolve the marker record.
         marker_group = project_groups.project_group_get(marker)
