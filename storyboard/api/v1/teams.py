@@ -134,9 +134,8 @@ class TeamsController(rest.RestController):
         :param sort_dir: Sort direction for results (asc, desc).
         """
         # Boundary check on limit.
-        if limit is None:
-            limit = CONF.page_size_default
-        limit = max(0, limit)
+        if limit is not None:
+            limit = max(0, limit)
 
         # Resolve the marker record.
         marker_team = teams_api.team_get(marker)
@@ -152,7 +151,8 @@ class TeamsController(rest.RestController):
                                               description=description)
 
         # Apply the query response headers.
-        response.headers['X-Limit'] = str(limit)
+        if limit:
+            response.headers['X-Limit'] = str(limit)
         response.headers['X-Total'] = str(team_count)
         if marker_team:
             response.headers['X-Marker'] = str(marker_team.id)

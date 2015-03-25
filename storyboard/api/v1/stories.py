@@ -92,9 +92,8 @@ class StoriesController(rest.RestController):
         """
 
         # Boundary check on limit.
-        if limit is None:
-            limit = CONF.page_size_default
-        limit = max(0, limit)
+        if limit is not None:
+            limit = max(0, limit)
 
         # Resolve the marker record.
         marker_story = stories_api.story_get(marker)
@@ -122,7 +121,8 @@ class StoriesController(rest.RestController):
                              tags_filter_type=tags_filter_type)
 
         # Apply the query response headers.
-        response.headers['X-Limit'] = str(limit)
+        if limit:
+            response.headers['X-Limit'] = str(limit)
         response.headers['X-Total'] = str(story_count)
         if marker_story:
             response.headers['X-Marker'] = str(marker_story.id)

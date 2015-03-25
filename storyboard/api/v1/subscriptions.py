@@ -99,9 +99,8 @@ class SubscriptionsController(rest.RestController):
         """
 
         # Boundary check on limit.
-        if limit is None:
-            limit = CONF.page_size_default
-        limit = max(0, limit)
+        if limit is not None:
+            limit = max(0, limit)
 
         # Sanity check on user_id
         current_user = user_api.user_get(request.current_user_id)
@@ -126,7 +125,8 @@ class SubscriptionsController(rest.RestController):
             user_id=user_id)
 
         # Apply the query response headers.
-        response.headers['X-Limit'] = str(limit)
+        if limit:
+            response.headers['X-Limit'] = str(limit)
         response.headers['X-Total'] = str(subscription_count)
         if marker_sub:
             response.headers['X-Marker'] = str(marker_sub.id)

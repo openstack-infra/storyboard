@@ -79,9 +79,8 @@ class BranchesController(rest.RestController):
         :param sort_dir: Sort direction for results (asc, desc).
         """
         # Boundary check on limit.
-        if limit is None:
-            limit = CONF.page_size_default
-        limit = max(0, limit)
+        if limit is not None:
+            limit = max(0, limit)
 
         # Resolve the marker record.
         marker_branch = branches_api.branch_get(marker)
@@ -100,7 +99,8 @@ class BranchesController(rest.RestController):
                                           project_group_id=project_group_id)
 
         # Apply the query response headers.
-        response.headers['X-Limit'] = str(limit)
+        if limit:
+            response.headers['X-Limit'] = str(limit)
         response.headers['X-Total'] = str(branches_count)
         if marker_branch:
             response.headers['X-Marker'] = str(marker_branch.id)
