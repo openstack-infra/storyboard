@@ -43,8 +43,6 @@ class BranchesController(rest.RestController):
     """REST controller for branches.
     """
 
-    _custom_actions = {"search": ["GET"]}
-
     validation_post_schema = validations.BRANCHES_POST_SCHEMA
     validation_put_schema = validations.BRANCHES_PUT_SCHEMA
 
