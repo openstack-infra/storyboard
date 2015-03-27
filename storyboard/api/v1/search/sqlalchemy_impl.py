@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#    http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,16 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from sqlalchemy.orm import subqueryload
 from sqlalchemy_fulltext import FullTextSearch
 import sqlalchemy_fulltext.modes as FullTextMode
 
 from storyboard.api.v1.search import search_engine
 from storyboard.db.api import base as api_base
+from storyboard.db.api import stories as stories_api
 from storyboard.db import models
 
 
 class SqlAlchemySearchImpl(search_engine.SearchEngine):
-
     def _build_fulltext_search(self, model_cls, query, q):
         query = query.filter(FullTextSearch(q, model_cls,
                                             mode=FullTextMode.NATURAL))
@@ -51,11 +52,22 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
 
     def stories_query(self, q, marker=None, limit=None, **kwargs):
         session = api_base.get_session()
-        query = api_base.model_query(models.Story, session)
-        query = self._build_fulltext_search(models.Story, query, q)
-        query = self._apply_pagination(models.Story, query, marker, limit)
 
-        return query.all()
+        subquery = api_base.model_query(models.Story, session)
+        subquery = self._build_fulltext_search(models.Story, subquery, q)
+        subquery = self._apply_pagination(models.Story,
+                                       subquery, marker, limit)
+
+        subquery = subquery.subquery('stories_with_idx')
+
+        query = api_base.model_query(models.StorySummary)\
+            .options(subqueryload(models.StorySummary.tags))
+        query = query.join(subquery,
+                           models.StorySummary.id == subquery.c.id)
+
+        raw_stories = query.all()
+        stories = map(stories_api.summarize_task_statuses, raw_stories)
+        return stories
 
     def tasks_query(self, q, marker=None, limit=None, **kwargs):
         session = api_base.get_session()
