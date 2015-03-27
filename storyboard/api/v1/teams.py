@@ -43,7 +43,7 @@ class UsersSubcontroller(rest.RestController):
     def get(self, team_id):
         """Get users inside a team.
 
-        :param team_id: An ID of the team
+        :param team_id: An ID of the team.
         """
 
         team = teams_api.team_get(team_id)
@@ -57,7 +57,11 @@ class UsersSubcontroller(rest.RestController):
     @secure(checks.superuser)
     @wsme_pecan.wsexpose(wmodels.User, int, int)
     def put(self, team_id, user_id):
-        """Add a user to a team."""
+        """Add a user to a team.
+
+        :param team_id: An ID of the team.
+        :param user_id: An ID of the user.
+        """
 
         teams_api.team_add_user(team_id, user_id)
         user = users_api.user_get(user_id)
@@ -68,7 +72,11 @@ class UsersSubcontroller(rest.RestController):
     @secure(checks.superuser)
     @wsme_pecan.wsexpose(None, int, int, status_code=204)
     def delete(self, team_id, user_id):
-        """Delete a user from a team."""
+        """Delete a user from a team.
+
+        :param: team_id: An ID of the team.
+        :param: user_id: An ID of the user.
+        """
         teams_api.team_delete_user(team_id, user_id)
 
 
@@ -84,7 +92,7 @@ class TeamsController(rest.RestController):
     def get_one_by_id(self, team_id):
         """Retrieve information about the given team.
 
-        :param team_id: team ID.
+        :param team_id: Team ID.
         """
 
         team = teams_api.team_get(team_id)
@@ -100,7 +108,7 @@ class TeamsController(rest.RestController):
     def get_one_by_name(self, team_name):
         """Retrieve information about the given team.
 
-        :param team_name: team name.
+        :param team_name: Team name.
         """
 
         team = teams_api.team_get_by_name(team_name)
@@ -123,7 +131,7 @@ class TeamsController(rest.RestController):
         :param name: A string to filter the name by.
         :param description: A string to filter the description by.
         :param sort_field: The name of the field to sort on.
-        :param sort_dir: sort direction for results (asc, desc).
+        :param sort_dir: Sort direction for results (asc, desc).
         """
         # Boundary check on limit.
         if limit is None:
@@ -169,7 +177,7 @@ class TeamsController(rest.RestController):
         """Modify this team.
 
         :param team_id: An ID of the team.
-        :param team: a team within the request body.
+        :param team: A team within the request body.
         """
         result = teams_api.team_update(team_id,
                                        team.as_dict(omit_unset=True))

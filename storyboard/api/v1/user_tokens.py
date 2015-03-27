@@ -57,7 +57,8 @@ class UserTokensController(rest.RestController):
                          wtypes.text)
     def get_all(self, user_id, marker=None, limit=None, sort_field='id',
                 sort_dir='asc'):
-        """Returns all the access tokens for the provided user.
+        """Returns all the access tokens with matching refresh tokens for
+        the provided user.
 
         :param user_id: The ID of the user.
         :param marker: The marker record at which to start the page.
@@ -97,7 +98,8 @@ class UserTokensController(rest.RestController):
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wmodels.AccessToken, int, int)
     def get(self, user_id, access_token_id):
-        """Returns a specific access token for the given user.
+        """Returns a specific access token with assigned refresh token for the
+        given user.
 
         :param user_id: The ID of the user.
         :param access_token_id: The ID of the access token.
@@ -115,7 +117,8 @@ class UserTokensController(rest.RestController):
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wmodels.AccessToken, int, body=wmodels.AccessToken)
     def post(self, user_id, body):
-        """Create a new access token for the given user.
+        """Create a new access token with assigned refresh token for the given
+        user.
 
         :param user_id: The user ID of the user.
         :param body: The access token.
@@ -185,7 +188,8 @@ class UserTokensController(rest.RestController):
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wmodels.AccessToken, int, int, status_code=204)
     def delete(self, user_id, access_token_id):
-        """Deletes an access token for the given user.
+        """Deletes an access token with assigned refresh token for the given
+        user.
 
         :param user_id: The user ID of the user.
         :param access_token_id: The ID of the access token.

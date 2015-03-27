@@ -72,19 +72,19 @@ class TasksController(rest.RestController):
                 limit=None, sort_field='id', sort_dir='asc'):
         """Retrieve definitions of all of the tasks.
 
-        :param title: search by task title.
-        :param story_id: filter tasks by story ID.
-        :param assignee_id: filter tasks by who they are assigned to.
-        :param project_id: filter the tasks based on project.
-        :param project_group_id: filter tasks based on project group.
-        :param branch_id: filter tasks based on branch_id.
-        :param milestone_id: filter tasks based on milestone.
-        :param status: filter tasks by status.
-        :param priority: filter tasks by priority.
+        :param title: Search by task title.
+        :param story_id: Filter tasks by story ID.
+        :param assignee_id: Filter tasks by who they are assigned to.
+        :param project_id: Filter the tasks based on project.
+        :param project_group_id: Filter tasks based on project group.
+        :param branch_id: Filter tasks based on branch_id.
+        :param milestone_id: Filter tasks based on milestone.
+        :param status: Filter tasks by status.
+        :param priority: Filter tasks by priority.
         :param marker: The resource id where the page should begin.
         :param limit: The number of tasks to retrieve.
         :param sort_field: The name of the field to sort on.
-        :param sort_dir: sort direction for results (asc, desc).
+        :param sort_dir: Sort direction for results (asc, desc).
         """
 
         # Boundary check on limit.
@@ -144,7 +144,7 @@ class TasksController(rest.RestController):
     def post(self, task):
         """Create a new task.
 
-        :param task: a task within the request body.
+        :param task: A task within the request body.
         """
 
         if task.creator_id and task.creator_id != request.current_user_id:
@@ -176,7 +176,7 @@ class TasksController(rest.RestController):
         """Modify this task.
 
         :param task_id: An ID of the task.
-        :param task: a task within the request body.
+        :param task: A task within the request body.
         """
 
         original_task = tasks_api.task_get(task_id)

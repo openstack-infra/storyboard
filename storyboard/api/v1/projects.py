@@ -53,7 +53,7 @@ class ProjectsController(rest.RestController):
     def get_one_by_id(self, project_id):
         """Retrieve information about the given project.
 
-        :param project_id: project ID.
+        :param project_id: Project ID.
         """
 
         project = projects_api.project_get(project_id)
@@ -69,7 +69,7 @@ class ProjectsController(rest.RestController):
     def get_one_by_name(self, project_name):
         """Retrieve information about the given project.
 
-        :param name: project name.
+        :param name: Project name.
         """
 
         project = projects_api.project_get_by_name(project_name)
@@ -92,10 +92,11 @@ class ProjectsController(rest.RestController):
         :param name: A string to filter the name by.
         :param description: A string to filter the description by.
         :param project_group_id: The ID of a project group to which the
-        projects must belong.
+                                 projects must belong.
         :param sort_field: The name of the field to sort on.
-        :param sort_dir: sort direction for results (asc, desc).
+        :param sort_dir: Sort direction for results (asc, desc).
         """
+
         # Boundary check on limit.
         if limit is None:
             limit = CONF.page_size_default
@@ -131,7 +132,7 @@ class ProjectsController(rest.RestController):
     def post(self, project):
         """Create a new project.
 
-        :param project: a project within the request body.
+        :param project: A project within the request body.
         """
 
         result = projects_api.project_create(project.as_dict())
@@ -144,7 +145,7 @@ class ProjectsController(rest.RestController):
         """Modify this project.
 
         :param project_id: An ID of the project.
-        :param project: a project within the request body.
+        :param project: A project within the request body.
         """
         result = projects_api.project_update(project_id,
                                              project.as_dict(omit_unset=True))

@@ -47,10 +47,12 @@ class TimeLineEventsController(rest.RestController):
         """Retrieve details about one event.
 
         :param story_id: An ID of the story. It stays in params as a
-        placeholder so that pecan knows where to match an incoming value.
-        It will stay unused, as far as events have their own unique ids.
+                         placeholder so that pecan knows where to match an
+                         incoming value. It will stay unused, as far as events
+                         have their own unique ids.
         :param event_id: An ID of the event.
         """
+
         event = events_api.event_get(event_id)
 
         if event:
@@ -68,12 +70,12 @@ class TimeLineEventsController(rest.RestController):
                 limit=None, sort_field=None, sort_dir=None):
         """Retrieve all events that have happened under specified story.
 
-        :param story_id: filter events by story ID.
+        :param story_id: Filter events by story ID.
         :param event_type: A selection of event types to get.
         :param marker: The resource id where the page should begin.
         :param limit: The number of events to retrieve.
         :param sort_field: The name of the field to sort on.
-        :param sort_dir: sort direction for results (asc, desc).
+        :param sort_dir: Sort direction for results (asc, desc).
         """
 
         # Boundary check on limit.
@@ -122,10 +124,12 @@ class CommentsController(rest.RestController):
         """Retrieve details about one comment.
 
         :param story_id: An ID of the story. It stays in params as a
-        placeholder so that pecan knows where to match an incoming value.
-        It will stay unused, as far as comments have their own unique ids.
+                         placeholder so that pecan knows where to match an
+                         incoming value. It will stay unused, as far as
+                         comments have their own unique ids.
         :param comment_id: An ID of the comment.
         """
+
         comment = comments_api.comment_get(comment_id)
 
         if comment:
@@ -141,11 +145,11 @@ class CommentsController(rest.RestController):
                 sort_dir='asc'):
         """Retrieve all comments posted under specified story.
 
-        :param story_id: filter comments by story ID.
+        :param story_id: Filter comments by story ID.
         :param marker: The resource id where the page should begin.
         :param limit: The number of comments to retrieve.
         :param sort_field: The name of the field to sort on.
-        :param sort_dir: sort direction for results (asc, desc).
+        :param sort_dir: Sort direction for results (asc, desc).
         """
 
         # Boundary check on limit.
@@ -190,7 +194,7 @@ class CommentsController(rest.RestController):
     def post(self, story_id, comment):
         """Create a new comment.
 
-        :param story_id: an id of a Story to add a Comment to.
+        :param story_id: An id of a Story to add a Comment to.
         :param comment: The comment itself.
         """
 
@@ -213,10 +217,11 @@ class CommentsController(rest.RestController):
     def put(self, story_id, comment_id, comment_body):
         """Update an existing comment.
 
-        :param story_id: a placeholder
-        :param comment_id: the id of a Comment to be updated
-        :param comment_body: an updated Comment
+        :param story_id: A placeholder.
+        :param comment_id: The id of a Comment to be updated.
+        :param comment_body: An updated Comment.
         """
+
         comments_api.comment_get(comment_id)
         comment_author_id = events_api.events_get_all(
             comment_id=comment_id)[0].author_id
@@ -236,9 +241,10 @@ class CommentsController(rest.RestController):
     def delete(self, story_id, comment_id):
         """Update an existing comment.
 
-        :param story_id: a placeholder
-        :param comment_id: the id of a Comment to be updated
+        :param story_id: A placeholder.
+        :param comment_id: The id of a Comment to be updated.
         """
+
         comment = comments_api.comment_get(comment_id)
 
         if request.current_user_id != comment.author_id:

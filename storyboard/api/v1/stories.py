@@ -79,15 +79,15 @@ class StoriesController(rest.RestController):
         :param title: A string to filter the title by.
         :param description: A string to filter the description by.
         :param status: Only show stories with this particular status.
-        :param assignee_id: filter stories by who they are assigned to.
-        :param project_group_id: filter stories by project group.
-        :param project_id: filter stories by project ID.
-        :param tags: a list of tags to filter by.
+        :param assignee_id: Filter stories by who they are assigned to.
+        :param project_group_id: Filter stories by project group.
+        :param project_id: Filter stories by project ID.
+        :param tags: A list of tags to filter by.
         :param marker: The resource id where the page should begin.
         :param limit: The number of stories to retrieve.
-        :param tags_filter_type: type of tags filter.
+        :param tags_filter_type: Type of tags filter.
         :param sort_field: The name of the field to sort on.
-        :param sort_dir: sort direction for results (asc, desc).
+        :param sort_dir: Sort direction for results (asc, desc).
         """
 
         # Boundary check on limit.
@@ -134,7 +134,7 @@ class StoriesController(rest.RestController):
     def post(self, story):
         """Create a new story.
 
-        :param story: a story within the request body.
+        :param story: A story within the request body.
         """
         story_dict = story.as_dict()
 
@@ -161,7 +161,7 @@ class StoriesController(rest.RestController):
         """Modify this story.
 
         :param story_id: An ID of the story.
-        :param story: a story within the request body.
+        :param story: A story within the request body.
         """
 
         original_story = stories_api.story_get_simple(story_id)
