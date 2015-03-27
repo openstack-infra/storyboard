@@ -22,13 +22,13 @@ from openid import cryptutil
 
 import storyboard.common.event_types as event_types
 from storyboard.db.api import base as db_api
-from storyboard.db.api import comments as comments_api
-from storyboard.db.api import projects as projects_api
-from storyboard.db.api import tags as tags_api
-from storyboard.db.api import users as users_api
+from storyboard.db.models import Comment
+from storyboard.db.models import Project
 from storyboard.db.models import Story
+from storyboard.db.models import StoryTag
 from storyboard.db.models import Task
 from storyboard.db.models import TimeLineEvent
+from storyboard.db.models import User
 
 
 class LaunchpadWriter(object):
@@ -42,9 +42,13 @@ class LaunchpadWriter(object):
         self._user_map = dict()
         # tag_name -> SB StoryTag Entity
         self._tag_map = dict()
+        # Build a session for the writer
+        self.session = db_api.get_session(in_request=False)
 
         # SB Project Entity + Sanity check.
-        self.project = projects_api.project_get_by_name(project_name)
+        self.project = db_api.model_query(Project, self.session) \
+            .filter_by(name=project_name) \
+            .first()
         if not self.project:
             print "Local project %s not found in storyboard, please create " \
                   "it first." % (project_name)
@@ -73,14 +77,16 @@ class LaunchpadWriter(object):
         if tag_name not in self._tag_map:
 
             # Does it exist in the database?
-            tag = tags_api.tag_get_by_name(tag_name)
+            tag = db_api.model_query(StoryTag, self.session) \
+                .filter_by(name=tag_name) \
+                .first()
 
             if not tag:
                 # Go ahead and create it.
                 print "Importing tag '%s'" % (tag_name)
-                tag = tags_api.tag_create(dict(
-                    name=tag_name
-                ))
+                tag = db_api.entity_create(StoryTag, {
+                    'name': tag_name
+                }, session=self.session)
 
             # Add it to our memory cache
             self._tag_map[tag_name] = tag
@@ -124,17 +130,19 @@ class LaunchpadWriter(object):
         if openid not in self._user_map:
 
             # Check for the user, create if new.
-            user = users_api.user_get_by_openid(openid)
+            user = db_api.model_query(User, self.session) \
+                .filter_by(openid=openid) \
+                .first()
             if not user:
                 print "Importing user '%s'" % (user_link)
 
                 # Use a temporary email address, since LP won't give this to
                 # us and it'll be updated on first login anyway.
-                user = users_api.user_create({
+                user = db_api.entity_create(User, {
                     'openid': openid,
                     'full_name': display_name,
                     'email': "%s@example.com" % (display_name)
-                })
+                }, session=self.session)
 
             self._user_map[openid] = user
 
@@ -188,10 +196,11 @@ class LaunchpadWriter(object):
             'updated_at': updated_at,
             'tags': tags
         }
-        duplicate = db_api.entity_get(Story, launchpad_id)
+        duplicate = db_api.entity_get(Story, launchpad_id,
+                                      session=self.session)
         if not duplicate:
             print "Importing Story: %s" % (bug.self_link,)
-            story = db_api.entity_create(Story, story)
+            story = db_api.entity_create(Story, story, session=self.session)
         else:
             print "Existing Story: %s" % (bug.self_link,)
             story = duplicate
@@ -200,7 +209,7 @@ class LaunchpadWriter(object):
         # so if we already have a project task on this story, skip it. This
         # is to properly replay imports in the case where errors occurred
         # during import.
-        existing_task = db_api.model_query(Task) \
+        existing_task = db_api.model_query(Task, session=self.session) \
             .filter(Task.story_id == launchpad_id) \
             .filter(Task.project_id == self.project.id) \
             .first()
@@ -215,7 +224,7 @@ class LaunchpadWriter(object):
                 'updated_at': updated_at,
                 'priority': priority,
                 'status': status
-            })
+            }, session=self.session)
         else:
             print "- Existing task in %s" % (self.project.name,)
             task = existing_task
@@ -223,7 +232,8 @@ class LaunchpadWriter(object):
         # Duplication Check - If this story already has a creation event,
         # we don't need to create a new one. Otherwise, create it manually so
         # we don't trigger event notifications.
-        story_created_event = db_api.model_query(TimeLineEvent) \
+        story_created_event = db_api \
+            .model_query(TimeLineEvent, session=self.session) \
             .filter(TimeLineEvent.story_id == launchpad_id) \
             .filter(TimeLineEvent.event_type == event_types.STORY_CREATED) \
             .first()
@@ -234,7 +244,7 @@ class LaunchpadWriter(object):
                 'author_id': owner.id,
                 'event_type': event_types.STORY_CREATED,
                 'created_at': created_at
-            })
+            }, session=self.session)
 
         # Create the creation event for the task, but only if we just created
         # a new task.
@@ -249,10 +259,11 @@ class LaunchpadWriter(object):
                     'task_id': task.id,
                     'task_title': title
                 })
-            })
+            }, session=self.session)
 
         # Create the discussion, loading any existing comments first.
-        current_count = db_api.model_query(TimeLineEvent) \
+        current_count = db_api \
+            .model_query(TimeLineEvent, session=self.session) \
             .filter(TimeLineEvent.story_id == launchpad_id) \
             .filter(TimeLineEvent.event_type == event_types.USER_COMMENT) \
             .count()
@@ -265,10 +276,10 @@ class LaunchpadWriter(object):
             message_created_at = message.date_created
             message_owner = self.write_user(message.owner)
 
-            comment = comments_api.comment_create({
+            comment = db_api.entity_create(Comment, {
                 'content': message.content,
                 'created_at': message_created_at
-            })
+            }, session=self.session)
 
             db_api.entity_create(TimeLineEvent, {
                 'story_id': launchpad_id,
@@ -276,4 +287,4 @@ class LaunchpadWriter(object):
                 'event_type': event_types.USER_COMMENT,
                 'comment_id': comment.id,
                 'created_at': message_created_at
-            })
+            }, session=self.session)
