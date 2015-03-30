@@ -22,11 +22,6 @@ USERS_PUT_SCHEMA = {
     "name": "user_schema",
     "type": "object",
     "properties": {
-        "username": {
-            "type": "string",
-            "minLength": CommonLength.lower_middle_length,
-            "maxLength": CommonLength.name_length
-        },
         "full_name": {
             "type": ["string"],
             "minLength": CommonLength.lower_middle_length,
@@ -45,7 +40,7 @@ USERS_PUT_SCHEMA = {
 }
 
 USERS_POST_SCHEMA = copy.deepcopy(USERS_PUT_SCHEMA)
-USERS_POST_SCHEMA["required"] = ["username", "full_name", "email"]
+USERS_POST_SCHEMA["required"] = ["full_name", "email"]
 
 USER_PREFERENCES_POST_SCHEMA = {
     "name": "userPreference_schema",

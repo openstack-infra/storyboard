@@ -108,7 +108,7 @@ class OpenIdClient(object):
             "openid.return_to": return_to_url,
 
             "openid.ns.sreg": "http://openid.net/sreg/1.0",
-            "openid.sreg.required": "fullname,email,nickname",
+            "openid.sreg.required": "fullname,email",
 
             "openid.ns.ext2": "http://openid.net/srv/ax/1.0",
             "openid.ext2.mode": "fetch_request",
@@ -146,7 +146,6 @@ class OpenIdClient(object):
         required_parameters = {
             'openid.sreg.email': e_msg.INVALID_NO_EMAIL,
             'openid.sreg.fullname': e_msg.INVALID_NO_NAME,
-            'openid.sreg.nickname': e_msg.INVALID_NO_NICKNAME,
         }
 
         for name, error in six.iteritems(required_parameters):

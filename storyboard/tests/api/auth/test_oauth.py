@@ -121,7 +121,6 @@ class TestOAuthAuthorize(BaseOAuthTest):
         # Check OAuth Registration parameters
         self.assertIn('fullname', parameters['openid.sreg.required'][0])
         self.assertIn('email', parameters['openid.sreg.required'][0])
-        self.assertIn('nickname', parameters['openid.sreg.required'][0])
 
         # Check redirect URL
         redirect = parameters['openid.return_to'][0]
@@ -348,10 +347,9 @@ class TestOAuthAuthorizeReturn(BaseOAuthTest):
                          "ax.type.FirstName,ax.type.LastName,claimed_id,"
                          "identity,mode,ns,ns.ax,ns.sreg,op_endpoint,"
                          "response_nonce,return_to,signed,sreg.email,"
-                         "sreg.fullname,sreg.nickname",
+                         "sreg.fullname",
         "openid.sreg.email": "test@example.com",
         "openid.sreg.fullname": "Test User",
-        "openid.sreg.nickname": "superuser"
     }
 
     def _mock_response(self, mock_post, valid=True):
@@ -472,34 +470,6 @@ class TestOAuthAuthorizeReturn(BaseOAuthTest):
                                  self.valid_params['sb_redirect_uri'],
                                  error='invalid_request',
                                  error_description=e_msg.INVALID_NO_EMAIL)
-
-    def test_invalid_redirect_no_username(self, mock_post):
-        """If the oauth response to storyboard is valid, but does not include a
-        first name, it should error.
-
-        TODO: Remove during work for
-        https://storyboard.openstack.org/#!/story/2000152
-        """
-        self._mock_response(mock_post, valid=True)
-
-        random_state = six.text_type(uuid.uuid4())
-
-        invalid_params = self.valid_params.copy()
-        del invalid_params['openid.sreg.nickname']
-
-        # Simple GET with various parameters
-        response = self.get_json(path='/openid/authorize_return',
-                                 expect_errors=True,
-                                 state=random_state,
-                                 **invalid_params)
-
-        # Validate the redirect response
-        self.assertValidRedirect(response=response,
-                                 expected_status_code=302,
-                                 redirect_uri=
-                                 self.valid_params['sb_redirect_uri'],
-                                 error='invalid_request',
-                                 error_description=e_msg.INVALID_NO_NICKNAME)
 
 
 class TestOAuthAccessToken(BaseOAuthTest):

@@ -59,7 +59,7 @@ class UsersController(rest.RestController):
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.User], int, int, wtypes.text, wtypes.text,
                          wtypes.text, wtypes.text)
-    def get(self, marker=None, limit=None, username=None, full_name=None,
+    def get(self, marker=None, limit=None, full_name=None,
             sort_field='id', sort_dir='asc'):
         """Page and filter the users in storyboard.
 
@@ -80,12 +80,11 @@ class UsersController(rest.RestController):
         marker_user = users_api.user_get(marker)
 
         users = users_api.user_get_all(marker=marker_user, limit=limit,
-                                       username=username, full_name=full_name,
+                                       full_name=full_name,
                                        filter_non_public=True,
                                        sort_field=sort_field,
                                        sort_dir=sort_dir)
-        user_count = users_api.user_get_count(username=username,
-                                              full_name=full_name)
+        user_count = users_api.user_get_count(full_name=full_name)
 
         # Apply the query response headers.
         response.headers['X-Limit'] = str(limit)

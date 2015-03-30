@@ -47,14 +47,12 @@ class TestDBExceptions(base.FunctionalTest):
         # send user first time
         resource = '/users'
         user = {
-            'username': 'test_duplicate',
             'full_name': 'Test duplicate',
             'email': 'dupe@example.com'
         }
 
         response = self.post_json(resource, user)
         users_body = response.json
-        self.assertEqual(user['username'], users_body['username'])
         self.assertEqual(user['full_name'], users_body['full_name'])
         self.assertEqual(user['email'], users_body['email'])
 
