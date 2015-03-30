@@ -26,6 +26,7 @@ import wsmeext.pecan as wsme_pecan
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1.search import search_engine
 from storyboard.api.v1.tags import TagsController
+from storyboard.api.v1.tasks import TasksNestedController
 from storyboard.api.v1.timeline import CommentsController
 from storyboard.api.v1.timeline import TimeLineEventsController
 from storyboard.api.v1 import validations
@@ -194,6 +195,7 @@ class StoriesController(rest.RestController):
 
     comments = CommentsController()
     events = TimeLineEventsController()
+    tasks = TasksNestedController()
     tags = TagsController()
 
     @decorators.db_exceptions

@@ -17,9 +17,9 @@ import six.moves.urllib.parse as urlparse
 from storyboard.tests import base
 
 
-class TestTasks(base.FunctionalTest):
+class TestTasksPrimary(base.FunctionalTest):
     def setUp(self):
-        super(TestTasks, self).setUp()
+        super(TestTasksPrimary, self).setUp()
         self.resource = '/tasks'
 
         self.task_01 = {
@@ -47,6 +47,104 @@ class TestTasks(base.FunctionalTest):
         self.assertEqual('StoryBoard', created_task['title'])
         self.assertEqual('todo', created_task['status'])
         self.assertEqual(1, created_task['story_id'])
+
+
+class TestTasksNestedController(base.FunctionalTest):
+    def setUp(self):
+        super(TestTasksNestedController, self).setUp()
+        self.resource = '/stories/1/tasks'
+
+        self.task_01 = {
+            'title': 'StoryBoard',
+            'status': 'todo',
+            'story_id': 1
+        }
+        self.default_headers['Authorization'] = 'Bearer valid_superuser_token'
+
+    def test_tasks_endpoint(self):
+        response = self.get_json(self.resource)
+        self.assertEqual(3, len(response))
+
+    def test_get(self):
+        response = self.get_json(self.resource + "/1")
+        # Get an existing task under a given story
+
+        self.assertIsNotNone(response)
+
+    def test_get_for_wrong_story(self):
+        response = self.get_json(self.resource + "/4", expect_errors=True)
+        # Get an existing task under a given story
+
+        self.assertEqual(400, response.status_code)
+
+    def test_create(self):
+        result = self.post_json(self.resource, {
+            'title': 'StoryBoard',
+            'status': 'todo',
+            'story_id': 1
+        })
+
+        # Retrieve the created task
+        created_task = self \
+            .get_json('%s/%d' % ("/tasks", result.json['id']))
+        self.assertEqual(result.json['id'], created_task['id'])
+        self.assertEqual('StoryBoard', created_task['title'])
+        self.assertEqual('todo', created_task['status'])
+        self.assertEqual(1, created_task['story_id'])
+
+    def test_create_id_in_url(self):
+        result = self.post_json(self.resource, {
+            'title': 'StoryBoard',
+            'status': 'todo',
+        })
+        # story_id is not set in the body. URL should handle that
+
+        # Retrieve the created task
+        created_task = self \
+            .get_json('%s/%d' % ("/tasks", result.json['id']))
+        self.assertEqual(result.json['id'], created_task['id'])
+        self.assertEqual('StoryBoard', created_task['title'])
+        self.assertEqual('todo', created_task['status'])
+        self.assertEqual(1, created_task['story_id'])
+
+    def test_create_error(self):
+        result = self.post_json(self.resource, {
+            'title': 'StoryBoard',
+            'status': 'todo',
+            'story_id': 100500
+        }, expect_errors=True)
+
+        # task.story_id does not match the URL
+        self.assertEqual(400, result.status_code)
+
+    def test_update(self):
+        original_task = self.get_json(self.resource)[0]
+        original_id = original_task["id"]
+
+        result = self.put_json(self.resource + "/%s" % original_id, {
+            'title': 'task_updated',
+        })
+
+        self.assertEqual(200, result.status_code)
+
+    def test_update_error(self):
+        original_task = self.get_json(self.resource)[0]
+        original_id = original_task["id"]
+
+        result = self.put_json(self.resource + "/%s" % original_id, {
+            'title': 'task_updated',
+            'story_id': 100500
+        }, expect_errors=True)
+
+        self.assertEqual(400, result.status_code)
+
+    def test_delete(self):
+        result = self.delete(self.resource + "/1")
+        self.assertEqual(204, result.status_code)
+
+    def test_delete_for_wrong_story(self):
+        result = self.delete(self.resource + "/4", expect_errors=True)
+        self.assertEqual(400, result.status_code)
 
 
 class TestTaskSearch(base.FunctionalTest):

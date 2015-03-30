@@ -24,6 +24,9 @@ Stories
 .. rest-controller:: storyboard.api.v1.stories:StoriesController
    :webprefix: /v1/stories
 
+.. rest-controller:: storyboard.api.v1.stories:TasksNestedController
+   :webprefix: /v1/stories/<story_id>/tasks
+
 Comments and Timeline events
 ============================
 .. rest-controller:: storyboard.api.v1.timeline:CommentsController
@@ -34,7 +37,7 @@ Comments and Timeline events
 
 Tasks
 =====
-.. rest-controller:: storyboard.api.v1.tasks:TasksController
+.. rest-controller:: storyboard.api.v1.tasks:TasksPrimaryController
    :webprefix: /v1/tasks
 
 Branches
