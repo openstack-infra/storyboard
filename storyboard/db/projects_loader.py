@@ -116,6 +116,7 @@ def _get_project(project, session):
         db_project.groups = []
 
     session.add(db_project)
+    session.flush()
 
     master_branch = session.query(Branch).\
         filter_by(name='master', project_id=db_project.id).first()
