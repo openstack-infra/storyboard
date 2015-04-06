@@ -74,8 +74,8 @@ class UsersSubcontroller(rest.RestController):
     def delete(self, team_id, user_id):
         """Delete a user from a team.
 
-        :param: team_id: An ID of the team.
-        :param: user_id: An ID of the user.
+        :param team_id: An ID of the team.
+        :param user_id: An ID of the user.
         """
         teams_api.team_delete_user(team_id, user_id)
 
