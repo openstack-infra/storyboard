@@ -53,7 +53,7 @@ def main():
     auto_increment = CONF.auto_increment
     if auto_increment:
         print 'Setting stories.AUTO_INCREMENT to %d' % (auto_increment,)
-        session = db_api.get_session()
+        session = db_api.get_session(in_request=False)
         session.execute('ALTER TABLE stories AUTO_INCREMENT = %d;'
                         % (auto_increment,))
 

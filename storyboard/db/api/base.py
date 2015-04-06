@@ -261,11 +261,12 @@ def _filter_non_public_fields(entity, public_list=list()):
     return ent_copy
 
 
-def entity_create(kls, values):
+def entity_create(kls, values, session=None):
     entity = kls()
     entity.update(values.copy())
 
-    session = get_session()
+    if not session:
+        session = get_session()
 
     try:
         with session.begin(subtransactions=True):
@@ -292,8 +293,9 @@ def entity_create(kls, values):
     return entity
 
 
-def entity_update(kls, entity_id, values):
-    session = get_session()
+def entity_update(kls, entity_id, values, session=None):
+    if not session:
+        session = get_session()
 
     try:
         with session.begin(subtransactions=True):
