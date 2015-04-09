@@ -295,7 +295,7 @@ class TasksPrimaryController(rest.RestController):
         # Boundary check on limit.
         if limit is None:
             limit = CONF.page_size_default
-        limit = min(CONF.page_size_maximum, max(1, limit))
+        limit = max(0, limit)
 
         # Resolve the marker record.
         marker_task = tasks_api.task_get(marker)
@@ -470,7 +470,7 @@ class TasksNestedController(rest.RestController):
         # Boundary check on limit.
         if limit is None:
             limit = CONF.page_size_default
-        limit = min(CONF.page_size_maximum, max(1, limit))
+        limit = max(0, limit)
 
         # Resolve the marker record.
         marker_task = tasks_api.task_get(marker)

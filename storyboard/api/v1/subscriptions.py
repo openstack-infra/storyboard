@@ -101,7 +101,7 @@ class SubscriptionsController(rest.RestController):
         # Boundary check on limit.
         if limit is None:
             limit = CONF.page_size_default
-        limit = min(CONF.page_size_maximum, max(1, limit))
+        limit = max(0, limit)
 
         # Sanity check on user_id
         current_user = user_api.user_get(request.current_user_id)
