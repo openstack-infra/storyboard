@@ -129,9 +129,8 @@ class ProjectGroupsController(rest.RestController):
         :param sort_dir: Sort direction for results (asc, desc).
         """
 
-        if limit is None:
-            limit = CONF.page_size_default
-        limit = max(0, limit)
+        if limit is not None:
+            limit = max(0, limit)
 
         # Resolve the marker record.
         marker_group = project_groups.project_group_get(marker)
@@ -147,7 +146,8 @@ class ProjectGroupsController(rest.RestController):
                                                              title=title)
 
         # Apply the query response headers.
-        response.headers['X-Limit'] = str(limit)
+        if limit:
+            response.headers['X-Limit'] = str(limit)
         response.headers['X-Total'] = str(group_count)
         if marker_group:
             response.headers['X-Marker'] = str(marker_group.id)

@@ -293,9 +293,8 @@ class TasksPrimaryController(rest.RestController):
         """
 
         # Boundary check on limit.
-        if limit is None:
-            limit = CONF.page_size_default
-        limit = max(0, limit)
+        if limit is not None:
+            limit = max(0, limit)
 
         # Resolve the marker record.
         marker_task = tasks_api.task_get(marker)
@@ -326,7 +325,8 @@ class TasksPrimaryController(rest.RestController):
                             priority=priority)
 
         # Apply the query response headers.
-        response.headers['X-Limit'] = str(limit)
+        if limit:
+            response.headers['X-Limit'] = str(limit)
         response.headers['X-Total'] = str(task_count)
         if marker_task:
             response.headers['X-Marker'] = str(marker_task.id)
@@ -468,9 +468,8 @@ class TasksNestedController(rest.RestController):
         """
 
         # Boundary check on limit.
-        if limit is None:
-            limit = CONF.page_size_default
-        limit = max(0, limit)
+        if limit is not None:
+            limit = max(0, limit)
 
         # Resolve the marker record.
         marker_task = tasks_api.task_get(marker)

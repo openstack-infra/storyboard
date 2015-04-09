@@ -79,9 +79,8 @@ class TimeLineEventsController(rest.RestController):
         """
 
         # Boundary check on limit.
-        if limit is None:
-            limit = CONF.page_size_default
-        limit = max(0, limit)
+        if limit is not None:
+            limit = max(0, limit)
 
         # Sanity check on event types.
         if event_type:
@@ -105,7 +104,8 @@ class TimeLineEventsController(rest.RestController):
                                            sort_dir=sort_dir)
 
         # Apply the query response headers.
-        response.headers['X-Limit'] = str(limit)
+        if limit:
+            response.headers['X-Limit'] = str(limit)
         response.headers['X-Total'] = str(event_count)
         if marker_event:
             response.headers['X-Marker'] = str(marker_event.id)
@@ -153,9 +153,8 @@ class CommentsController(rest.RestController):
         """
 
         # Boundary check on limit.
-        if limit is None:
-            limit = CONF.page_size_default
-        limit = max(0, limit)
+        if limit is not None:
+            limit = max(0, limit)
 
         # Resolve the marker record.
         marker_event = None
@@ -181,7 +180,8 @@ class CommentsController(rest.RestController):
                     for event in events]
 
         # Apply the query response headers.
-        response.headers['X-Limit'] = str(limit)
+        if limit:
+            response.headers['X-Limit'] = str(limit)
         response.headers['X-Total'] = str(events_count)
         if marker_event:
             response.headers['X-Marker'] = str(marker)

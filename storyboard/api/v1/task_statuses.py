@@ -37,9 +37,8 @@ class TaskStatusesController(rest.RestController):
         """
 
         # Boundary check on limit.
-        if limit is None:
-            limit = CONF.page_size_default
-        limit = max(0, limit)
+        if limit is not None:
+            limit = max(0, limit)
 
         statuses = tasks_api.task_get_statuses()
         task_statuses = []
@@ -51,7 +50,8 @@ class TaskStatusesController(rest.RestController):
                 task_statuses.append(ts)
 
         # Apply the query response headers.
-        response.headers['X-Limit'] = str(limit)
+        if limit:
+            response.headers['X-Limit'] = str(limit)
         response.headers['X-Total'] = str(len(task_statuses))
 
         return task_statuses[0:limit]

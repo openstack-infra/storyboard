@@ -72,9 +72,8 @@ class UserTokensController(rest.RestController):
         self._assert_can_access(user_id)
 
         # Boundary check on limit.
-        if limit is None:
-            limit = CONF.page_size_default
-        limit = max(0, limit)
+        if limit is not None:
+            limit = max(0, limit)
 
         # Resolve the marker record.
         marker_token = token_api.user_token_get(marker)
@@ -88,7 +87,8 @@ class UserTokensController(rest.RestController):
         token_count = token_api.user_token_get_count(user_id=user_id)
 
         # Apply the query response headers.
-        response.headers['X-Limit'] = str(limit)
+        if limit:
+            response.headers['X-Limit'] = str(limit)
         response.headers['X-Total'] = str(token_count)
 
         if marker_token:

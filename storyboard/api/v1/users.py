@@ -72,9 +72,8 @@ class UsersController(rest.RestController):
         """
 
         # Boundary check on limit.
-        if limit is None:
-            limit = CONF.page_size_default
-        limit = max(0, limit)
+        if limit is not None:
+            limit = max(0, limit)
 
         # Resolve the marker record.
         marker_user = users_api.user_get(marker)
@@ -87,7 +86,8 @@ class UsersController(rest.RestController):
         user_count = users_api.user_get_count(full_name=full_name)
 
         # Apply the query response headers.
-        response.headers['X-Limit'] = str(limit)
+        if limit:
+            response.headers['X-Limit'] = str(limit)
         response.headers['X-Total'] = str(user_count)
         if marker_user:
             response.headers['X-Marker'] = str(marker_user.id)
