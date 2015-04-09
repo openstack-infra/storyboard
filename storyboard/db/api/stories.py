@@ -149,8 +149,9 @@ def _story_build_query(title=None, description=None, assignee_id=None,
     if project_group_id:
         query = query.join(models.Task,
                            models.Project,
-                           models.project_group_mapping)
-        query = query.filter(project_group_id == project_group_id)
+                           models.project_group_mapping,
+                           models.ProjectGroup)
+        query = query.filter(models.ProjectGroup.id == project_group_id)
 
     # Are we filtering by task?
     if assignee_id or project_id:
