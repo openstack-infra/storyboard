@@ -82,3 +82,10 @@ def user_token_update(access_token_id, values):
 
 def user_token_delete(access_token_id):
     access_tokens_api.access_token_delete(access_token_id)
+
+
+def delete_all_user_tokens(user_id):
+    access_tokens = access_tokens_api.access_token_get_all(user_id=user_id)
+
+    for token in access_tokens:
+        access_tokens_api.access_token_delete(token.id)

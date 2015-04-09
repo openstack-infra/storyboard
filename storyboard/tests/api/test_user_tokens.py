@@ -68,6 +68,15 @@ class TestUserTokensAsUser(base.FunctionalTest):
         self.assertIsNotNone(response.json['id'],
                              read_response['id'])
 
+    def test_delete_all_user_tokens(self):
+        """Assert that user may delete all his tokens
+        """
+        resource = self.resource + "/delete_all"
+        self.delete(resource)
+
+        response = self.get_json(self.resource, expect_errors=True)
+        self.assertEqual(401, response.status_code)
+
     def test_create_access_token_autofill(self):
         """Assert that creating a token without the access_token parameter
         generates a randomly generated access token.
