@@ -9,7 +9,7 @@ oslo.config>=1.2.1
 oslo.context>=0.1.0
 oslo.utils>=1.2.0
 pecan>=0.4.5
-oslo.db>=0.2.0
+oslo.db>=1.8.0
 oslo.log>=0.1.0
 pika>=0.9.14
 python-openid

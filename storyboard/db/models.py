@@ -23,7 +23,7 @@ import six
 import six.moves.urllib.parse as urlparse
 
 from oslo.config import cfg
-from oslo.db.sqlalchemy import models
+from oslo_db.sqlalchemy import models
 from sqlalchemy import Boolean
 from sqlalchemy import Column
 from sqlalchemy.dialects.mysql import MEDIUMTEXT
@@ -77,7 +77,7 @@ class IdMixin(object):
 
 class UTCTimestampMixin(object):
     """A Database model mixin that automatically manages our creation and
-    updating timestamps. This mixin was copied from oslo.db, and adapted to
+    updating timestamps. This mixin was copied from oslo_db, and adapted to
     use our own internal UTCDateTime type decorator.
     """
     created_at = Column(UTCDateTime,

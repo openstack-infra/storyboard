@@ -16,10 +16,10 @@
 import copy
 
 from oslo.config import cfg
-from oslo.db import exception as db_exc
-from oslo.db.sqlalchemy import session as db_session
-from oslo.db.sqlalchemy.utils import InvalidSortKey
-from oslo.db.sqlalchemy.utils import paginate_query as utils_paginate_query
+from oslo_db import exception as db_exc
+from oslo_db.sqlalchemy import session as db_session
+from oslo_db.sqlalchemy.utils import InvalidSortKey
+from oslo_db.sqlalchemy.utils import paginate_query as utils_paginate_query
 from oslo_log import log
 from pecan import request
 import six
@@ -284,7 +284,7 @@ def entity_create(kls, values, session=None):
         raise exc.DBDeadLock()
     except db_exc.DBInvalidUnicodeParameter:
         raise exc.DBInvalidUnicodeParameter
-    # XXX(greghaynes) Due to a bug in oslo.db + PyMySQL reference errors
+    # XXX(greghaynes) Due to a bug in oslo_db + PyMySQL reference errors
     # are not properly raised.
     except db_exc.DBError:
         raise exc.DBReferenceError(object_name=kls.__name__,
@@ -321,7 +321,7 @@ def entity_update(kls, entity_id, values, session=None):
         raise exc.DBDeadLock()
     except db_exc.DBInvalidUnicodeParameter:
         raise exc.DBInvalidUnicodeParameter
-    # XXX(greghaynes) Due to a bug in oslo.db + PyMySQL reference errors
+    # XXX(greghaynes) Due to a bug in oslo_db + PyMySQL reference errors
     # are not properly raised.
     except db_exc.DBError:
         raise exc.DBReferenceError(object_name=kls.__name__,
@@ -354,7 +354,7 @@ def entity_hard_delete(kls, entity_id):
         raise exc.DBDeadLock()
     except db_exc.DBInvalidUnicodeParameter:
         raise exc.DBInvalidUnicodeParameter()
-    # XXX(greghaynes) Due to a bug in oslo.db + PyMySQL reference errors
+    # XXX(greghaynes) Due to a bug in oslo_db + PyMySQL reference errors
     # are not properly raised.
     except db_exc.DBError:
         raise exc.DBReferenceError(object_name=kls.__name__,
