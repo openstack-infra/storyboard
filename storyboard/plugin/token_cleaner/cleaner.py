@@ -14,14 +14,16 @@
 
 from datetime import datetime
 from datetime import timedelta
+from oslo_log import log
 import pytz
 
 from apscheduler.triggers.interval import IntervalTrigger
 
-from storyboard.db.api import access_tokens as access_tokens_api
 import storyboard.db.api.base as api_base
 from storyboard.db.models import AccessToken
 from storyboard.plugin.scheduler.base import SchedulerPluginBase
+
+LOG = log.getLogger(__name__)
 
 
 class TokenCleaner(SchedulerPluginBase):
@@ -48,14 +50,23 @@ class TokenCleaner(SchedulerPluginBase):
         """
         # Calculate last week.
         lastweek = datetime.now(pytz.utc) - timedelta(weeks=1)
+        LOG.debug("Removing Expired OAuth Tokens: %s" % (lastweek,))
 
-        # Build the query.
-        query = api_base.model_query(AccessToken.id)
+        # Build the session.
+        session = api_base.get_session(in_request=False,
+                                       autocommit=False,
+                                       expire_on_commit=True)
+        try:
+            query = api_base.model_query(AccessToken, session)
 
-        # Apply the filter.
-        query = query.filter(AccessToken.expires_at < lastweek)
+            # Apply the filter.
+            query = query.filter(AccessToken.expires_at < lastweek)
 
-        # Manually deleting each record, because batch deletes are an
-        # exception to ORM Cascade markup.
-        for token in query.all():
-            access_tokens_api.access_token_delete(token.id)
+            # Manually deleting each record, because batch deletes are an
+            # exception to ORM Cascade markup.
+            for token in query.all():
+                session.delete(token)
+
+            session.commit()
+        except Exception:
+            session.rollback()
