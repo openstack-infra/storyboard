@@ -95,7 +95,8 @@ def initialize_scheduler():
         update_scheduler,
         id=SCHEDULE_MANAGER_ID,
         trigger=IntervalTrigger(minutes=1),
-        executor='manager'
+        executor='manager',
+        replace_existing=True
     )
 
 
@@ -145,7 +146,7 @@ def add_plugins(ext, loaded_plugins=list()):
     plugin = ext.obj
 
     # Get the plugin name
-    plugin_name = plugin.get_name()
+    plugin_name = six.text_type(plugin.get_name())
 
     # Plugin trigger object.
     plugin_trigger = plugin.trigger()
@@ -190,7 +191,8 @@ def add_plugins(ext, loaded_plugins=list()):
         args=[plugin.__class__],
         id=plugin_name,
         trigger=plugin_trigger,
-        executor='default'
+        executor='default',
+        replace_existing=True
     )
 
 
