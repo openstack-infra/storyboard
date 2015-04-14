@@ -393,30 +393,25 @@ class AuthorizationCode(ModelBuilder, Base):
     expires_in = Column(Integer, nullable=False, default=300)
 
 
-access_refresh_tokens = Table(
-    'access_refresh_tokens', Base.metadata,
-    Column('access_token_id', Integer, ForeignKey('accesstokens.id')),
-    Column('refresh_token_id', Integer, ForeignKey('refreshtokens.id')),
-    schema.UniqueConstraint('refresh_token_id', name='uniq_refresh_token'),
-)
-
-
 class AccessToken(ModelBuilder, Base):
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     access_token = Column(Unicode(CommonLength.top_middle_length),
                           nullable=False)
     expires_in = Column(Integer, nullable=False)
     expires_at = Column(UTCDateTime, nullable=False)
-    refresh_tokens = relationship("RefreshToken",
-                                  secondary='access_refresh_tokens',
-                                  )
+    refresh_token = relationship("RefreshToken",
+                                 uselist=False,
+                                 cascade="all, delete-orphan",
+                                 backref="access_token",
+                                 passive_updates=False,
+                                 passive_deletes=False)
 
 
 class RefreshToken(ModelBuilder, Base):
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    access_tokens = relationship("AccessToken",
-                                 secondary='access_refresh_tokens',
-                                 )
+    access_token_id = Column(Integer,
+                             ForeignKey('accesstokens.id'),
+                             nullable=False)
     refresh_token = Column(Unicode(CommonLength.top_middle_length),
                            nullable=False)
     expires_in = Column(Integer, nullable=False)

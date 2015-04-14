@@ -92,7 +92,7 @@ class TestTokenCleaner(db_base.BaseDbTestCase,
                     created_at=token.created_at,
                     expires_in=token.expires_in,
                     expires_at=token.expires_at,
-                    access_tokens=[token],
+                    access_token_id=token.id,
                     refresh_token='test_refresh_%s' % (token.id,))
             )
 

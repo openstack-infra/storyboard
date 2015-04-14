@@ -111,18 +111,7 @@ def access_token_delete(access_token_id):
         access_token = access_token_get(access_token_id, session=session)
 
         if access_token:
-            query = api_base.model_query(models.RefreshToken)
-            refresh_tokens = []
-
-            for refresh_token in access_token.refresh_tokens:
-                refresh_tokens.append(refresh_token.id)
-
-            query = query.filter(models.RefreshToken.id.in_(
-                refresh_tokens
-            ))
-
-            api_base.entity_hard_delete(models.AccessToken, access_token_id)
-            query.delete(synchronize_session=False)
+            session.delete(access_token)
 
 
 def access_token_delete_by_token(access_token):

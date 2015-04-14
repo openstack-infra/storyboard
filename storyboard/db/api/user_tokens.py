@@ -13,20 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from sqlalchemy.orm import subqueryload
-
 from storyboard.db.api import access_tokens as access_tokens_api
 from storyboard.db.api import base as api_base
 from storyboard.db import models
 
 
 def user_token_get(access_token_id):
-    token_query = api_base.model_query(models.AccessToken)
-    user_token = token_query.options(
-        subqueryload(models.AccessToken.refresh_tokens)
-    ).filter_by(id=access_token_id).first()
-
-    return user_token
+    return api_base.model_query(models.AccessToken) \
+        .filter_by(id=access_token_id).first()
 
 
 def user_token_get_all(marker=None, limit=None, sort_field=None,
@@ -36,8 +30,7 @@ def user_token_get_all(marker=None, limit=None, sort_field=None,
     if not sort_dir:
         sort_dir = 'asc'
 
-    query = api_base.model_query(models.AccessToken). \
-        options(subqueryload(models.AccessToken.refresh_tokens))
+    query = api_base.model_query(models.AccessToken)
 
     query = api_base.apply_query_filters(query=query,
                                          model=models.AccessToken,

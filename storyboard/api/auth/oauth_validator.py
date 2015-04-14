@@ -226,14 +226,14 @@ class SkeletonValidator(RequestValidator):
         refresh_expires_in = CONF.oauth.refresh_token_ttl
 
         refresh_token_values = {
+            "access_token_id": access_token.id,
             "refresh_token": token["refresh_token"],
             "user_id": user_id,
             "expires_in": refresh_expires_in,
             "expires_at": datetime.datetime.now(pytz.utc) + datetime.timedelta(
                 seconds=refresh_expires_in),
         }
-        refresh_token_api.refresh_token_create(access_token.id,
-                                               refresh_token_values)
+        refresh_token_api.refresh_token_create(refresh_token_values)
 
     def invalidate_authorization_code(self, client_id, code, request, *args,
                                       **kwargs):

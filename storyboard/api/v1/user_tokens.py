@@ -44,12 +44,11 @@ class UserTokensController(rest.RestController):
     def _from_db_model(self, access_token):
         access_token_model = wmodels.AccessToken.from_db_model(
             access_token,
-            skip_fields="refresh_tokens")
+            skip_fields="refresh_token")
 
-        access_token_model.refresh_tokens = [
-            wmodels.RefreshToken.from_db_model(token)
-            for token in access_token.refresh_tokens
-        ]
+        if access_token.refresh_token:
+            access_token_model.refresh_token = wmodels.RefreshToken \
+                .from_db_model(access_token.refresh_token)
 
         return access_token_model
 
@@ -142,8 +141,8 @@ class UserTokensController(rest.RestController):
 
         token_dict = body.as_dict()
 
-        if "refresh_tokens" in token_dict:
-            del token_dict["refresh_tokens"]
+        if "refresh_token" in token_dict:
+            del token_dict["refresh_token"]
 
         token = token_api.user_token_create(token_dict)
 
@@ -178,8 +177,8 @@ class UserTokensController(rest.RestController):
 
         token_dict = target_token.as_dict()
 
-        if "refresh_tokens" in token_dict:
-            del token_dict["refresh_tokens"]
+        if "refresh_token" in token_dict:
+            del token_dict["refresh_token"]
 
         result_token = token_api.user_token_update(access_token_id,
                                                    token_dict)

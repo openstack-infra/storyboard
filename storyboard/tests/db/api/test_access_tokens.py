@@ -28,7 +28,6 @@ class TokenTest(base.BaseDbTestCase):
 
         self.token_01 = {
             "access_token": u'an_access_token',
-            "refresh_token": u'a_refresh_token',
             "expires_in": 3600,
             "expires_at": datetime.now(pytz.utc),
             "user_id": 1

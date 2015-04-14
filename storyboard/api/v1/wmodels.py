@@ -431,8 +431,8 @@ class AccessToken(base.APIBase):
     expires_in = int
     """The number of seconds after creation when this token expires."""
 
-    refresh_tokens = wtypes.ArrayType(RefreshToken)
-    """Array of corresponding refresh tokens."""
+    refresh_token = RefreshToken
+    """The associated refresh token."""
 
     @classmethod
     def sample(cls):

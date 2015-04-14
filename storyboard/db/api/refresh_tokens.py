@@ -16,11 +16,8 @@
 import datetime
 import pytz
 
-from storyboard.common import exception as exc
-from storyboard.db.api import access_tokens as access_tokens_api
 from storyboard.db.api import base as api_base
 from storyboard.db import models
-from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 def refresh_token_get(refresh_token_id, session=None):
@@ -59,25 +56,17 @@ def get_access_token_id(refresh_token_id):
         refresh_token = refresh_token_get(refresh_token_id, session)
 
         if refresh_token:
-            return refresh_token.access_tokens[0].id
+            return refresh_token.access_token.id
 
 
-def refresh_token_create(access_token_id, values):
+def refresh_token_create(values):
     session = api_base.get_session()
 
     with session.begin(subtransactions=True):
         values['expires_at'] = datetime.datetime.now(pytz.utc) + datetime.\
             timedelta(seconds=values['expires_in'])
-        access_token = access_tokens_api.access_token_get(access_token_id,
-                                                          session=session)
-
-        if not access_token:
-            raise exc.NotFound(_("Access token not found."))
 
         refresh_token = api_base.entity_create(models.RefreshToken, values)
-
-        access_token.refresh_tokens.append(refresh_token)
-        session.add(access_token)
 
         return refresh_token
 
@@ -101,13 +90,7 @@ def refresh_token_delete(refresh_token_id):
         refresh_token = refresh_token_get(refresh_token_id)
 
         if refresh_token:
-            access_token_id = refresh_token.access_tokens[0].id
-            access_token = access_tokens_api.access_token_get(access_token_id,
-                                                              session=session)
-
-            access_token.refresh_tokens.remove(refresh_token)
-            session.add(access_token)
-            api_base.entity_hard_delete(models.RefreshToken, refresh_token_id)
+            session.delete(refresh_token)
 
 
 def refresh_token_delete_by_token(refresh_token):
