@@ -16,8 +16,8 @@
 from sqlalchemy import distinct
 
 from storyboard.db.api import base as api_base
-import storyboard.db.api.timeline_events as timeline_api
 from storyboard.db import models
+from storyboard.db.models import TimeLineEvent
 
 SUPPORTED_TYPES = {
     'project': models.Project,
@@ -64,7 +64,7 @@ def subscription_delete(subscription_id):
         api_base.entity_hard_delete(models.Subscription, subscription_id)
 
 
-def subscription_get_all_subscriber_ids(resource, resource_id):
+def subscription_get_all_subscriber_ids(resource, resource_id, session=None):
     '''Test subscription discovery. The tested algorithm is as follows:
 
     If you're subscribed to a project_group, you will be notified about
@@ -93,7 +93,9 @@ def subscription_get_all_subscriber_ids(resource, resource_id):
     # If we accidentally pass a timeline_event, we're actually going to treat
     # it as a story.
     if resource == 'timeline_event':
-        event = timeline_api.event_get(resource_id)
+        event = api_base.entity_get(TimeLineEvent,
+                                    resource_id,
+                                    session=session)
         if event:
             resource = 'story'
             resource_id = event.story_id
@@ -111,14 +113,14 @@ def subscription_get_all_subscriber_ids(resource, resource_id):
     # resource id remains pristine.
     if resource == 'story':
         # Get this story's tasks
-        query = api_base.model_query(models.Task.id) \
+        query = api_base.model_query(models.Task.id, session=session) \
             .filter(models.Task.story_id.in_(affected['story']))
 
         affected['task'] = affected['task'] \
-            .union(r for (r, ) in query.all())
+            .union(r for (r,) in query.all())
     elif resource == 'task':
         # Get this tasks's story
-        query = api_base.model_query(models.Task.story_id) \
+        query = api_base.model_query(models.Task.story_id, session=session) \
             .filter(models.Task.id == resource_id)
 
         affected['story'].add(query.first().story_id)
@@ -126,32 +128,34 @@ def subscription_get_all_subscriber_ids(resource, resource_id):
     # If there are tasks, there will also be projects.
     if affected['task']:
         # Get all the tasks's projects
-        query = api_base.model_query(distinct(models.Task.project_id)) \
+        query = api_base.model_query(distinct(models.Task.project_id),
+                                     session=session) \
             .filter(models.Task.id.in_(affected['task']))
 
         affected['project'] = affected['project'] \
-            .union(r for (r, ) in query.all())
+            .union(r for (r,) in query.all())
 
     # If there are projects, there will also be project groups.
     if affected['project']:
         # Get all the projects' groups.
         query = api_base.model_query(
-            distinct(models.project_group_mapping.c.project_group_id)) \
+            distinct(models.project_group_mapping.c.project_group_id),
+            session=session) \
             .filter(models.project_group_mapping.c.project_id
                     .in_(affected['project']))
 
         affected['project_group'] = affected['project_group'] \
-            .union(r for (r, ) in query.all())
+            .union(r for (r,) in query.all())
 
     # Load all subscribers.
     subscribers = set()
     for affected_type in affected:
         query = api_base.model_query(distinct(
-            models.Subscription.user_id)) \
+            models.Subscription.user_id), session=session) \
             .filter(models.Subscription.target_type == affected_type) \
             .filter(models.Subscription.target_id.in_(affected[affected_type]))
 
         results = query.all()
-        subscribers = subscribers.union(r for (r, ) in results)
+        subscribers = subscribers.union(r for (r,) in results)
 
     return subscribers

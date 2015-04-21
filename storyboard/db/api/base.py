@@ -188,7 +188,7 @@ def entity_get(kls, entity_id, filter_non_public=False, session=None):
 
 
 def entity_get_all(kls, filter_non_public=False, marker=None, limit=None,
-                   sort_field='id', sort_dir='asc', **kwargs):
+                   sort_field='id', sort_dir='asc', session=None, **kwargs):
     # Sanity checks, in case someone accidentally explicitly passes in 'None'
     if not sort_field:
         sort_field = 'id'
@@ -196,7 +196,7 @@ def entity_get_all(kls, filter_non_public=False, marker=None, limit=None,
         sort_dir = 'asc'
 
     # Construct the query
-    query = model_query(kls)
+    query = model_query(kls, session)
 
     # Sanity check on input parameters
     query = apply_query_filters(query=query, model=kls, **kwargs)
@@ -229,9 +229,9 @@ def entity_get_all(kls, filter_non_public=False, marker=None, limit=None,
     return entities
 
 
-def entity_get_count(kls, **kwargs):
+def entity_get_count(kls, session=None, **kwargs):
     # Construct the query
-    query = model_query(kls)
+    query = model_query(kls, session)
 
     # Sanity check on input parameters
     query = apply_query_filters(query=query, model=kls, **kwargs)
@@ -329,8 +329,9 @@ def entity_update(kls, entity_id, values, session=None):
     return entity
 
 
-def entity_hard_delete(kls, entity_id):
-    session = get_session()
+def entity_hard_delete(kls, entity_id, session=None):
+    if not session:
+        session = get_session()
 
     try:
         with session.begin(subtransactions=True):
