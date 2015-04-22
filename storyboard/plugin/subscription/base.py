@@ -28,12 +28,14 @@ class Subscription(WorkerTaskBase):
         """
         return True
 
-    def handle(self, author_id, method, path, status, resource, resource_id,
+    def handle(self, session, author_id, method, path, status, resource,
+               resource_id,
                sub_resource=None, sub_resource_id=None,
                resource_before=None, resource_after=None):
         """This worker handles API events and attempts to determine whether
         they correspond to user subscriptions.
 
+        :param session: An event-specific SQLAlchemy session.
         :param author_id: ID of the author's user record.
         :param method: The HTTP Method.
         :param path: The full HTTP Path requested.
@@ -45,34 +47,26 @@ class Subscription(WorkerTaskBase):
         :param resource_before: The resource state before this event occurred.
         :param resource_after: The resource state after this event occurred.
         """
-        session = db_api.get_session(in_request=False, autocommit=False)
+        if resource == 'timeline_event':
+            event = db_api.entity_get(models.TimeLineEvent, resource_id,
+                                      session=session)
+            subscribers = sub_api.subscription_get_all_subscriber_ids(
+                'story', event.story_id, session=session)
+            self.handle_timeline_events(session, event, author_id,
+                                        subscribers)
 
-        try:
-            if resource == 'timeline_event':
-                event = db_api.entity_get(models.TimeLineEvent, resource_id,
-                                          session=session)
-                subscribers = sub_api.subscription_get_all_subscriber_ids(
-                    'story', event.story_id, session=session)
-                self.handle_timeline_events(session, event, author_id,
-                                            subscribers)
+        elif resource == 'project_group':
+            subscribers = sub_api.subscription_get_all_subscriber_ids(
+                resource, resource_id, session=session)
+            self.handle_resources(session=session,
+                                  method=method,
+                                  resource_id=resource_id,
+                                  sub_resource_id=sub_resource_id,
+                                  author_id=author_id,
+                                  subscribers=subscribers)
 
-            elif resource == 'project_group':
-                subscribers = sub_api.subscription_get_all_subscriber_ids(
-                    resource, resource_id, session=session)
-                self.handle_resources(session=session,
-                                      method=method,
-                                      resource_id=resource_id,
-                                      sub_resource_id=sub_resource_id,
-                                      author_id=author_id,
-                                      subscribers=subscribers)
-
-            if method == 'DELETE' and not sub_resource_id:
-                self.handle_deletions(session, resource, resource_id)
-
-            session.commit()
-            session.flush()
-        except Exception:
-            session.rollback()
+        if method == 'DELETE' and not sub_resource_id:
+            self.handle_deletions(session, resource, resource_id)
 
     def handle_deletions(self, session, resource_name, resource_id):
         target_subs = []

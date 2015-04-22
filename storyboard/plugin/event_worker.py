@@ -20,6 +20,8 @@ from oslo_log import log
 from threading import Timer
 
 from oslo.config import cfg
+
+import storyboard.db.api.base as db_api
 from storyboard.notifications.subscriber import subscribe
 from storyboard.openstack.common.gettextutils import _LI, _LW  # noqa
 from storyboard.plugin.base import PluginBase
@@ -159,12 +161,35 @@ class WorkerTaskBase(PluginBase):
 
     __metaclass__ = abc.ABCMeta
 
+    def event(self, author_id, method, path, status, resource, resource_id,
+              sub_resource=None, sub_resource_id=None,
+              resource_before=None, resource_after=None):
+        """Handle an event.
+
+        A database session is created, and passed to the abstract method.
+        """
+        session = db_api.get_session(in_request=False, autocommit=False)
+
+        with session.begin(subtransactions=True):
+            self.handle(session=session,
+                        author_id=author_id,
+                        method=method,
+                        path=path,
+                        status=status,
+                        resource=resource,
+                        resource_id=resource_id,
+                        sub_resource=sub_resource,
+                        sub_resource_id=sub_resource_id,
+                        resource_before=resource_before,
+                        resource_after=resource_after)
+
     @abc.abstractmethod
-    def handle(self, author_id, method, path, status, resource, resource_id,
-               sub_resource=None, sub_resource_id=None,
+    def handle(self, session, author_id, method, path, status, resource,
+               resource_id, sub_resource=None, sub_resource_id=None,
                resource_before=None, resource_after=None):
         """Handle an event.
 
+        :param session: An event-specific SQLAlchemy session.
         :param author_id: ID of the author's user record.
         :param method: The HTTP Method.
         :param path: The full HTTP Path requested.

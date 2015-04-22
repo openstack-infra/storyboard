@@ -72,16 +72,16 @@ def handle_event(ext, body):
     :return: The result of the handler.
     """
     payload = json.loads(body)
-    return ext.obj.handle(author_id=payload['author_id'] or None,
-                          method=payload['method'] or None,
-                          path=payload['path'] or None,
-                          status=payload['status'] or None,
-                          resource=payload['resource'] or None,
-                          resource_id=payload['resource_id'] or None,
-                          sub_resource=payload['sub_resource'] or None,
-                          sub_resource_id=payload['sub_resource_id'] or None,
-                          resource_before=payload['resource_before'] or None,
-                          resource_after=payload['resource_after'] or None)
+    return ext.obj.event(author_id=payload['author_id'] or None,
+                         method=payload['method'] or None,
+                         path=payload['path'] or None,
+                         status=payload['status'] or None,
+                         resource=payload['resource'] or None,
+                         resource_id=payload['resource_id'] or None,
+                         sub_resource=payload['sub_resource'] or None,
+                         sub_resource_id=payload['sub_resource_id'] or None,
+                         resource_before=payload['resource_before'] or None,
+                         resource_after=payload['resource_after'] or None)
 
 
 def check_enabled(ext):
