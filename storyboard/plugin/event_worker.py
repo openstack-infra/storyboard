@@ -22,6 +22,7 @@ from threading import Timer
 from oslo.config import cfg
 
 import storyboard.db.api.base as db_api
+import storyboard.db.models as models
 from storyboard.notifications.subscriber import subscribe
 from storyboard.openstack.common.gettextutils import _LI, _LW  # noqa
 from storyboard.plugin.base import PluginBase
@@ -171,8 +172,13 @@ class WorkerTaskBase(PluginBase):
         session = db_api.get_session(in_request=False, autocommit=False)
 
         with session.begin(subtransactions=True):
+
+            author = db_api.entity_get(models.User,
+                                       author_id,
+                                       session=session)
+
             self.handle(session=session,
-                        author_id=author_id,
+                        author=author,
                         method=method,
                         path=path,
                         status=status,
@@ -184,13 +190,13 @@ class WorkerTaskBase(PluginBase):
                         resource_after=resource_after)
 
     @abc.abstractmethod
-    def handle(self, session, author_id, method, path, status, resource,
+    def handle(self, session, author, method, path, status, resource,
                resource_id, sub_resource=None, sub_resource_id=None,
                resource_before=None, resource_after=None):
         """Handle an event.
 
         :param session: An event-specific SQLAlchemy session.
-        :param author_id: ID of the author's user record.
+        :param author: The author's user record.
         :param method: The HTTP Method.
         :param path: The full HTTP Path requested.
         :param status: The returned HTTP Status of the response.

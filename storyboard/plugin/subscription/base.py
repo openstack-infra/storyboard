@@ -28,15 +28,14 @@ class Subscription(WorkerTaskBase):
         """
         return True
 
-    def handle(self, session, author_id, method, path, status, resource,
-               resource_id,
-               sub_resource=None, sub_resource_id=None,
+    def handle(self, session, author, method, path, status, resource,
+               resource_id, sub_resource=None, sub_resource_id=None,
                resource_before=None, resource_after=None):
         """This worker handles API events and attempts to determine whether
         they correspond to user subscriptions.
 
         :param session: An event-specific SQLAlchemy session.
-        :param author_id: ID of the author's user record.
+        :param author: The author's user record.
         :param method: The HTTP Method.
         :param path: The full HTTP Path requested.
         :param status: The returned HTTP Status of the response.
@@ -52,8 +51,7 @@ class Subscription(WorkerTaskBase):
                                       session=session)
             subscribers = sub_api.subscription_get_all_subscriber_ids(
                 'story', event.story_id, session=session)
-            self.handle_timeline_events(session, event, author_id,
-                                        subscribers)
+            self.handle_timeline_events(session, event, author, subscribers)
 
         elif resource == 'project_group':
             subscribers = sub_api.subscription_get_all_subscriber_ids(
@@ -62,7 +60,7 @@ class Subscription(WorkerTaskBase):
                                   method=method,
                                   resource_id=resource_id,
                                   sub_resource_id=sub_resource_id,
-                                  author_id=author_id,
+                                  author=author,
                                   subscribers=subscribers)
 
         if method == 'DELETE' and not sub_resource_id:
@@ -87,7 +85,7 @@ class Subscription(WorkerTaskBase):
                                       sub_id,
                                       session=session)
 
-    def handle_timeline_events(self, session, event, author_id, subscribers):
+    def handle_timeline_events(self, session, event, author, subscribers):
 
         for user_id in subscribers:
             if event.event_type == 'user_comment':
@@ -99,14 +97,14 @@ class Subscription(WorkerTaskBase):
                 event_info = event.event_info
 
             db_api.entity_create(models.SubscriptionEvents, {
-                "author_id": author_id,
+                "author_id": author.id,
                 "subscriber_id": user_id,
                 "event_type": event.event_type,
                 "event_info": event_info
             }, session=session)
 
     def handle_resources(self, session, method, resource_id, sub_resource_id,
-                         author_id, subscribers):
+                         author, subscribers):
 
         if sub_resource_id:
 
@@ -123,7 +121,7 @@ class Subscription(WorkerTaskBase):
                                              'project_id': sub_resource_id})
 
                 db_api.entity_create(models.SubscriptionEvents, {
-                    "author_id": author_id,
+                    "author_id": author.id,
                     "subscriber_id": user_id,
                     "event_type": event_type,
                     "event_info": event_info
@@ -134,7 +132,7 @@ class Subscription(WorkerTaskBase):
                 # Handling project_group targeted.
                 for user_id in subscribers:
                     db_api.entity_create(models.SubscriptionEvents, {
-                        "author_id": author_id,
+                        "author_id": author.id,
                         "subscriber_id": user_id,
                         "event_type": 'project_group deleted',
                         "event_info": json.dumps(
