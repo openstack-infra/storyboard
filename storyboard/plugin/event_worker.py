@@ -12,6 +12,7 @@
 # implied. See the License for the specific language governing permissions and
 # limitations under the License.
 
+import abc
 import signal
 
 from multiprocessing import Process
@@ -21,7 +22,7 @@ from threading import Timer
 from oslo.config import cfg
 from storyboard.notifications.subscriber import subscribe
 from storyboard.openstack.common.gettextutils import _LI, _LW  # noqa
-
+from storyboard.plugin.base import PluginBase
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
@@ -34,7 +35,7 @@ IMPORT_OPTS = [
 ]
 
 
-def run():
+def run_daemon():
     """Start the daemon manager.
     """
     global MANAGER
@@ -151,3 +152,27 @@ class PerpetualTimer():
 
     def cancel(self):
         self.thread.cancel()
+
+
+class WorkerTaskBase(PluginBase):
+    """Base class for a worker that listens to API Events."""
+
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractmethod
+    def handle(self, author_id, method, path, status, resource, resource_id,
+               sub_resource=None, sub_resource_id=None,
+               resource_before=None, resource_after=None):
+        """Handle an event.
+
+        :param author_id: ID of the author's user record.
+        :param method: The HTTP Method.
+        :param path: The full HTTP Path requested.
+        :param status: The returned HTTP Status of the response.
+        :param resource: The resource type.
+        :param resource_id: The ID of the resource.
+        :param sub_resource: The subresource type.
+        :param sub_resource_id: The ID of the subresource.
+        :param resource_before: The resource state before this event occurred.
+        :param resource_after: The resource state after this event occurred.
+        """

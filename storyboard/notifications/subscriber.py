@@ -44,7 +44,7 @@ def subscribe():
     subscriber.start()
 
     manager = enabled.EnabledExtensionManager(
-        namespace='storyboard.worker.task',
+        namespace='storyboard.plugin.worker',
         check_func=check_enabled,
         invoke_on_load=True,
         invoke_args=(CONF,)

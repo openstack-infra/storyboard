@@ -17,7 +17,7 @@ import json
 import storyboard.db.api.base as db_api
 from storyboard.db.api import subscriptions as sub_api
 import storyboard.db.models as models
-from storyboard.worker.task.base import WorkerTaskBase
+from storyboard.plugin.event_worker import WorkerTaskBase
 
 
 class Subscription(WorkerTaskBase):

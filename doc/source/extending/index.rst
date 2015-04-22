@@ -23,7 +23,7 @@ setup.cfg file. For example::
     [entry_points]
     storyboard.plugin.user_preferences =
          my-plugin-config = my.namespace.plugin:UserPreferences
-    storyboard.worker.task =
+    storyboard.plugin.worker =
          my-plugin-worker = my.namespace.plugin:EventWorker
     storyboard.plugin.cron =
          my-plugin-cron = my.namespace.plugin:CronWorker
@@ -89,7 +89,7 @@ and your plugin can decide how to process each event in an asynchronous
 thread which will not impact the stability of the API::
 
     [entry_points]
-    storyboard.worker.task =
+    storyboard.plugin.worker =
          my-plugin-worker = my.namespace.plugin:EventWorker
 
 To learn how to write a user preference plugin, please contribute to this
