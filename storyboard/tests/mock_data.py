@@ -26,6 +26,7 @@ from storyboard.db.models import ProjectGroup
 from storyboard.db.models import Story
 from storyboard.db.models import Subscription
 from storyboard.db.models import Task
+from storyboard.db.models import Team
 from storyboard.db.models import TimeLineEvent
 from storyboard.db.models import User
 
@@ -319,12 +320,26 @@ def load():
     # Load some milestones
     load_data([
         Milestone(
+            id=1,
             name='test_milestone_01',
             branch_id=1
         ),
         Milestone(
+            id=2,
             name='test_milestone_02',
             branch_id=2
+        )
+    ])
+
+    # Load some teams
+    load_data([
+        Team(
+            id=1,
+            name='test_team_1'
+        ),
+        Team(
+            id=2,
+            name='test_team_2'
         )
     ])
 

@@ -13,16 +13,15 @@
 # limitations under the License.
 
 import abc
-import signal
-
 from multiprocessing import Process
-from oslo_log import log
+import signal
 from threading import Timer
 
 from oslo.config import cfg
+from oslo_log import log
 
 import storyboard.db.api.base as db_api
-import storyboard.db.models as models
+from storyboard.notifications.notification_hook import class_mappings
 from storyboard.notifications.subscriber import subscribe
 from storyboard.openstack.common.gettextutils import _LI, _LW  # noqa
 from storyboard.plugin.base import PluginBase
@@ -172,10 +171,7 @@ class WorkerTaskBase(PluginBase):
         session = db_api.get_session(in_request=False, autocommit=False)
 
         with session.begin(subtransactions=True):
-
-            author = db_api.entity_get(models.User,
-                                       author_id,
-                                       session=session)
+            author = self.resolve_resource_by_name(session, 'user', author_id)
 
             self.handle(session=session,
                         author=author,
@@ -188,6 +184,13 @@ class WorkerTaskBase(PluginBase):
                         sub_resource_id=sub_resource_id,
                         resource_before=resource_before,
                         resource_after=resource_after)
+
+    def resolve_resource_by_name(self, session, resource_name, resource_id):
+        if resource_name not in class_mappings:
+            return None
+
+        klass = class_mappings[resource_name][0]
+        return db_api.entity_get(klass, resource_id, session=session)
 
     @abc.abstractmethod
     def handle(self, session, author, method, path, status, resource,
