@@ -15,7 +15,7 @@
 
 import uuid
 
-from oslo.config import cfg
+from oslo_config import cfg
 from oslo_log import log
 from pecan import abort
 from pecan import request

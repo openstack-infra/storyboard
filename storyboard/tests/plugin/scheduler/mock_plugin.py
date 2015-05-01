@@ -15,7 +15,7 @@
 import datetime
 
 from apscheduler.triggers.date import DateTrigger
-from oslo.config import cfg
+from oslo_config import cfg
 
 import storyboard.plugin.scheduler.base as plugin_base
 

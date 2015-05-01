@@ -17,7 +17,7 @@ import datetime
 from apscheduler.triggers.date import DateTrigger
 
 from apscheduler.triggers.interval import IntervalTrigger
-from oslo.config import cfg
+from oslo_config import cfg
 from stevedore.extension import Extension
 
 from plugin.scheduler.mock_plugin import MockPlugin

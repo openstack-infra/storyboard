@@ -18,7 +18,7 @@ import six
 import time
 import uuid
 
-from oslo.config import cfg
+from oslo_config import cfg
 from oslo_log import log
 
 from storyboard.plugin.email import get_email_directory

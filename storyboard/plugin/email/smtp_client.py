@@ -14,7 +14,7 @@
 
 import smtplib
 
-from oslo.config import cfg
+from oslo_config import cfg
 from oslo_log import log
 
 CONF = cfg.CONF

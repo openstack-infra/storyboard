@@ -16,7 +16,7 @@
 from datetime import datetime
 import pytz
 
-from oslo.config import cfg
+from oslo_config import cfg
 from pecan import abort
 from pecan import response
 from pecan import rest

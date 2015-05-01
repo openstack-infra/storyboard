@@ -16,7 +16,7 @@ from datetime import datetime
 from datetime import timedelta
 import pytz
 
-from oslo.config import cfg
+from oslo_config import cfg
 import storyboard.db.api.base as db_api
 from storyboard.db.models import AccessToken
 from storyboard.db.models import RefreshToken

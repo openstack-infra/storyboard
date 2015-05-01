@@ -15,7 +15,7 @@
 
 import os
 
-from oslo.config import cfg
+from oslo_config import cfg
 from oslo_log import _options
 from oslo_log import log
 import pecan

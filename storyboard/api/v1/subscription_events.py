@@ -14,7 +14,7 @@
 # limitations under the License.
 
 
-from oslo.config import cfg
+from oslo_config import cfg
 from pecan import abort
 from pecan import request
 from pecan import response

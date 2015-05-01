@@ -22,7 +22,7 @@ import pytz
 import six
 import six.moves.urllib.parse as urlparse
 
-from oslo.config import cfg
+from oslo_config import cfg
 from oslo_db.sqlalchemy import models
 from sqlalchemy import Boolean
 from sqlalchemy import Column

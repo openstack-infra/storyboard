@@ -16,7 +16,7 @@
 import warnings
 import yaml
 
-from oslo.config import cfg
+from oslo_config import cfg
 from oslo_log import log
 import six
 from sqlalchemy.exc import SADeprecationWarning

@@ -16,7 +16,7 @@ import os
 import shutil
 import stat
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 import storyboard.common.working_dir as working_dir
 import storyboard.tests.base as base

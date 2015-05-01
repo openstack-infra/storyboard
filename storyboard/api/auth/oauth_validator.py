@@ -18,7 +18,7 @@ import pytz
 
 from oauthlib.oauth2 import RequestValidator
 from oauthlib.oauth2 import WebApplicationServer
-from oslo.config import cfg
+from oslo_config import cfg
 from oslo_log import log
 
 from storyboard.db.api import access_tokens as token_api

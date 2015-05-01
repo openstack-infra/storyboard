@@ -28,7 +28,7 @@ import os
 from alembic import command
 from alembic import config as alembic_config
 from alembic import migration
-from oslo.config import cfg
+from oslo_config import cfg
 from oslo_log import log as logging
 import six
 from six.moves import configparser
@@ -308,7 +308,7 @@ class BaseWalkMigrationTestCase(BaseMigrationTestCase):
         """For each type of repository we should do some of configure steps.
         For migrate_repo we should set under version control our database.
         For alembic we should configure database settings. For this goal we
-        should use oslo.config and openstack.commom.db.sqlalchemy.session with
+        should use oslo_config and openstack.commom.db.sqlalchemy.session with
         database functionality (reset default settings and session cleanup).
         """
         CONF.set_override('connection', six.text_type(engine.url),

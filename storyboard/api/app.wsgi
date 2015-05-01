@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from storyboard.api import app
-from oslo.config import cfg
+from oslo_config import cfg
 
 CONF = cfg.CONF
 

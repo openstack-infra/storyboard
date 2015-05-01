@@ -15,7 +15,7 @@
 import atexit
 import six
 
-from oslo.config import cfg
+from oslo_config import cfg
 from oslo_log import log
 from pytz import utc
 

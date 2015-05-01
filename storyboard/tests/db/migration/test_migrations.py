@@ -37,7 +37,7 @@ postgres=# create database openstack_citest with owner openstack_citest;
 
 """
 
-from oslo.config import cfg
+from oslo_config import cfg
 from oslo_db.sqlalchemy import utils as db_utils
 
 from storyboard.tests.db.migration import test_migrations_base as base

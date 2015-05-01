@@ -26,7 +26,7 @@ import threading
 import time
 import weakref
 
-from oslo.config import cfg
+from oslo_config import cfg
 from oslo_log import log as logging
 
 from storyboard.openstack.common import fileutils

@@ -12,7 +12,7 @@
 # implied. See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 import storyboard.common.hook_priorities as priority
 import storyboard.tests.base as base

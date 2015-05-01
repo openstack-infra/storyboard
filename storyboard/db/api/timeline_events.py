@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import json
-from oslo.config import cfg
+from oslo_config import cfg
 from pecan import request
 from pecan import response
 from wsme.rest.json import tojson

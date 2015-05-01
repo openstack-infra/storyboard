@@ -15,7 +15,7 @@
 
 import copy
 
-from oslo.config import cfg
+from oslo_config import cfg
 from oslo_db import exception as db_exc
 from oslo_db.sqlalchemy import session as db_session
 from oslo_db.sqlalchemy.utils import InvalidSortKey

@@ -17,7 +17,7 @@ from multiprocessing import Process
 import signal
 from threading import Timer
 
-from oslo.config import cfg
+from oslo_config import cfg
 from oslo_log import log
 
 import storyboard.db.api.base as db_api

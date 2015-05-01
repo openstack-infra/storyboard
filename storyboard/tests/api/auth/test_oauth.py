@@ -19,7 +19,7 @@ import requests
 import uuid
 
 from mock import patch
-from oslo.config import cfg
+from oslo_config import cfg
 import six
 import six.moves.urllib.parse as urlparse
 

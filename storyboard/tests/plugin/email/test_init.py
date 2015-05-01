@@ -15,7 +15,7 @@
 import os
 import stat
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 from storyboard.plugin.email import get_email_directory
 from storyboard.tests import base

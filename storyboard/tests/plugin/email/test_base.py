@@ -17,7 +17,7 @@ import shutil
 import smtplib
 import stat
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 import mock_smtp as mock
 from storyboard.plugin.email.base import EmailPluginBase

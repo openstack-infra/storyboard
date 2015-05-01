@@ -20,7 +20,7 @@ import re
 import six
 import uuid
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 from storyboard.plugin.email.factory import EmailFactory
 from storyboard.plugin.email.outbox import get_outbox

@@ -22,7 +22,7 @@ import uuid
 
 from alembic import command
 import fixtures
-from oslo.config import cfg
+from oslo_config import cfg
 from oslo_log import log as logging
 import pecan
 import pecan.testing
