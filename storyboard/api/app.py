@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-# http://www.apache.org/licenses/LICENSE-2.0
+#    http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,8 +23,6 @@ from wsgiref import simple_server
 
 from storyboard.api import config as api_config
 from storyboard.api.middleware.cors_middleware import CORSMiddleware
-
-from storyboard.api.middleware import redirect_middleware
 from storyboard.api.middleware import session_hook
 from storyboard.api.middleware import token_middleware
 from storyboard.api.middleware import user_id_hook
@@ -53,11 +51,8 @@ API_OPTS = [
                default=8080,
                help='API port'),
     cfg.BoolOpt('enable_notifications',
-                default=False,
-                help='Enable Notifications'),
-    cfg.StrOpt('default_client_url',
-               default='https://storyboard.openstack.org/#!',
-               help='The URL of the default web client.')
+               default=False,
+               help='Enable Notifications')
 ]
 CORS_OPTS = [
     cfg.ListOpt('allowed_origins',
@@ -120,8 +115,6 @@ def setup_app(pecan_config=None):
     )
 
     app = token_middleware.AuthTokenMiddleware(app)
-    app = redirect_middleware. \
-        BrowserRedirectMiddleware(app, client_root_url=CONF.default_client_url)
 
     # Setup CORS
     if CONF.cors.allowed_origins:
@@ -157,7 +150,7 @@ def start():
             % ({'port': port}))
     else:
         LOG.info(_LI("serving on http://%(host)s:%(port)s") % (
-            {'host': host, 'port': port}))
+                 {'host': host, 'port': port}))
 
     srv.serve_forever()
 

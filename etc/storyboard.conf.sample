@@ -37,12 +37,6 @@ lock_path = $state_path/lock
 # Port the bind the API server to
 # bind_port = 8080
 
-# The default web client. This is the URL to which a client, presenting an
-# Accepts: text/html header, will be redirected to when browsing the API. It
-# is also used for email URL resolution, so we highly recommend that you set
-# this to the host and protocol of your own storyboard server.
-# default_client_url = https://storyboard.openstack.org/#!
-
 # Enable notifications. This feature drives deferred processing, reporting,
 # and subscriptions.
 # enable_notifications = True
