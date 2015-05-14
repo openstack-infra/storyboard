@@ -18,7 +18,7 @@ Source code can be found at:
 
 Documentation can be found here:
 
-  http://ci.openstack.org/storyboard/
+  http://docs.openstack.org/infra/storyboard/
 
 Additional resources are linked from the project wiki page:
 
