@@ -56,8 +56,8 @@ def story_get(story_id, session=None):
 
 def story_get_all(title=None, description=None, status=None, assignee_id=None,
                   project_group_id=None, project_id=None, tags=None,
-                  marker=None, limit=None, tags_filter_type="all",
-                  sort_field='id', sort_dir='asc'):
+                  marker=None, offset=None, limit=None,
+                  tags_filter_type="all", sort_field='id', sort_dir='asc'):
     # Sanity checks, in case someone accidentally explicitly passes in 'None'
     if not sort_field:
         sort_field = 'id'
@@ -86,12 +86,12 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
         query = query.filter(models.StorySummary.status.in_(status))
 
     # paginate the query
-
     query = api_base.paginate_query(query=query,
                                     model=models.StorySummary,
                                     limit=limit,
                                     sort_key=sort_field,
                                     marker=marker,
+                                    offset=offset,
                                     sort_dir=sort_dir)
 
     raw_stories = query.all()

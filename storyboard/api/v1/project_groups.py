@@ -115,13 +115,14 @@ class ProjectGroupsController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.ProjectGroup], int, int, wtypes.text,
+    @wsme_pecan.wsexpose([wmodels.ProjectGroup], int, int, int, wtypes.text,
                          wtypes.text, wtypes.text, wtypes.text)
-    def get(self, marker=None, limit=None, name=None, title=None,
+    def get(self, marker=None, offset=None, limit=None, name=None, title=None,
             sort_field='id', sort_dir='asc'):
         """Retrieve a list of projects groups.
 
         :param marker: The resource id where the page should begin.
+        :param offset: The offset to start the page at.
         :param limit: The number of project groups to retrieve.
         :param name: A string to filter the name by.
         :param title: A string to filter the title by.
@@ -133,9 +134,12 @@ class ProjectGroupsController(rest.RestController):
             limit = max(0, limit)
 
         # Resolve the marker record.
-        marker_group = project_groups.project_group_get(marker)
+        marker_group = None
+        if marker is not None:
+            marker_group = project_groups.project_group_get(marker)
 
         groups = project_groups.project_group_get_all(marker=marker_group,
+                                                      offset=offset,
                                                       limit=limit,
                                                       name=name,
                                                       title=title,
@@ -151,6 +155,8 @@ class ProjectGroupsController(rest.RestController):
         response.headers['X-Total'] = str(group_count)
         if marker_group:
             response.headers['X-Marker'] = str(marker_group.id)
+        if offset is not None:
+            response.headers['X-Offset'] = str(offset)
 
         return [wmodels.ProjectGroup.from_db_model(group) for group in groups]
 

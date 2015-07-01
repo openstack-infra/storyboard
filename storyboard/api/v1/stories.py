@@ -69,12 +69,12 @@ class StoriesController(rest.RestController):
     @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Story], wtypes.text, wtypes.text,
-                         [wtypes.text], int, int, int, [wtypes.text], int, int,
-                         wtypes.text, wtypes.text, wtypes.text)
+                         [wtypes.text], int, int, int, [wtypes.text], int,
+                         int, int, wtypes.text, wtypes.text, wtypes.text)
     def get_all(self, title=None, description=None, status=None,
                 assignee_id=None, project_group_id=None, project_id=None,
-                tags=None, marker=None, limit=None, tags_filter_type='all',
-                sort_field='id', sort_dir='asc'):
+                tags=None, marker=None, offset=None, limit=None,
+                tags_filter_type='all', sort_field='id', sort_dir='asc'):
         """Retrieve definitions of all of the stories.
 
         :param title: A string to filter the title by.
@@ -85,6 +85,7 @@ class StoriesController(rest.RestController):
         :param project_id: Filter stories by project ID.
         :param tags: A list of tags to filter by.
         :param marker: The resource id where the page should begin.
+        :param offset: The offset to start the page at.
         :param limit: The number of stories to retrieve.
         :param tags_filter_type: Type of tags filter.
         :param sort_field: The name of the field to sort on.
@@ -96,7 +97,9 @@ class StoriesController(rest.RestController):
             limit = max(0, limit)
 
         # Resolve the marker record.
-        marker_story = stories_api.story_get(marker)
+        marker_story = None
+        if marker:
+            marker_story = stories_api.story_get(marker)
 
         stories = stories_api \
             .story_get_all(title=title,
@@ -107,6 +110,7 @@ class StoriesController(rest.RestController):
                            project_id=project_id,
                            tags=tags,
                            marker=marker_story,
+                           offset=offset,
                            tags_filter_type=tags_filter_type,
                            limit=limit, sort_field=sort_field,
                            sort_dir=sort_dir)
@@ -126,6 +130,8 @@ class StoriesController(rest.RestController):
         response.headers['X-Total'] = str(story_count)
         if marker_story:
             response.headers['X-Marker'] = str(marker_story.id)
+        if offset is not None:
+            response.headers['X-Offset'] = str(offset)
 
         return [wmodels.Story.from_db_model(s) for s in stories]
 

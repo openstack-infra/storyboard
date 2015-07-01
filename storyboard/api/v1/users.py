@@ -57,13 +57,14 @@ class UsersController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.User], int, int, wtypes.text, wtypes.text,
-                         wtypes.text, wtypes.text)
-    def get(self, marker=None, limit=None, full_name=None,
+    @wsme_pecan.wsexpose([wmodels.User], int, int, int, wtypes.text,
+                         wtypes.text, wtypes.text, wtypes.text)
+    def get(self, marker=None, offset=None, limit=None, full_name=None,
             sort_field='id', sort_dir='asc'):
         """Page and filter the users in storyboard.
 
         :param marker: The resource id where the page should begin.
+        :param offset: The offset to start the page at.
         :param limit: The number of users to retrieve.
         :param username: A string of characters to filter the username with.
         :param full_name: A string of characters to filter the full_name with.
@@ -76,9 +77,13 @@ class UsersController(rest.RestController):
             limit = max(0, limit)
 
         # Resolve the marker record.
-        marker_user = users_api.user_get(marker)
+        marker_user = None
+        if marker is not None:
+            marker_user = users_api.user_get(marker)
 
-        users = users_api.user_get_all(marker=marker_user, limit=limit,
+        users = users_api.user_get_all(marker=marker_user,
+                                       offset=offset,
+                                       limit=limit,
                                        full_name=full_name,
                                        filter_non_public=True,
                                        sort_field=sort_field,
@@ -91,6 +96,8 @@ class UsersController(rest.RestController):
         response.headers['X-Total'] = str(user_count)
         if marker_user:
             response.headers['X-Marker'] = str(marker_user.id)
+        if offset is not None:
+            response.headers['X-Offset'] = str(offset)
 
         return [wmodels.User.from_db_model(u) for u in users]
 

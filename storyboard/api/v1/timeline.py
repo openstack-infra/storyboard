@@ -64,15 +64,16 @@ class TimeLineEventsController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.TimeLineEvent], int, [wtypes.text], int, int,
-                         wtypes.text, wtypes.text)
+    @wsme_pecan.wsexpose([wmodels.TimeLineEvent], int, [wtypes.text], int,
+                        int, int, wtypes.text, wtypes.text)
     def get_all(self, story_id=None, event_type=None, marker=None,
-                limit=None, sort_field=None, sort_dir=None):
+                offset=None, limit=None, sort_field=None, sort_dir=None):
         """Retrieve all events that have happened under specified story.
 
         :param story_id: Filter events by story ID.
         :param event_type: A selection of event types to get.
         :param marker: The resource id where the page should begin.
+        :param offset: The offset to start the page at.
         :param limit: The number of events to retrieve.
         :param sort_field: The name of the field to sort on.
         :param sort_dir: Sort direction for results (asc, desc).
@@ -92,13 +93,16 @@ class TimeLineEventsController(rest.RestController):
                     abort(400, msg)
 
         # Resolve the marker record.
-        marker_event = events_api.event_get(marker)
+        marker_event = None
+        if marker is not None:
+            marker_event = events_api.event_get(marker)
 
         event_count = events_api.events_get_count(story_id=story_id,
                                                   event_type=event_type)
         events = events_api.events_get_all(story_id=story_id,
                                            event_type=event_type,
                                            marker=marker_event,
+                                           offset=offset,
                                            limit=limit,
                                            sort_field=sort_field,
                                            sort_dir=sort_dir)
@@ -109,6 +113,8 @@ class TimeLineEventsController(rest.RestController):
         response.headers['X-Total'] = str(event_count)
         if marker_event:
             response.headers['X-Marker'] = str(marker_event.id)
+        if offset is not None:
+            response.headers['X-Offset'] = str(offset)
 
         return [wmodels.TimeLineEvent.resolve_event_values(
             wmodels.TimeLineEvent.from_db_model(event)) for event in events]
