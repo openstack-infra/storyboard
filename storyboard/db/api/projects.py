@@ -28,8 +28,8 @@ def project_get_by_name(name):
     return query.filter_by(name=name).first()
 
 
-def project_get_all(marker=None, limit=None, sort_field=None, sort_dir=None,
-                    project_group_id=None, **kwargs):
+def project_get_all(marker=None, offset=None, limit=None, sort_field=None,
+                    sort_dir=None, project_group_id=None, **kwargs):
     # Sanity checks, in case someone accidentally explicitly passes in 'None'
     if not sort_field:
         sort_field = 'id'
@@ -45,6 +45,7 @@ def project_get_all(marker=None, limit=None, sort_field=None, sort_dir=None,
                                     limit=limit,
                                     sort_key=sort_field,
                                     marker=marker,
+                                    offset=offset,
                                     sort_dir=sort_dir)
 
     # Execute the query

@@ -81,13 +81,15 @@ class ProjectsController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.Project], int, int, wtypes.text, wtypes.text,
-                         int, wtypes.text, wtypes.text)
-    def get(self, marker=None, limit=None, name=None, description=None,
-            project_group_id=None, sort_field='id', sort_dir='asc'):
+    @wsme_pecan.wsexpose([wmodels.Project], int, int, int, wtypes.text,
+                         wtypes.text, int, wtypes.text, wtypes.text)
+    def get(self, marker=None, offset=None, limit=None, name=None,
+            description=None, project_group_id=None, sort_field='id',
+            sort_dir='asc'):
         """Retrieve a list of projects.
 
         :param marker: The resource id where the page should begin.
+        :param offset: The offset to start the page at.
         :param limit: The number of projects to retrieve.
         :param name: A string to filter the name by.
         :param description: A string to filter the description by.
@@ -102,10 +104,13 @@ class ProjectsController(rest.RestController):
             limit = max(0, limit)
 
         # Resolve the marker record.
-        marker_project = projects_api.project_get(marker)
+        marker_project = None
+        if marker is not None:
+            marker_project = projects_api.project_get(marker)
 
         projects = \
             projects_api.project_get_all(marker=marker_project,
+                                         offset=offset,
                                          limit=limit,
                                          name=name,
                                          description=description,
@@ -123,6 +128,8 @@ class ProjectsController(rest.RestController):
         response.headers['X-Total'] = str(project_count)
         if marker_project:
             response.headers['X-Marker'] = str(marker_project.id)
+        if offset is not None:
+            response.headers['X-Offset'] = str(offset)
 
         return [wmodels.Project.from_db_model(p) for p in projects]
 
