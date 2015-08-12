@@ -69,18 +69,20 @@ class StoriesController(rest.RestController):
     @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Story], wtypes.text, wtypes.text,
-                         [wtypes.text], int, int, int, [wtypes.text], int,
+                         [wtypes.text], int, int, int, int, [wtypes.text], int,
                          int, int, wtypes.text, wtypes.text, wtypes.text)
     def get_all(self, title=None, description=None, status=None,
-                assignee_id=None, project_group_id=None, project_id=None,
-                tags=None, marker=None, offset=None, limit=None,
-                tags_filter_type='all', sort_field='id', sort_dir='asc'):
+                assignee_id=None, creator_id=None, project_group_id=None,
+                project_id=None, tags=None, marker=None, offset=None,
+                limit=None, tags_filter_type='all', sort_field='id',
+                sort_dir='asc'):
         """Retrieve definitions of all of the stories.
 
         :param title: A string to filter the title by.
         :param description: A string to filter the description by.
         :param status: Only show stories with this particular status.
         :param assignee_id: Filter stories by who they are assigned to.
+        :param creator_id: Filter stories by who created them.
         :param project_group_id: Filter stories by project group.
         :param project_id: Filter stories by project ID.
         :param tags: A list of tags to filter by.
@@ -106,6 +108,7 @@ class StoriesController(rest.RestController):
                            description=description,
                            status=status,
                            assignee_id=assignee_id,
+                           creator_id=creator_id,
                            project_group_id=project_group_id,
                            project_id=project_id,
                            tags=tags,
@@ -119,6 +122,7 @@ class StoriesController(rest.RestController):
                              description=description,
                              status=status,
                              assignee_id=assignee_id,
+                             creator_id=creator_id,
                              project_group_id=project_group_id,
                              project_id=project_id,
                              tags=tags,
