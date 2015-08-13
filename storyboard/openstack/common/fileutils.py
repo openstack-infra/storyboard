@@ -19,7 +19,7 @@ import os
 import tempfile
 
 from oslo_log import log as logging
-from oslo.utils import excutils
+from oslo_utils import excutils
 
 LOG = logging.getLogger(__name__)
 
