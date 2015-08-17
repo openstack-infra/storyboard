@@ -32,7 +32,7 @@ If you choose to go this route, the appropriate configuration values in
     ...
 
     [database]
-    connection = mysql://storyboard:storyboard@127.0.0.1:3306/storyboard
+    connection = mysql+pymysql://storyboard:storyboard@127.0.0.1:3306/storyboard
 
     ...
 
