@@ -507,3 +507,77 @@ class SubscriptionEvents(ModelBuilder, Base):
     event_type = Column(Unicode(CommonLength.top_middle_length),
                         nullable=False)
     event_info = Column(UnicodeText(), nullable=True)
+
+
+# Worklists and boards
+
+class WorklistItem(ModelBuilder, Base):
+    __tablename__ = "worklist_items"
+
+    _ITEM_TYPES = ("story", "task")
+
+    list_id = Column(Integer, ForeignKey('worklists.id'), nullable=False)
+    list_position = Column(Integer, nullable=False)
+    item_type = Column(Enum(*_ITEM_TYPES), nullable=False)
+    item_id = Column(Integer, nullable=False)
+
+    _public_fields = ["id", "list_id", "list_position", "item_type",
+                      "item_id"]
+
+
+class WorklistCriteria(FullText, ModelBuilder, Base):
+    __tablename__ = "worklist_criteria"
+    __fulltext_columns__ = ['title']
+
+    title = Column(Unicode(CommonLength.top_middle_length), nullable=True)
+    list_id = Column(Integer, ForeignKey('worklists.id'), nullable=False)
+    value = Column(Unicode(CommonLength.top_short_length), nullable=False)
+    field = Column(Unicode(CommonLength.top_short_length), nullable=False)
+
+    _public_fields = ["id", "title", "list_id", "value", "field"]
+
+
+class Worklist(FullText, ModelBuilder, Base):
+    __tablename__ = "worklists"
+    __fulltext_columns__ = ['title']
+
+    title = Column(Unicode(CommonLength.top_middle_length), nullable=True)
+    creator_id = Column(Integer, ForeignKey('users.id'))
+    project_id = Column(Integer, ForeignKey('projects.id'))
+    permission_id = Column(Integer, ForeignKey('permissions.id'))
+    private = Column(Boolean, default=False)
+    archived = Column(Boolean, default=False)
+    automatic = Column(Boolean, default=False)
+    items = relationship(WorklistItem)
+    criteria = relationship(WorklistCriteria)
+
+    _public_fields = ["id", "title", "creator_id", "project_id",
+                      "permission_id", "private", "archived", "automatic"]
+
+
+class BoardWorklist(ModelBuilder, Base):
+    __tablename__ = 'board_worklists'
+
+    board_id = Column(Integer, ForeignKey('boards.id'))
+    list_id = Column(Integer, ForeignKey('worklists.id'))
+    position = Column(Integer)
+    worklist = relationship(Worklist)
+
+    _public_fields = ["id", "board_id", "list_id", "position"]
+
+
+class Board(FullText, ModelBuilder, Base):
+    __tablename__ = "boards"
+    __fulltext_columns__ = ['title', 'description']
+
+    title = Column(Unicode(CommonLength.top_middle_length), nullable=False)
+    description = Column(UnicodeText(), nullable=True)
+    creator_id = Column(Integer, ForeignKey('users.id'))
+    project_id = Column(Integer, ForeignKey('projects.id'))
+    permission_id = Column(Integer, ForeignKey('permissions.id'))
+    private = Column(Boolean, default=False)
+    archived = Column(Boolean, default=False)
+    lanes = relationship(BoardWorklist)
+
+    _public_fields = ["id", "title", "description", "creator_id",
+                      "project_id", "permission_id", "private", "archived"]
