@@ -508,3 +508,44 @@ class WorklistItem(base.APIBase):
 
     list_position = int
     """The position of this item in the Worklist."""
+
+
+class Lane(base.APIBase):
+    """Represents a lane in a kanban board."""
+
+    board_id = int
+    """The ID of the board containing the lane."""
+
+    list_id = int
+    """The ID of the worklist which represents the lane."""
+
+    position = int
+    """The position of the lane in the board."""
+
+
+class Board(base.APIBase):
+    """Represents a kanban board made up of worklists."""
+
+    title = wtypes.text
+    """The title of the board."""
+
+    description = wtypes.text
+    """The description of the board."""
+
+    creator_id = int
+    """The ID of the User who created this board."""
+
+    project_id = int
+    """The ID of the Project this board is associated with."""
+
+    permission_id = int
+    """The ID of the Permission which defines who can edit this board."""
+
+    private = bool
+    """A flag to identify whether this is a private or public board."""
+
+    archived = bool
+    """A flag to identify whether or not the board has been archived."""
+
+    lanes = wtypes.ArrayType(Lane)
+    """A list containing the representions of the lanes in this board."""

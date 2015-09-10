@@ -35,7 +35,8 @@ class_mappings = {'task': [models.Task, wmodels.Task],
                   'branch': [models.Branch, wmodels.Branch],
                   'milestone': [models.Milestone, wmodels.Milestone],
                   'tag': [models.StoryTag, wmodels.Tag],
-                  'worklist': [models.Worklist, wmodels.Worklist]}
+                  'worklist': [models.Worklist, wmodels.Worklist],
+                  'board': [models.Board, wmodels.Board]}
 
 
 class NotificationHook(hooks.PecanHook):
@@ -155,6 +156,7 @@ class NotificationHook(hooks.PecanHook):
             'systeminfo': 'systeminfo',
             'openid': 'openid',
             'worklists': 'worklist',
+            'boards': 'board',
 
             # Second level resources
             'comments': 'comment'

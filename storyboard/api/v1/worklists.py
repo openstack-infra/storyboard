@@ -33,7 +33,10 @@ from storyboard.openstack.common.gettextutils import _  # noqa
 CONF = cfg.CONF
 
 
-def visible(worklist, user=None):
+def visible(worklist, user=None, hide_lanes=False):
+    if hide_lanes:
+        if worklists_api.is_lane(worklist):
+            return False
     if not worklist:
         return False
     if user and worklist.private:
@@ -153,23 +156,29 @@ class WorklistsController(rest.RestController):
     @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Worklist], wtypes.text, int, int,
-                         bool, wtypes.text, wtypes.text)
+                         bool, bool, wtypes.text, wtypes.text, int)
     def get_all(self, title=None, creator_id=None, project_id=None,
-                archived=False, sort_field='id', sort_dir='asc'):
+                archived=False, hide_lanes=True, sort_field='id',
+                sort_dir='asc', board_id=None):
         """Retrieve definitions of all of the worklists.
 
         :param title: A string to filter the title by.
         :param creator_id: Filter worklists by their creator.
         :param project_id: Filter worklists by project ID.
         :param archived: Filter worklists by whether they are archived or not.
+        :param hide_lanes: If true, don't return worklists which are lanes in
+        a board.
         :param sort_field: The name of the field to sort on.
         :param sort_dir: Sort direction for results (asc, desc).
+        :param board_id: Get all worklists in the board with this id. Other
+        filters are not applied.
 
         """
         worklists = worklists_api.get_all(title=title,
                                           creator_id=creator_id,
                                           project_id=project_id,
                                           archived=archived,
+                                          board_id=board_id,
                                           sort_field=sort_field,
                                           sort_dir=sort_dir)
 
@@ -177,7 +186,7 @@ class WorklistsController(rest.RestController):
         visible_worklists = [wmodels.Worklist.from_db_model(w)
                              for w in worklists
                              if w.archived == archived
-                             and visible(w, user_id)]
+                             and visible(w, user_id, hide_lanes)]
 
         # Apply the query response headers
         response.headers['X-Total'] = str(len(visible_worklists))
@@ -218,7 +227,8 @@ class WorklistsController(rest.RestController):
         if not editable(worklists_api.get(id), user_id):
             raise exc.NotFound(_("Worklist %s not found") % id)
 
-        updated_worklist = worklists_api.update(id, worklist.as_dict())
+        updated_worklist = worklists_api.update(
+            id, worklist.as_dict(omit_unset=True))
 
         return wmodels.Worklist.from_db_model(updated_worklist)
 

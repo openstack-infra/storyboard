@@ -18,6 +18,7 @@ from wsme.exc import ClientSideError
 
 from storyboard.common import exception as exc
 from storyboard.db.api import base as api_base
+from storyboard.db.api import boards
 from storyboard.db.api import stories
 from storyboard.db.api import tasks
 from storyboard.db import models
@@ -38,7 +39,12 @@ def get(worklist_id):
 
 
 def get_all(title=None, creator_id=None, project_id=None,
-            sort_field=None, sort_dir=None, **kwargs):
+            board_id=None, sort_field=None, sort_dir=None,
+            **kwargs):
+    if board_id is not None:
+        board = boards.get(board_id)
+        return [lane.worklist for lane in board.lanes]
+
     return api_base.entity_get_all(models.Worklist,
                                    title=title,
                                    creator_id=creator_id,
@@ -154,3 +160,11 @@ def remove_item(worklist_id, item_id):
         session.delete(item)
 
     return worklist
+
+
+def is_lane(worklist):
+    lanes = api_base.entity_get_all(models.BoardWorklist,
+                                    list_id=worklist.id)
+    if lanes:
+        return True
+    return False

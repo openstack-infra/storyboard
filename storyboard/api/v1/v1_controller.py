@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from storyboard.api.v1.auth import AuthController
+from storyboard.api.v1.boards import BoardsController
 from storyboard.api.v1.branches import BranchesController
 from storyboard.api.v1.milestones import MilestonesController
 from storyboard.api.v1.project_groups import ProjectGroupsController
@@ -46,5 +47,6 @@ class V1Controller(object):
     subscription_events = SubscriptionEventsController()
     systeminfo = SystemInfoController()
     worklists = WorklistsController()
+    boards = BoardsController()
 
     openid = AuthController()
