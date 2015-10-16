@@ -79,7 +79,10 @@ def user_update_preferences(user_id, preferences):
                                         key=key)
 
         if prefs:
-            pref = prefs[0]
+            for p in prefs:
+                if p.key == key:
+                    pref = p
+                    break
         else:
             pref = None
 
