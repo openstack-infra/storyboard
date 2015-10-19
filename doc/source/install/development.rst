@@ -51,6 +51,8 @@ Installing the API server
    * libpq-dev
    * libmysqlclient-dev
 
+NOTE: MySQL must be >= 5.6
+
 
 2. Clone storyboard::
 
@@ -100,7 +102,7 @@ Installing the Javascript-based web client
      * NPM v1.3.10 or newer
 
      (Ubuntu Trusty packages are sufficient, even though they indicate an older
-     version).
+     version. MySQL must be >= 5.6. )
 
    * *Option 2:*
 
