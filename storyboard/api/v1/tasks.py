@@ -402,8 +402,9 @@ class TasksPrimaryController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.Task], wtypes.text, wtypes.text, int, int)
-    def search(self, q="", marker=None, limit=None):
+    @wsme_pecan.wsexpose([wmodels.Task], wtypes.text, wtypes.text, int,
+                         int, int)
+    def search(self, q="", marker=None, offset=None, limit=None):
         """The search endpoint for tasks.
 
         :param q: The query string.
@@ -412,6 +413,7 @@ class TasksPrimaryController(rest.RestController):
 
         tasks = SEARCH_ENGINE.tasks_query(q=q,
                                           marker=marker,
+                                          offset=offset,
                                           limit=limit)
 
         return [wmodels.Task.from_db_model(task) for task in tasks]

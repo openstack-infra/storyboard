@@ -227,8 +227,9 @@ class StoriesController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.Story], wtypes.text, wtypes.text, int, int)
-    def search(self, q="", marker=None, limit=None):
+    @wsme_pecan.wsexpose([wmodels.Story], wtypes.text, wtypes.text,
+                         int, int, int)
+    def search(self, q="", marker=None, offset=None, limit=None):
         """The search endpoint for stories.
 
         :param q: The query string.
@@ -237,6 +238,7 @@ class StoriesController(rest.RestController):
 
         stories = SEARCH_ENGINE.stories_query(q=q,
                                               marker=marker,
+                                              offset=offset,
                                               limit=limit)
 
         return [wmodels.Story.from_db_model(story) for story in stories]

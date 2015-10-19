@@ -163,15 +163,17 @@ class UsersController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.User], wtypes.text, int, int)
-    def search(self, q="", marker=None, limit=None):
+    @wsme_pecan.wsexpose([wmodels.User], wtypes.text, int, int, int)
+    def search(self, q="", marker=None, offset=None, limit=None):
         """The search endpoint for users.
 
         :param q: The query string.
         :return: List of Users matching the query.
         """
 
-        users = SEARCH_ENGINE.users_query(q=q, marker=marker, limit=limit)
+        users = SEARCH_ENGINE.users_query(q=q, marker=marker,
+                                          offset=offset,
+                                          limit=limit)
 
         return [wmodels.User.from_db_model(u) for u in users]
 

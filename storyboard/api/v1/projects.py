@@ -172,8 +172,8 @@ class ProjectsController(rest.RestController):
     @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Project], wtypes.text, wtypes.text, int,
-                         int)
-    def search(self, q="", marker=None, limit=None):
+                         int, int)
+    def search(self, q="", marker=None, offset=None, limit=None):
         """The search endpoint for projects.
 
         :param q: The query string.
@@ -181,6 +181,7 @@ class ProjectsController(rest.RestController):
         """
 
         projects = SEARCH_ENGINE.projects_query(q=q, marker=marker,
+                                                offset=offset,
                                                 limit=limit)
 
         return [wmodels.Project.from_db_model(project) for project in projects]
