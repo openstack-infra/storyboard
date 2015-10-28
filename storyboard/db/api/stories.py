@@ -49,6 +49,9 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
     if not sort_dir:
         sort_dir = 'asc'
 
+    if not isinstance(status, list) and status is not None:
+        status = [status]
+
     # Build the query.
     subquery = _story_build_query(title=title,
                                   description=description,

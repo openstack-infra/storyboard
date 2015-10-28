@@ -541,16 +541,29 @@ class WorklistItem(ModelBuilder, Base):
                       "item_id"]
 
 
-class WorklistCriteria(FullText, ModelBuilder, Base):
-    __tablename__ = "worklist_criteria"
+class FilterCriterion(FullText, ModelBuilder, Base):
+    __tablename__ = "filter_criteria"
     __fulltext_columns__ = ['title']
 
-    title = Column(Unicode(CommonLength.top_middle_length), nullable=True)
-    list_id = Column(Integer, ForeignKey('worklists.id'), nullable=False)
+    title = Column(Unicode(CommonLength.top_middle_length), nullable=False)
     value = Column(Unicode(CommonLength.top_short_length), nullable=False)
     field = Column(Unicode(CommonLength.top_short_length), nullable=False)
+    negative = Column(Boolean, default=False, nullable=False)
+    filter_id = Column(Integer, ForeignKey('worklist_filters.id'),
+                       nullable=False)
+    filter = relationship('WorklistFilter', backref='criteria')
 
-    _public_fields = ["id", "title", "list_id", "value", "field"]
+    _public_fields = ["id", "title", "value", "field", "negative",
+                      "filter_id"]
+
+
+class WorklistFilter(ModelBuilder, Base):
+    __tablename__ = "worklist_filters"
+
+    type = Column(Unicode(CommonLength.top_short_length), nullable=False)
+    list_id = Column(Integer, ForeignKey('worklists.id'), nullable=False)
+
+    _public_fields = ["id", "list_id", "type"]
 
 
 class Worklist(FullText, ModelBuilder, Base):
@@ -564,7 +577,7 @@ class Worklist(FullText, ModelBuilder, Base):
     archived = Column(Boolean, default=False)
     automatic = Column(Boolean, default=False)
     items = relationship(WorklistItem)
-    criteria = relationship(WorklistCriteria)
+    filters = relationship(WorklistFilter)
     permissions = relationship("Permission", secondary="worklist_permissions")
 
     _public_fields = ["id", "title", "creator_id", "project_id",

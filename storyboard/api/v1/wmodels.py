@@ -472,6 +472,45 @@ class TaskStatus(base.APIBase):
     name = wtypes.text
 
 
+class FilterCriterion(base.APIBase):
+    """Represents a filter used to construct an automatic worklist."""
+
+    type = wtypes.text
+    """The type of objects to filter, Story or Task."""
+
+    title = wtypes.text
+    """The title of the criterion, as displayed in the UI."""
+
+    filter_id = int
+    """The ID of the WorklistFilter this criterion is for."""
+
+    negative = bool
+    """Whether to return all items matching or not matching the criterion."""
+
+    value = wtypes.text
+    """The value to use as a criterion."""
+
+    field = wtypes.text
+    """The field to filter by."""
+
+
+class WorklistFilter(base.APIBase):
+    """Represents a set of criteria to filter items using AND."""
+
+    type = wtypes.text
+    """The type of objects to filter, Story or Task."""
+
+    list_id = int
+    """The ID of the Worklist this filter is for."""
+
+    filter_criteria = wtypes.ArrayType(FilterCriterion)
+    """The list of criteria to apply."""
+
+    def resolve_criteria(self, filter):
+        self.filter_criteria = [FilterCriterion.from_db_model(criterion)
+                                for criterion in filter.criteria]
+
+
 class DueDate(base.APIBase):
     """Represents a due date for tasks/stories."""
 
@@ -540,24 +579,6 @@ class DueDate(base.APIBase):
         self.assignable = due_dates_api.assignable(due_date, user)
 
 
-# NOTE(SotK): Criteria/Criterion is used as the existing code in the webclient
-#             refers to such filters as Criteria.
-class WorklistCriterion(base.APIBase):
-    """Represents a filter used to construct an automatic worklist."""
-
-    title = wtypes.text
-    """The title of the filter, as displayed in the UI."""
-
-    list_id = int
-    """The ID of the Worklist this filter is for."""
-
-    value = wtypes.text
-    """The value to use as a filter."""
-
-    field = wtypes.text
-    """The field to filter by."""
-
-
 class WorklistItem(base.APIBase):
     """Represents an item in a worklist.
 
@@ -595,6 +616,26 @@ class WorklistItem(base.APIBase):
             resolved = DueDate.from_db_model(due_date)
         self.resolved_due_date = resolved
 
+    def resolve_item(self, item):
+        user_id = request.current_user_id
+        if item.item_type == 'story':
+            story = stories_api.story_get(item.item_id)
+            if story is None:
+                return False
+            self.story = Story.from_db_model(story)
+            due_dates = [date.id for date in story.due_dates
+                         if due_dates_api.visible(date, user_id)]
+            self.story.due_dates = due_dates
+        elif item.item_type == 'task':
+            task = tasks_api.task_get(item.item_id)
+            if task is None or task.story is None:
+                return False
+            self.task = Task.from_db_model(task)
+            due_dates = [date.id for date in task.due_dates
+                         if due_dates_api.visible(date, user_id)]
+            self.task.due_dates = due_dates
+        return True
+
 
 class Worklist(base.APIBase):
     """Represents a worklist."""
@@ -621,6 +662,9 @@ class Worklist(base.APIBase):
     """A flag to identify whether the contents are obtained by a filter or are
     stored in the database."""
 
+    filters = wtypes.ArrayType(WorklistFilter)
+    """A list of filters used if this is an "automatic" worklist."""
+
     owners = wtypes.ArrayType(int)
     """A list of the IDs of the users who have full permissions."""
 
@@ -634,26 +678,29 @@ class Worklist(base.APIBase):
         """Resolve the contents of this worklist."""
         self.items = []
         user_id = request.current_user_id
+        if worklist.automatic:
+            self._resolve_automatic_items(worklist, user_id)
+        else:
+            self._resolve_set_items(worklist, user_id)
+
+    def _resolve_automatic_items(self, worklist, user_id):
+        for item in worklists_api.filter_items(worklist):
+            item_model = WorklistItem(**item)
+            valid = item_model.resolve_item(item_model)
+            if not valid:
+                continue
+            item_model.resolve_due_date(item_model)
+            self.items.append(item_model)
+        self.items.sort(key=lambda x: x.list_position)
+
+    def _resolve_set_items(self, worklist, user_id):
         for item in worklist.items:
             if item.archived:
                 continue
             item_model = WorklistItem.from_db_model(item)
-            if item.item_type == 'story':
-                story = stories_api.story_get(item.item_id)
-                if story is None:
-                    continue
-                item_model.story = Story.from_db_model(story)
-                due_dates = [date.id for date in story.due_dates
-                             if due_dates_api.visible(date, user_id)]
-                item_model.story.due_dates = due_dates
-            elif item.item_type == 'task':
-                task = tasks_api.task_get(item.item_id)
-                if task is None or task.story is None:
-                    continue
-                item_model.task = Task.from_db_model(task)
-                due_dates = [date.id for date in task.due_dates
-                             if due_dates_api.visible(date, user_id)]
-                item_model.task.due_dates = due_dates
+            valid = item_model.resolve_item(item)
+            if not valid:
+                continue
             item_model.resolve_due_date(item)
             self.items.append(item_model)
         self.items.sort(key=lambda x: x.list_position)
@@ -661,6 +708,13 @@ class Worklist(base.APIBase):
     def resolve_permissions(self, worklist):
         self.owners = worklists_api.get_owners(worklist)
         self.users = worklists_api.get_users(worklist)
+
+    def resolve_filters(self, worklist):
+        self.filters = []
+        for filter in worklist.filters:
+            model = WorklistFilter.from_db_model(filter)
+            model.resolve_criteria(filter)
+            self.filters.append(model)
 
 
 class Lane(base.APIBase):

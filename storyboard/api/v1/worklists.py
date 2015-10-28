@@ -88,6 +88,106 @@ class PermissionsController(rest.RestController):
             raise exc.NotFound(_("Worklist %s not found") % worklist_id)
 
 
+class FilterSubcontroller(rest.RestController):
+    """Manages filters on automatic worklists."""
+
+    @decorators.db_exceptions
+    @secure(checks.guest)
+    @wsme_pecan.wsexpose(wmodels.WorklistFilter, int, int)
+    def get_one(self, worklist_id, filter_id):
+        """Get a single filter for the worklist.
+
+        :param worklist_id: The ID of the worklist.
+        :param filter_id: The ID of the filter.
+
+        """
+        worklist = worklists_api.get(worklist_id)
+        user_id = request.current_user_id
+        if not worklist or not worklists_api.visible(worklist, user_id):
+            raise exc.NotFound(_("Worklist %s not found") % worklist_id)
+
+        filter = worklists_api.get_filter(worklist, filter_id)
+
+        return wmodels.WorklistFilter.from_db_model(filter)
+
+    @decorators.db_exceptions
+    @secure(checks.guest)
+    @wsme_pecan.wsexpose([wmodels.WorklistFilter], int)
+    def get(self, worklist_id):
+        """Get filters for an automatic worklist.
+
+        :param worklist_id: The ID of the worklist.
+
+        """
+        worklist = worklists_api.get(worklist_id)
+        user_id = request.current_user_id
+        if not worklist or not worklists_api.visible(worklist, user_id):
+            raise exc.NotFound(_("Worklist %s not found") % worklist_id)
+
+        return [wmodels.WorklistFilter.from_db_model(filter)
+                for filter in worklist.filters]
+
+    @decorators.db_exceptions
+    @secure(checks.authenticated)
+    @wsme_pecan.wsexpose(wmodels.WorklistFilter, int,
+                         body=wmodels.WorklistFilter)
+    def post(self, worklist_id, filter):
+        """Create a new filter for the worklist.
+
+        :param worklist_id: The ID of the worklist to set the filter on.
+        :param filter: The filter to set.
+
+        """
+        worklist = worklists_api.get(worklist_id)
+        user_id = request.current_user_id
+        if not worklists_api.editable(worklist, user_id):
+            raise exc.NotFound(_("Worklist %s not found") % worklist_id)
+
+        created = worklists_api.create_filter(worklist_id, filter.as_dict())
+        model = wmodels.WorklistFilter.from_db_model(created)
+        model.resolve_criteria(created)
+        return model
+
+    @decorators.db_exceptions
+    @secure(checks.authenticated)
+    @wsme_pecan.wsexpose(wmodels.WorklistFilter, int, int,
+                         body=wmodels.WorklistFilter)
+    def put(self, worklist_id, filter_id, filter):
+        """Update a filter on the worklist.
+
+        :param worklist_id: The ID of the worklist.
+        :param filter_id: The ID of the filter to be updated.
+        :param filter: The new contents of the filter.
+
+        """
+        worklist = worklists_api.get(worklist_id)
+        user_id = request.current_user_id
+        if not worklists_api.editable(worklist, user_id):
+            raise exc.NotFound(_("Worklist %s not found") % worklist_id)
+
+        update_dict = filter.as_dict(omit_unset=True)
+        updated = worklists_api.update_filter(filter_id, update_dict)
+
+        return wmodels.WorklistFilter.from_db_model(updated)
+
+    @decorators.db_exceptions
+    @secure(checks.authenticated)
+    @wsme_pecan.wsexpose(None, int, int)
+    def delete(self, worklist_id, filter_id):
+        """Delete a filter from a worklist.
+
+        :param worklist_id: The ID of the worklist.
+        :param filter_id: The ID of the filter to be deleted.
+
+        """
+        worklist = worklists_api.get(worklist_id)
+        user_id = request.current_user_id
+        if not worklists_api.editable(worklist, user_id):
+            raise exc.NotFound(_("Worklist %s not found") % worklist_id)
+
+        worklists_api.delete_filter(filter_id)
+
+
 class ItemsSubcontroller(rest.RestController):
     """Manages operations on the items in worklists."""
 
@@ -104,6 +204,10 @@ class ItemsSubcontroller(rest.RestController):
         user_id = request.current_user_id
         if not worklist or not worklists_api.visible(worklist, user_id):
             raise exc.NotFound(_("Worklist %s not found") % worklist_id)
+
+        if worklist.automatic:
+            return [wmodels.WorklistItem(**item)
+                    for item in worklists_api.filter_items(worklist)]
 
         if worklist.items is None:
             return []
@@ -211,6 +315,7 @@ class WorklistsController(rest.RestController):
             worklist_model = wmodels.Worklist.from_db_model(worklist)
             worklist_model.resolve_items(worklist)
             worklist_model.resolve_permissions(worklist)
+            worklist_model.resolve_filters(worklist)
             return worklist_model
         else:
             raise exc.NotFound(_("Worklist %s not found") % worklist_id)
@@ -281,6 +386,8 @@ class WorklistsController(rest.RestController):
         worklist_dict.update({"creator_id": user_id})
         if 'items' in worklist_dict:
             del worklist_dict['items']
+
+        filters = worklist_dict.pop('filters')
         owners = worklist_dict.pop('owners')
         users = worklist_dict.pop('users')
         if not owners:
@@ -303,6 +410,11 @@ class WorklistsController(rest.RestController):
         worklists_api.create_permission(created_worklist.id, edit_permission)
         worklists_api.create_permission(created_worklist.id, move_permission)
 
+        if worklist_dict['automatic']:
+            for filter in filters:
+                worklists_api.create_filter(created_worklist.id,
+                                            filter.as_dict())
+
         return wmodels.Worklist.from_db_model(created_worklist)
 
     @decorators.db_exceptions
@@ -323,8 +435,13 @@ class WorklistsController(rest.RestController):
         if worklist.items:
             del worklist.items
 
-        updated_worklist = worklists_api.update(
-            id, worklist.as_dict(omit_unset=True))
+        # We don't use this endpoint to update the worklist's filters either
+        if worklist.filters:
+            del worklist.filters
+
+        worklist_dict = worklist.as_dict(omit_unset=True)
+
+        updated_worklist = worklists_api.update(id, worklist_dict)
 
         if worklists_api.visible(updated_worklist, user_id):
             worklist_model = wmodels.Worklist.from_db_model(updated_worklist)
@@ -352,3 +469,4 @@ class WorklistsController(rest.RestController):
 
     items = ItemsSubcontroller()
     permissions = PermissionsController()
+    filters = FilterSubcontroller()

@@ -314,3 +314,183 @@ def editable_contents(worklist, user=None):
     permissions = get_permissions(worklist, user)
     return any(name in permissions
                for name in ['edit_worklist', 'move_items'])
+
+
+def create_filter(worklist_id, filter_dict):
+    criteria = filter_dict.pop('filter_criteria')
+    filter_dict['list_id'] = worklist_id
+    filter = api_base.entity_create(models.WorklistFilter, filter_dict)
+    filter = api_base.entity_get(models.WorklistFilter, filter.id)
+    filter.criteria = []
+    for criterion in criteria:
+        criterion_dict = criterion.as_dict()
+        criterion_dict['filter_id'] = filter.id
+        filter.criteria.append(
+            api_base.entity_create(models.FilterCriterion, criterion_dict))
+
+    return filter
+
+
+def update_filter(filter_id, update):
+    old_filter = api_base.entity_get(models.WorklistFilter, filter_id)
+    if 'filter_criteria' in update:
+        new_ids = [criterion.id for criterion in update['filter_criteria']]
+        for criterion in update['filter_criteria']:
+            criterion_dict = criterion.as_dict(omit_unset=True)
+            if 'id' in criterion_dict:
+                existing = api_base.entity_get(models.FilterCriterion,
+                                               criterion['id'])
+                if existing.as_dict() != criterion_dict:
+                    api_base.entity_update(models.FilterCriterion,
+                                           criterion_dict['id'],
+                                           criterion_dict)
+            else:
+                created = api_base.entity_create(models.FilterCriterion,
+                                                 criterion_dict)
+                old_filter.criteria.append(created)
+        for criterion in old_filter.criteria:
+            if criterion.id not in new_ids:
+                old_filter.criteria.remove(criterion)
+        del update['filter_criteria']
+
+    return api_base.entity_update(models.WorklistFilter, filter_id, update)
+
+
+def delete_filter(filter_id):
+    filter = api_base.entity_get(models.WorklistFilter, filter_id)
+    for criterion in filter.criteria:
+        api_base.entity_hard_delete(models.FilterCriterion, criterion.id)
+    api_base.entity_hard_delete(models.WorklistFilter, filter_id)
+
+
+def translate_criterion_to_field(criterion):
+    criterion_fields = {
+        'Project': 'project_id',
+        'ProjectGroup': 'project_group_id',
+        'Story': 'story_id',
+        'User': 'assignee_id',
+        'StoryStatus': 'status',
+        'Tags': 'tags',
+        'TaskStatus': 'status',
+        'Text': 'title'
+    }
+
+    if criterion.field not in criterion_fields:
+        return None
+    return criterion_fields[criterion.field]
+
+
+def filter_stories(worklist, filters):
+    filter_queries = []
+    for filter in filters:
+        subquery = api_base.model_query(models.Story.id).distinct().subquery()
+        query = api_base.model_query(models.StorySummary)
+        query = query.join(subquery, models.StorySummary.id == subquery.c.id)
+        query = query.join(models.Task,
+                           models.Project,
+                           models.project_group_mapping,
+                           models.ProjectGroup)
+        for criterion in filter.criteria:
+            attr = translate_criterion_to_field(criterion)
+            if hasattr(models.StorySummary, attr):
+                model = models.StorySummary
+            else:
+                if attr in ('assignee_id', 'project_id'):
+                    model = models.Task
+                elif attr == 'project_group_id':
+                    model = models.ProjectGroup
+                    attr = 'id'
+                else:
+                    continue
+
+            if attr == 'tags':
+                if criterion.negative:
+                    query = query.filter(
+                        ~models.StorySummary.tags.any(
+                            models.StoryTag.name.in_([criterion.value])))
+                else:
+                    query = query.filter(
+                        models.StorySummary.tags.any(
+                            models.StoryTag.name.in_([criterion.value])))
+                continue
+
+            if criterion.negative:
+                query = query.filter(
+                    getattr(model, attr) != criterion.value)
+            else:
+                query = query.filter(
+                    getattr(model, attr) == criterion.value)
+        filter_queries.append(query)
+
+    if len(filter_queries) > 1:
+        query = filter_queries[0]
+        query = query.union(*filter_queries[1:])
+        return query.all()
+    elif len(filter_queries) == 1:
+        return filter_queries[0].all()
+    else:
+        return []
+
+
+def filter_tasks(worklist, filters):
+    filter_queries = []
+    for filter in filters:
+        query = api_base.model_query(models.Task)
+        query = query.join(models.Project,
+                           models.project_group_mapping,
+                           models.ProjectGroup)
+        for criterion in filter.criteria:
+            attr = translate_criterion_to_field(criterion)
+            if hasattr(models.Task, attr):
+                model = models.Task
+            elif attr == 'project_group_id':
+                model = models.ProjectGroup
+                attr = 'id'
+            else:
+                continue
+            if criterion.negative:
+                query = query.filter(getattr(model, attr) != criterion.value)
+            else:
+                query = query.filter(getattr(model, attr) == criterion.value)
+        filter_queries.append(query)
+
+    if len(filter_queries) > 1:
+        query = filter_queries[0]
+        query = query.union(*filter_queries[1:])
+        return query.all()
+    elif len(filter_queries) == 1:
+        return filter_queries[0].all()
+    else:
+        return []
+
+
+def filter_items(worklist):
+    story_filters = [f for f in worklist.filters if f.type == 'Story']
+    task_filters = [f for f in worklist.filters if f.type == 'Task']
+
+    filtered_stories = []
+    filtered_tasks = []
+    if story_filters:
+        filtered_stories = filter_stories(worklist, story_filters)
+    if task_filters:
+        filtered_tasks = filter_tasks(worklist, task_filters)
+
+    items = []
+    for story in filtered_stories:
+        items.append({
+            'list_id': worklist.id,
+            'item_id': story.id,
+            'item_type': 'story',
+            'list_position': 0,
+            'display_due_date': None
+        })
+    for task in filtered_tasks:
+        items.append({
+            'list_id': worklist.id,
+            'item_id': task.id,
+            'item_type': 'task',
+            'list_position': 0,
+            'display_due_date': None
+        })
+
+    return items
