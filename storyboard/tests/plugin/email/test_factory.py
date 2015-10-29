@@ -26,7 +26,7 @@ class TestEmailFactory(base.TestCase):
         """Assert that a simple build provides an email.
         """
         factory = EmailFactory('test@example.org',
-                               'test_subject',
+                               'test_subject.txt',
                                'test.txt',
                                'plugin.email')
 
@@ -40,7 +40,7 @@ class TestEmailFactory(base.TestCase):
         # Test message headers
         self.assertEqual('test@example.org', msg.get('From'))
         self.assertEqual('test_recipient@example.org', msg.get('To'))
-        self.assertEqual('test_subject', msg.get('Subject'))
+        self.assertEqual('value', msg.get('Subject'))
         self.assertEqual('auto-generated', msg.get('Auto-Submitted'))
         self.assertEqual('multipart/alternative', msg.get('Content-Type'))
         self.assertIsNotNone(msg.get('Date'))  # This will vary
@@ -58,7 +58,7 @@ class TestEmailFactory(base.TestCase):
         """Assert that we can set custom headers."""
 
         factory = EmailFactory('test@example.org',
-                               'test_subject',
+                               'test_subject.txt',
                                'test.txt',
                                'plugin.email')
         custom_headers = {
@@ -83,7 +83,7 @@ class TestEmailFactory(base.TestCase):
         """Assert that the subject is templateable."""
 
         factory = EmailFactory('test@example.org',
-                               '{{test_parameter}}',
+                               'test_subject.txt',
                                'test.txt',
                                'plugin.email')
         msg = factory.build('test_recipient@example.org',
@@ -91,9 +91,8 @@ class TestEmailFactory(base.TestCase):
         self.assertEqual('value', msg.get('Subject'))
 
         # Assert that the subject is trimmed. and appended with an ellipsis.
-        test_subject = ('a' * 100)
         factory = EmailFactory('test@example.org',
-                               test_subject,
+                               'test_long_subject.txt',
                                'test.txt',
                                'plugin.email')
         msg = factory.build('test_recipient@example.org',
@@ -101,18 +100,9 @@ class TestEmailFactory(base.TestCase):
         self.assertEqual(78, len(msg.get('Subject')))
         self.assertEqual('...', msg.get('Subject')[-3:])
 
-        # Assert that the subject has unix newlines trimmed
+        # Assert that the subject has newlines trimmed
         factory = EmailFactory('test@example.org',
-                               'with\nnewline',
-                               'test.txt',
-                               'plugin.email')
-        msg = factory.build('test_recipient@example.org',
-                            test_parameter='value')
-        self.assertEqual('with newline', msg.get('Subject'))
-
-        # Assert that the subject has windows returns trimmed
-        factory = EmailFactory('test@example.org',
-                               'with\r\nnewline',
+                               'test_subject_newline.txt',
                                'test.txt',
                                'plugin.email')
         msg = factory.build('test_recipient@example.org',
@@ -125,7 +115,7 @@ class TestEmailFactory(base.TestCase):
         '''
 
         factory = EmailFactory('test@example.org',
-                               'test_subject',
+                               'test_subject.txt',
                                'test.txt',
                                'plugin.email')
         factory.add_text_template('test.html', 'html')
@@ -155,7 +145,7 @@ class TestEmailFactory(base.TestCase):
         """
         try:
             EmailFactory('test@example.org',
-                         'test_subject',
+                         'invalid_subject.txt',
                          'invalid.txt',
                          'plugin.email')
             self.assertFalse(True)
@@ -164,7 +154,7 @@ class TestEmailFactory(base.TestCase):
 
         try:
             factory = EmailFactory('test@example.org',
-                                   'test_subject',
+                                   'test_subject.txt',
                                    'test.txt',
                                    'plugin.email')
             factory.add_text_template('invalid.html', 'html')
