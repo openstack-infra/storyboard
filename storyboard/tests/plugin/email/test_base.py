@@ -21,7 +21,6 @@ from oslo_config import cfg
 
 import mock_smtp as mock
 from storyboard.plugin.email.base import EmailPluginBase
-from storyboard.plugin.email import get_email_directory
 from storyboard.tests import base
 
 
@@ -33,8 +32,7 @@ PERM_ALL = stat.S_IRWXU + stat.S_IRWXG + stat.S_IRWXO
 class TestEmailPluginBase(base.WorkingDirTestCase):
     """Unit tests for the base email plugin."""
 
-    def setup_helper(self, config=True, working_dir=True, outbox=True,
-                     smtp=True):
+    def setup_helper(self, config=True, working_dir=True, smtp=True):
         """Setup helper: Setup the email test environment with various items
         enabled/disabled.
         """
@@ -42,10 +40,6 @@ class TestEmailPluginBase(base.WorkingDirTestCase):
 
         if not working_dir:
             os.chmod(CONF.working_directory, PERM_READ_ONLY)
-        elif not outbox:
-            # Can't modify this if the parent directory's already locked down.
-            email = get_email_directory()
-            os.chmod(email, PERM_READ_ONLY)
 
         if not smtp:
             mock.DummySMTP.exception = smtplib.SMTPException
@@ -82,12 +76,6 @@ class TestEmailPluginBase(base.WorkingDirTestCase):
         accessible.
         """
         self.setup_helper(working_dir=False)
-        plugin = EmailPluginBase(CONF)
-        self.assertFalse(plugin.enabled())
-
-    def test_no_outbox(self):
-        """Assert that we're not enabled when the outbox is not accessible."""
-        self.setup_helper(outbox=False)
         plugin = EmailPluginBase(CONF)
         self.assertFalse(plugin.enabled())
 
