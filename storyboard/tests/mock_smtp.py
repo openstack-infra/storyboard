@@ -27,7 +27,7 @@ class DummySMTP(OLD_SMTP):
     def __init__(self, host='', port=0, local_hostname=None,
                  timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
         OLD_SMTP.__init__(self, host, port, local_hostname, timeout)
-
+        self.sendmail_invoked = 0
         if hasattr(self, 'exception'):
             raise self.exception()
 
@@ -44,7 +44,12 @@ class DummySMTP(OLD_SMTP):
 
     def sendmail(self, from_addr, to_addrs, msg, mail_options=[],
                  rcpt_options=[]):
-        pass
+        self.sendmail_invoked += 1
+        self.from_addr = from_addr
+        self.to_addr = to_addrs
+        self.msg = msg
+        self.mail_options = mail_options
+        self.rcpt_options = rcpt_options
 
     def quit(self):
         self.has_quit = True
