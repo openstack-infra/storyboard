@@ -57,6 +57,7 @@ Extending StoryBoard
 
     Overview <extending/index>
     Plugins: Cron Workers <extending/plugin_cron>
+    Plugins: Event Workers <extending/plugin_worker>
 
 
 Client API Reference

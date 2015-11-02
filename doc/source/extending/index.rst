@@ -92,5 +92,5 @@ thread which will not impact the stability of the API::
     storyboard.plugin.worker =
          my-plugin-worker = my.namespace.plugin:EventWorker
 
-To learn how to write a user preference plugin, please contribute to this
-documentation.
+To learn how to write an event worker plugin, `read more here
+<./plugin_worker.html>`_.
