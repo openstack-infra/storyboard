@@ -92,13 +92,13 @@ def user_update_preferences(user_id, preferences):
             continue
 
         # If the preference exists and has a new value.
-        if pref and value and pref.cast_value != value:
+        if pref and value is not None and pref.cast_value != value:
             pref.cast_value = value
             api_base.entity_update(models.UserPreference, pref.id, dict(pref))
             continue
 
         # If the preference does not exist and a new value exists.
-        if not pref and value:
+        if not pref and value is not None:
             api_base.entity_create(models.UserPreference, {
                 'user_id': user_id,
                 'key': key,
