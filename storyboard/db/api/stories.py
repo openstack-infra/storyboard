@@ -55,8 +55,8 @@ def story_get(story_id, session=None):
 
 
 def story_get_all(title=None, description=None, status=None, assignee_id=None,
-                  project_group_id=None, project_id=None, tags=None,
-                  marker=None, offset=None, limit=None,
+                  creator_id=None, project_group_id=None, project_id=None,
+                  tags=None, marker=None, offset=None, limit=None,
                   tags_filter_type="all", sort_field='id', sort_dir='asc'):
     # Sanity checks, in case someone accidentally explicitly passes in 'None'
     if not sort_field:
@@ -68,6 +68,7 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
     subquery = _story_build_query(title=title,
                                   description=description,
                                   assignee_id=assignee_id,
+                                  creator_id=creator_id,
                                   project_group_id=project_group_id,
                                   project_id=project_id,
                                   tags=tags,
@@ -100,11 +101,12 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
 
 
 def story_get_count(title=None, description=None, status=None,
-                    assignee_id=None, project_group_id=None, project_id=None,
-                    tags=None, tags_filter_type="all"):
+                    assignee_id=None, creator_id=None, project_group_id=None,
+                    project_id=None, tags=None, tags_filter_type="all"):
     query = _story_build_query(title=title,
                                description=description,
                                assignee_id=assignee_id,
+                               creator_id=creator_id,
                                project_group_id=project_group_id,
                                project_id=project_id,
                                tags=tags,
@@ -123,8 +125,8 @@ def story_get_count(title=None, description=None, status=None,
 
 
 def _story_build_query(title=None, description=None, assignee_id=None,
-                       project_group_id=None, project_id=None, tags=None,
-                       tags_filter_type='all'):
+                       creator_id=None, project_group_id=None, project_id=None,
+                       tags=None, tags_filter_type='all'):
     # First build a standard story query.
     query = api_base.model_query(models.Story.id).distinct()
 
@@ -132,7 +134,8 @@ def _story_build_query(title=None, description=None, assignee_id=None,
     query = api_base.apply_query_filters(query=query,
                                          model=models.Story,
                                          title=title,
-                                         description=description)
+                                         description=description,
+                                         creator_id=creator_id)
 
     # Filtering by tags
     if tags:
