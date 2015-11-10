@@ -53,7 +53,7 @@ class SearchEngine(object):
     def stories_query(self, q, status=None, author=None,
                       created_after=None, created_before=None,
                       updated_after=None, updated_before=None,
-                      marker=None, limit=None, **kwargs):
+                      marker=None, offset=None, limit=None, **kwargs):
         pass
 
     @abc.abstractmethod
@@ -67,7 +67,7 @@ class SearchEngine(object):
     @abc.abstractmethod
     def comments_query(self, q, created_after=None, created_before=None,
                        updated_after=None, updated_before=None,
-                       marker=None, limit=None, **kwargs):
+                       marker=None, offset=None, limit=None, **kwargs):
         pass
 
     @abc.abstractmethod

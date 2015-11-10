@@ -30,7 +30,8 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
 
         return query
 
-    def _apply_pagination(self, model_cls, query, marker=None, limit=None):
+    def _apply_pagination(self, model_cls, query, marker=None,
+                          offset=None, limit=None):
 
         marker_entity = None
         if marker:
@@ -40,23 +41,27 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
                                        model=model_cls,
                                        limit=limit,
                                        sort_key="id",
-                                       marker=marker_entity)
+                                       marker=marker_entity,
+                                       offset=offset)
 
-    def projects_query(self, q, sort_dir=None, marker=None, limit=None):
+    def projects_query(self, q, sort_dir=None, marker=None,
+                       offset=None, limit=None):
         session = api_base.get_session()
         query = api_base.model_query(models.Project, session)
         query = self._build_fulltext_search(models.Project, query, q)
-        query = self._apply_pagination(models.Project, query, marker, limit)
+        query = self._apply_pagination(
+            models.Project, query, marker, offset, limit)
 
         return query.all()
 
-    def stories_query(self, q, marker=None, limit=None, **kwargs):
+    def stories_query(self, q, marker=None, offset=None,
+                      limit=None, **kwargs):
         session = api_base.get_session()
 
         subquery = api_base.model_query(models.Story, session)
         subquery = self._build_fulltext_search(models.Story, subquery, q)
         subquery = self._apply_pagination(models.Story,
-                                       subquery, marker, limit)
+                                          subquery, marker, offset, limit)
 
         subquery = subquery.subquery('stories_with_idx')
 
@@ -69,26 +74,30 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
         stories = map(stories_api.summarize_task_statuses, raw_stories)
         return stories
 
-    def tasks_query(self, q, marker=None, limit=None, **kwargs):
+    def tasks_query(self, q, marker=None, offset=None, limit=None, **kwargs):
         session = api_base.get_session()
         query = api_base.model_query(models.Task, session)
         query = self._build_fulltext_search(models.Task, query, q)
-        query = self._apply_pagination(models.Task, query, marker, limit)
+        query = self._apply_pagination(
+            models.Task, query, marker, offset, limit)
 
         return query.all()
 
-    def comments_query(self, q, marker=None, limit=None, **kwargs):
+    def comments_query(self, q, marker=None, offset=None,
+                       limit=None, **kwargs):
         session = api_base.get_session()
         query = api_base.model_query(models.Comment, session)
         query = self._build_fulltext_search(models.Comment, query, q)
-        query = self._apply_pagination(models.Comment, query, marker, limit)
+        query = self._apply_pagination(
+            models.Comment, query, marker, offset, limit)
 
         return query.all()
 
-    def users_query(self, q, marker=None, limit=None, **kwargs):
+    def users_query(self, q, marker=None, offset=None, limit=None, **kwargs):
         session = api_base.get_session()
         query = api_base.model_query(models.User, session)
         query = self._build_fulltext_search(models.User, query, q)
-        query = self._apply_pagination(models.User, query, marker, limit)
+        query = self._apply_pagination(
+            models.User, query, marker, offset, limit)
 
         return query.all()

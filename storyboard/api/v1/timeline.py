@@ -261,8 +261,8 @@ class CommentsController(rest.RestController):
     @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Comment], wtypes.text, wtypes.text, int,
-                         int)
-    def search(self, q="", marker=None, limit=None):
+                         int, int)
+    def search(self, q="", marker=None, offset=None, limit=None):
         """The search endpoint for comments.
 
         :param q: The query string.
@@ -271,6 +271,7 @@ class CommentsController(rest.RestController):
 
         comments = SEARCH_ENGINE.comments_query(q=q,
                                                 marker=marker,
+                                                offset=offset,
                                                 limit=limit)
 
         return [wmodels.Comment.from_db_model(comment) for comment in comments]
