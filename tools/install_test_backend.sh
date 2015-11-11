@@ -7,8 +7,8 @@ else
 fi
 
 # export default vars if not defined, to be available in conf file
-export DB_USER=${DB_USER:-storyboard}
-export DB_PASSWORD=${DB_PASSWORD:-storyboard}
+export DB_USER=${DB_USER:-openstack_citest}
+export DB_PASSWORD=${DB_PASSWORD:-openstack_citest}
 export DB_TEST=${DB_TEST:-storyboard_test}
 
 # create the user if needed
