@@ -20,7 +20,6 @@ from oslo_log import log
 
 from storyboard.plugin.base import PluginBase
 from storyboard.plugin.email import get_email_directory
-from storyboard.plugin.email.outbox import Outbox
 from storyboard.plugin.email.smtp_client import get_smtp_client
 
 CONF = cfg.CONF
@@ -46,13 +45,6 @@ class EmailPluginBase(PluginBase):
         except IOError as e:
             LOG.error('Cannot create working directory, disabling plugin: %s' %
                       (e,))
-            return False
-
-        # Assert that we can create an outbox.
-        try:
-            Outbox()
-        except OSError as e:
-            LOG.error('Cannot create mailbox, disabling plugin: %s' % (e,))
             return False
 
         # Assert that the smtp sender can connect to the server.
