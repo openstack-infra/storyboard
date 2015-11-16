@@ -27,6 +27,7 @@ from storyboard.api.v1.task_statuses import TaskStatusesController
 from storyboard.api.v1.tasks import TasksPrimaryController
 from storyboard.api.v1.teams import TeamsController
 from storyboard.api.v1.users import UsersController
+from storyboard.api.v1.worklists import WorklistsController
 
 
 class V1Controller(object):
@@ -44,5 +45,6 @@ class V1Controller(object):
     subscriptions = SubscriptionsController()
     subscription_events = SubscriptionEventsController()
     systeminfo = SystemInfoController()
+    worklists = WorklistsController()
 
     openid = AuthController()

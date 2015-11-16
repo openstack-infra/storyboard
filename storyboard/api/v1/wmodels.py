@@ -445,3 +445,66 @@ class AccessToken(base.APIBase):
 class TaskStatus(base.APIBase):
     key = wtypes.text
     name = wtypes.text
+
+
+class Worklist(base.APIBase):
+    """Represents a worklist."""
+
+    title = wtypes.text
+    """The title of the worklist."""
+
+    creator_id = int
+    """The ID of the User who created this worklist."""
+
+    project_id = int
+    """The ID of the Project this worklist is associated with."""
+
+    permission_id = int
+    """The ID of the Permission which defines who can edit this worklist."""
+
+    private = bool
+    """A flag to identify if this is a private or public worklist."""
+
+    archived = bool
+    """A flag to identify whether or not the worklist has been archived."""
+
+    automatic = bool
+    """A flag to identify whether the contents are obtained by a filter or are
+    stored in the database."""
+
+
+# NOTE(SotK): Criteria/Criterion is used as the existing code in the webclient
+#             refers to such filters as Criteria.
+class WorklistCriterion(base.APIBase):
+    """Represents a filter used to construct an automatic worklist."""
+
+    title = wtypes.text
+    """The title of the filter, as displayed in the UI."""
+
+    list_id = int
+    """The ID of the Worklist this filter is for."""
+
+    value = wtypes.text
+    """The value to use as a filter."""
+
+    field = wtypes.text
+    """The field to filter by."""
+
+
+class WorklistItem(base.APIBase):
+    """Represents an item in a worklist.
+
+    The item could be either a story or a task.
+
+    """
+    list_id = int
+    """The ID of the Worklist this item belongs to."""
+
+    item_id = int
+    """The ID of the Task or Story for this item."""
+
+    item_type = wtypes.text
+    """The type of this item, either "story" or "task"."""
+
+    list_position = int
+    """The position of this item in the Worklist."""
