@@ -123,7 +123,7 @@ Installing the Javascript-based web client
 
 
 4. Run a local development server, which binds to a specific IP and
-consumes the localhost API::
+   consumes the localhost API::
 
     tox -egrunt_no_api -- serve --hostname 0.0.0.0
 
