@@ -42,8 +42,8 @@ vagrant file and your configuration to accommodate.
 
 This VM has also been set up for unit tests.
 
-Installing the API server
-=========================
+Installing and Upgrading the API server
+=======================================
 
 1. To start the API server, make sure you have the following packages installed 
    locally:
