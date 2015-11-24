@@ -204,6 +204,13 @@ class StoriesController(rest.RestController):
                                             story.story_type_id):
             abort(400, _("Can't change story type."))
 
+        # This is not the place to update tags, including them in
+        # story_dict causes the story/tag relationship to attempt to
+        # update with a list of unicode strings rather than objects
+        # from the database.
+        if 'tags' in story_dict:
+            story_dict.pop('tags')
+
         updated_story = stories_api.story_update(
             story_id,
             story_dict)

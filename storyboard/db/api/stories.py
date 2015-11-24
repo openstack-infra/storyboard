@@ -173,7 +173,8 @@ def story_create(values):
 
 
 def story_update(story_id, values):
-    return api_base.entity_update(models.Story, story_id, values)
+    api_base.entity_update(models.Story, story_id, values)
+    return story_get(story_id)
 
 
 def story_add_tag(story_id, tag_name):
