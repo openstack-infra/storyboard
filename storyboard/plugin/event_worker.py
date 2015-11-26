@@ -168,7 +168,7 @@ class WorkerTaskBase(PluginBase):
 
         A database session is created, and passed to the abstract method.
         """
-        session = db_api.get_session(in_request=False, autocommit=False)
+        session = db_api.get_session(in_request=False)
 
         with session.begin(subtransactions=True):
             author = self.resolve_resource_by_name(session, 'user', author_id)
