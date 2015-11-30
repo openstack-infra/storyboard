@@ -90,6 +90,7 @@ class TagsController(rest.RestController):
         story = stories_api.story_get(story_id)
         events_api.tags_added_event(story_id=story_id,
                                     author_id=request.current_user_id,
+                                    story_title=story.title,
                                     tags=tags)
         return wmodels.Story.from_db_model(story)
 
@@ -123,4 +124,5 @@ class TagsController(rest.RestController):
 
         events_api.tags_deleted_event(story_id=story_id,
                                       author_id=request.current_user_id,
+                                      story_title=story.title,
                                       tags=tags)
