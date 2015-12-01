@@ -78,27 +78,33 @@ def user_update_preferences(user_id, preferences):
                                         user_id=user_id,
                                         key=key)
 
+        matching_prefs = []
         if prefs:
             for p in prefs:
                 if p.key == key:
-                    pref = p
-                    break
+                    # FIXME: We create a list here because there appears to
+                    # currently be a bug which means that each preference may
+                    # appear more than once per-user. We should fix that once
+                    # we discover the cause.
+                    matching_prefs.append(p)
         else:
             pref = None
 
-        # If the preference exists and it's null.
-        if pref and value is None:
-            api_base.entity_hard_delete(models.UserPreference, pref.id)
-            continue
+        for pref in matching_prefs:
+            # If the preference exists and it's null.
+            if pref and value is None:
+                api_base.entity_hard_delete(models.UserPreference, pref.id)
+                continue
 
-        # If the preference exists and has a new value.
-        if pref and value is not None and pref.cast_value != value:
-            pref.cast_value = value
-            api_base.entity_update(models.UserPreference, pref.id, dict(pref))
-            continue
+            # If the preference exists and has a new value.
+            if pref and value is not None and pref.cast_value != value:
+                pref.cast_value = value
+                api_base.entity_update(
+                    models.UserPreference, pref.id, dict(pref))
+                continue
 
         # If the preference does not exist and a new value exists.
-        if not pref and value is not None:
+        if not matching_prefs and value is not None:
             api_base.entity_create(models.UserPreference, {
                 'user_id': user_id,
                 'key': key,
