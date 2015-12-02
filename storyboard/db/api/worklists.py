@@ -21,6 +21,7 @@ from storyboard.db.api import base as api_base
 from storyboard.db.api import boards
 from storyboard.db.api import stories
 from storyboard.db.api import tasks
+from storyboard.db.api import users as users_api
 from storyboard.db import models
 from storyboard.openstack.common.gettextutils import _  # noqa
 
@@ -38,9 +39,17 @@ def get(worklist_id):
     return _worklist_get(worklist_id)
 
 
-def get_all(title=None, creator_id=None, project_id=None,
-            board_id=None, sort_field=None, sort_dir=None,
-            **kwargs):
+def get_all(title=None, creator_id=None, project_id=None, board_id=None,
+            user_id=None, sort_field=None, sort_dir=None, **kwargs):
+    if user_id is not None:
+        user = users_api.user_get(user_id)
+        worklists = []
+        for worklist in get_all():
+            if any(permission in worklist.permissions
+                   for permission in user.permissions):
+                worklists.append(worklist)
+        return worklists
+
     if board_id is not None:
         board = boards.get(board_id)
         return [lane.worklist for lane in board.lanes]
@@ -168,3 +177,56 @@ def is_lane(worklist):
     if lanes:
         return True
     return False
+
+
+def get_owners(worklist_id):
+    worklist = _worklist_get(worklist_id)
+    for permission in worklist.permissions:
+        if permission.codename == 'edit_worklist':
+            return [user.id for user in permission.users]
+
+
+def get_users(worklist_id):
+    worklist = _worklist_get(worklist_id)
+    for permission in worklist.permissions:
+        if permission.codename == 'move_items':
+            return [user.id for user in permission.users]
+
+
+def get_permissions(worklist_id, user_id):
+    worklist = _worklist_get(worklist_id)
+    user = users_api.user_get(user_id)
+    if user is not None:
+        return [permission.codename for permission in worklist.permissions
+                if permission in user.permissions]
+    return []
+
+
+def create_permission(worklist_id, permission_dict, session=None):
+    worklist = _worklist_get(worklist_id, session=session)
+    users = permission_dict.pop('users')
+    permission = api_base.entity_create(
+        models.Permission, permission_dict, session=session)
+    worklist.permissions.append(permission)
+    for user_id in users:
+        user = users_api.user_get(user_id, session=session)
+        user.permissions.append(permission)
+    return permission
+
+
+def update_permission(worklist_id, permission_dict):
+    worklist = _worklist_get(worklist_id)
+    id = None
+    for permission in worklist.permissions:
+        if permission.codename == permission_dict['codename']:
+            id = permission.id
+    users = permission_dict.pop('users')
+    permission_dict['users'] = []
+    for user_id in users:
+        user = users_api.user_get(user_id)
+        permission_dict['users'].append(user)
+
+    if id is None:
+        raise ClientSideError(_("Permission %s does not exist")
+                              % permission_dict['codename'])
+    return api_base.entity_update(models.Permission, id, permission_dict)
