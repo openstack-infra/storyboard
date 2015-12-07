@@ -472,6 +472,12 @@ class Worklist(base.APIBase):
     """A flag to identify whether the contents are obtained by a filter or are
     stored in the database."""
 
+    owners = wtypes.ArrayType(int)
+    """A list of the IDs of the users who have full permissions."""
+
+    users = wtypes.ArrayType(int)
+    """A list of the IDs of the users who can move items in the worklist."""
+
 
 # NOTE(SotK): Criteria/Criterion is used as the existing code in the webclient
 #             refers to such filters as Criteria.
@@ -549,3 +555,9 @@ class Board(base.APIBase):
 
     lanes = wtypes.ArrayType(Lane)
     """A list containing the representions of the lanes in this board."""
+
+    owners = wtypes.ArrayType(int)
+    """A list of the IDs of the users who have full permissions."""
+
+    users = wtypes.ArrayType(int)
+    """A list of the IDs of the users who can move cards in the board."""

@@ -150,7 +150,8 @@ class User(FullText, ModelBuilder, Base):
     is_superuser = Column(Boolean, default=False)
     last_login = Column(UTCDateTime)
     teams = relationship("Team", secondary="team_membership")
-    permissions = relationship("Permission", secondary="user_permissions")
+    permissions = relationship(
+        "Permission", secondary="user_permissions", backref="users")
     enable_login = Column(Boolean, default=True)
 
     preferences = relationship("UserPreference")
@@ -544,12 +545,12 @@ class Worklist(FullText, ModelBuilder, Base):
     title = Column(Unicode(CommonLength.top_middle_length), nullable=True)
     creator_id = Column(Integer, ForeignKey('users.id'))
     project_id = Column(Integer, ForeignKey('projects.id'))
-    permission_id = Column(Integer, ForeignKey('permissions.id'))
     private = Column(Boolean, default=False)
     archived = Column(Boolean, default=False)
     automatic = Column(Boolean, default=False)
     items = relationship(WorklistItem)
     criteria = relationship(WorklistCriteria)
+    permissions = relationship("Permission", secondary="worklist_permissions")
 
     _public_fields = ["id", "title", "creator_id", "project_id",
                       "permission_id", "private", "archived", "automatic"]
@@ -574,10 +575,22 @@ class Board(FullText, ModelBuilder, Base):
     description = Column(UnicodeText(), nullable=True)
     creator_id = Column(Integer, ForeignKey('users.id'))
     project_id = Column(Integer, ForeignKey('projects.id'))
-    permission_id = Column(Integer, ForeignKey('permissions.id'))
     private = Column(Boolean, default=False)
     archived = Column(Boolean, default=False)
     lanes = relationship(BoardWorklist)
+    permissions = relationship("Permission", secondary="board_permissions")
 
     _public_fields = ["id", "title", "description", "creator_id",
                       "project_id", "permission_id", "private", "archived"]
+
+board_permissions = Table(
+    'board_permissions', Base.metadata,
+    Column('board_id', Integer, ForeignKey('boards.id')),
+    Column('permission_id', Integer, ForeignKey('permissions.id')),
+)
+
+worklist_permissions = Table(
+    'worklist_permissions', Base.metadata,
+    Column('worklist_id', Integer, ForeignKey('worklists.id')),
+    Column('permission_id', Integer, ForeignKey('permissions.id')),
+)

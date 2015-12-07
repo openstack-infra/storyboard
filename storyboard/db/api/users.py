@@ -18,9 +18,10 @@ from storyboard.db import models
 from storyboard.plugin.user_preferences import PREFERENCE_DEFAULTS
 
 
-def user_get(user_id, filter_non_public=False):
+def user_get(user_id, filter_non_public=False, session=None):
     entity = api_base.entity_get(models.User, user_id,
-                                 filter_non_public=filter_non_public)
+                                 filter_non_public=filter_non_public,
+                                 session=session)
 
     return entity
 

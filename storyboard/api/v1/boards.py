@@ -15,7 +15,6 @@
 
 from oslo_config import cfg
 from pecan import abort
-from pecan import expose
 from pecan import request
 from pecan import response
 from pecan import rest
@@ -39,8 +38,9 @@ def visible(board, user=None):
     if not board:
         return False
     if user and board.private:
-        # TODO(SotK): Permissions
-        return user == board.creator_id
+        permissions = boards_api.get_permissions(board.id, user)
+        return any(name in permissions
+                   for name in ['edit_board', 'move_cards'])
     return not board.private
 
 
@@ -49,8 +49,7 @@ def editable(board, user=None):
         return False
     if not user:
         return False
-    # TODO(SotK): Permissions
-    return user == board.creator_id
+    return 'edit_board' in boards_api.get_permissions(board.id, user)
 
 
 def get_lane(list_id, board):
@@ -79,6 +78,47 @@ def update_lanes(board_dict, board_id):
     del board_dict['lanes']
 
 
+class PermissionsController(rest.RestController):
+    """Manages operations on board permissions."""
+
+    @decorators.db_exceptions
+    @secure(checks.guest)
+    @wsme_pecan.wsexpose([wtypes.text], int)
+    def get(self, board_id):
+        """Get board permissions for the current user.
+
+        :param board_id: The ID of the board.
+
+        """
+        return boards_api.get_permissions(board_id, request.current_user_id)
+
+    @decorators.db_exceptions
+    @secure(checks.authenticated)
+    @wsme_pecan.wsexpose(wtypes.text, int,
+                         body=wtypes.DictType(wtypes.text, wtypes.text))
+    def post(self, board_id, permission):
+        """Add a new permission to the board.
+
+        :param board_id: The ID of the board.
+        :param permission: The dict to use to create the permission.
+
+        """
+        return boards_api.create_permission(board_id)
+
+    @decorators.db_exceptions
+    @secure(checks.authenticated)
+    @wsme_pecan.wsexpose(wtypes.text, int,
+                         body=wtypes.DictType(wtypes.text, wtypes.text))
+    def put(self, board_id, permission):
+        """Update a permission of the board.
+
+        :param board_id: The ID of the board.
+        :param permission: The new contents of the permission.
+
+        """
+        return boards_api.update_permission(board_id, permission).codename
+
+
 class BoardsController(rest.RestController):
     """Manages operations on boards."""
 
@@ -98,6 +138,8 @@ class BoardsController(rest.RestController):
             board_model = wmodels.Board.from_db_model(board)
             board_model.lanes = [wmodels.Lane.from_db_model(lane)
                                  for lane in board.lanes]
+            board_model.owners = boards_api.get_owners(id)
+            board_model.users = boards_api.get_users(id)
             return board_model
         else:
             raise exc.NotFound(_("Board %s not found") % id)
@@ -105,9 +147,10 @@ class BoardsController(rest.RestController):
     @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Board], wtypes.text, int, int,
-                         bool, wtypes.text, wtypes.text)
+                         bool, int, wtypes.text, wtypes.text)
     def get_all(self, title=None, creator_id=None, project_id=None,
-                archived=False, sort_field='id', sort_dir='asc'):
+                archived=False, user_id=None, sort_field='id',
+                sort_dir='asc'):
         """Retrieve definitions of all of the boards.
 
         :param title: A string to filter the title by.
@@ -120,6 +163,7 @@ class BoardsController(rest.RestController):
         """
         boards = boards_api.get_all(title=title,
                                     creator_id=creator_id,
+                                    user_id=user_id,
                                     project_id=project_id,
                                     sort_field=sort_field,
                                     sort_dir=sort_dir)
@@ -131,6 +175,8 @@ class BoardsController(rest.RestController):
                 board_model = wmodels.Board.from_db_model(board)
                 board_model.lanes = [wmodels.Lane.from_db_model(lane)
                                      for lane in board.lanes]
+                board_model.owners = boards_api.get_owners(board.id)
+                board_model.users = boards_api.get_users(board.id)
                 visible_boards.append(board_model)
 
         # Apply the query response headers
@@ -154,10 +200,29 @@ class BoardsController(rest.RestController):
             abort(400, _("You can't select the creator of a board."))
         board_dict.update({"creator_id": user_id})
         lanes = board_dict.pop('lanes')
+        owners = board_dict.pop('owners')
+        users = board_dict.pop('users')
+        if not owners:
+            owners = [user_id]
+        if not users:
+            users = []
 
         created_board = boards_api.create(board_dict)
         for lane in lanes:
             boards_api.add_lane(created_board.id, lane.as_dict())
+
+        edit_permission = {
+            'name': 'edit_board_%d' % created_board.id,
+            'codename': 'edit_board',
+            'users': owners
+        }
+        move_permission = {
+            'name': 'move_cards_%d' % created_board.id,
+            'codename': 'move_cards',
+            'users': users
+        }
+        boards_api.create_permission(created_board.id, edit_permission)
+        boards_api.create_permission(created_board.id, move_permission)
 
         return wmodels.Board.from_db_model(created_board)
 
@@ -177,13 +242,15 @@ class BoardsController(rest.RestController):
 
         board_dict = board.as_dict(omit_unset=True)
         update_lanes(board_dict, id)
-        boards_api.update(id, board_dict)
+        updated_board = boards_api.update(id, board_dict)
 
         if visible(board, user_id):
-            board_model = wmodels.Board.from_db_model(board)
+            board_model = wmodels.Board.from_db_model(updated_board)
             if board.lanes:
                 board_model.lanes = [wmodels.Lane.from_db_model(lane)
                                      for lane in board.lanes]
+            board_model.owners = boards_api.get_owners(id)
+            board_model.users = boards_api.get_users(id)
             return board_model
         else:
             raise exc.NotFound(_("Board %s not found") % id)
@@ -202,40 +269,9 @@ class BoardsController(rest.RestController):
         if not editable(board, user_id):
             raise exc.NotFound(_("Board %s not found") % id)
 
-        board_dict = wmodels.Board.from_db_model(board).as_dict(
-            omit_unset=True)
-        board_dict['lanes'] = board.lanes
-        board_dict.update({"archived": True})
-        boards_api.update(id, board_dict)
+        boards_api.update(id, {"archived": True})
 
-        for lane in board_dict['lanes']:
-            worklist = lane.worklist
-            worklist_dict = wmodels.Worklist.from_db_model(worklist).as_dict(
-                omit_unset=True)
-            worklist_dict.update({'archived': True})
-            worklists_api.update(worklist.id, worklist_dict)
+        for lane in board.lanes:
+            worklists_api.update(lane.worklist.id, {"archived": True})
 
-    @decorators.db_exceptions
-    @secure(checks.guest)
-    @wsme_pecan.wsexpose(wtypes.DictType(str, bool), int)
-    def permissions(self, id):
-        """Get the permissions the current user has for the board.
-
-        :param id: The ID of the board to check permissions for.
-
-        """
-        board = boards_api.get(id)
-        user_id = request.current_user_id
-        return {
-            'edit_board': editable(board, user_id),
-            'move_cards': editable(board, user_id)  # TODO(SotK): check lanes
-        }
-
-    @expose()
-    def _route(self, args, request):
-        if request.method == 'GET' and len(args) > 1:
-            if args[1] == "permissions":
-                # Request to a permissions endpoint
-                return self.permissions, [args[0]]
-
-        return super(BoardsController, self)._route(args, request)
+    permissions = PermissionsController()

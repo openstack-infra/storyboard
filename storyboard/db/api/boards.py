@@ -18,6 +18,7 @@ from wsme.exc import ClientSideError
 
 from storyboard.common import exception as exc
 from storyboard.db.api import base as api_base
+from storyboard.db.api import users as users_api
 from storyboard.db import models
 from storyboard.openstack.common.gettextutils import _  # noqa
 
@@ -35,8 +36,17 @@ def get(id):
     return _board_get(id)
 
 
-def get_all(title=None, creator_id=None, project_id=None,
+def get_all(title=None, creator_id=None, user_id=None, project_id=None,
             sort_field=None, sort_dir=None, **kwargs):
+    if user_id is not None:
+        user = users_api.user_get(user_id)
+        boards = []
+        for board in get_all():
+            if any(permission in board.permissions
+                   for permission in user.permissions):
+                boards.append(board)
+        return boards
+
     return api_base.entity_get_all(models.Board,
                                    title=title,
                                    creator_id=creator_id,
@@ -82,3 +92,62 @@ def update_lane(board_id, lane, new_lane):
         raise ClientSideError(_("A lane must have a worklist_id."))
 
     api_base.entity_update(models.BoardWorklist, lane.id, new_lane)
+
+
+def get_from_lane(worklist):
+    for board in get_all():
+        if worklist.id in [lane.list_id for lane in board.lanes]:
+            return board
+
+
+def get_owners(board_id):
+    board = _board_get(board_id)
+    for permission in board.permissions:
+        if permission.codename == 'edit_board':
+            return [user.id for user in permission.users]
+
+
+def get_users(board_id):
+    board = _board_get(board_id)
+    for permission in board.permissions:
+        if permission.codename == 'move_cards':
+            return [user.id for user in permission.users]
+
+
+def get_permissions(board_id, user_id):
+    board = _board_get(board_id)
+    user = users_api.user_get(user_id)
+    if user is not None:
+        return [permission.codename for permission in board.permissions
+                if permission in user.permissions]
+    return []
+
+
+def create_permission(board_id, permission_dict, session=None):
+    board = _board_get(board_id, session=session)
+    users = permission_dict.pop('users')
+    permission = api_base.entity_create(
+        models.Permission, permission_dict, session=session)
+    board.permissions.append(permission)
+    for user_id in users:
+        user = users_api.user_get(user_id, session=session)
+        user.permissions.append(permission)
+    return permission
+
+
+def update_permission(board_id, permission_dict):
+    board = _board_get(board_id)
+    id = None
+    for permission in board.permissions:
+        if permission.codename == permission_dict['codename']:
+            id = permission.id
+    users = permission_dict.pop('users')
+    permission_dict['users'] = []
+    for user_id in users:
+        user = users_api.user_get(user_id)
+        permission_dict['users'].append(user)
+
+    if id is None:
+        raise ClientSideError(_("Permission %s does not exist")
+                              % permission_dict['codename'])
+    return api_base.entity_update(models.Permission, id, permission_dict)

@@ -26,6 +26,7 @@ from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import wmodels
 from storyboard.common import decorators
 from storyboard.common import exception as exc
+from storyboard.db.api import boards as boards_api
 from storyboard.db.api import worklists as worklists_api
 from storyboard.openstack.common.gettextutils import _  # noqa
 
@@ -39,9 +40,17 @@ def visible(worklist, user=None, hide_lanes=False):
             return False
     if not worklist:
         return False
+    if worklists_api.is_lane(worklist):
+        board = boards_api.get_from_lane(worklist)
+        permissions = boards_api.get_permissions(board.id, user)
+        if board.private:
+            return any(name in permissions
+                       for name in ['edit_board', 'move_cards'])
+        return not board.private
     if user and worklist.private:
-        # TODO(SotK): Permissions
-        return user == worklist.creator_id
+        permissions = worklists_api.get_permissions(worklist.id, user)
+        return any(name in permissions
+                   for name in ['edit_worklist', 'move_items'])
     return not worklist.private
 
 
@@ -50,8 +59,55 @@ def editable(worklist, user=None):
         return False
     if not user:
         return False
-    # TODO(SotK): Permissions
-    return user == worklist.creator_id
+    if worklists_api.is_lane(worklist):
+        board = boards_api.get_from_lane(worklist)
+        permissions = boards_api.get_permissions(board.id, user)
+        return any(name in permissions
+                   for name in ['edit_board', 'move_cards'])
+    return 'edit_worklist' in worklists_api.get_permissions(worklist.id, user)
+
+
+class PermissionsController(rest.RestController):
+    """Manages operations on worklist permissions."""
+
+    @decorators.db_exceptions
+    @secure(checks.guest)
+    @wsme_pecan.wsexpose([wtypes.text], int)
+    def get(self, worklist_id):
+        """Get worklist permissions for the current user.
+
+        :param worklist_id: The ID of the worklist.
+
+        """
+        return worklists_api.get_permissions(
+            worklist_id, request.current_user_id)
+
+    @decorators.db_exceptions
+    @secure(checks.authenticated)
+    @wsme_pecan.wsexpose(wtypes.text, int,
+                         body=wtypes.DictType(wtypes.text, wtypes.text))
+    def post(self, worklist_id, permission):
+        """Add a new permission to the worklist.
+
+        :param worklist_id: The ID of the worklist.
+        :param permission: The dict to use to create the permission.
+
+        """
+        return worklists_api.create_permission(worklist_id)
+
+    @decorators.db_exceptions
+    @secure(checks.authenticated)
+    @wsme_pecan.wsexpose(wtypes.text, int,
+                         body=wtypes.DictType(wtypes.text, wtypes.text))
+    def put(self, worklist_id, permission):
+        """Update a permission of the worklist.
+
+        :param worklist_id: The ID of the worklist.
+        :param permission: The new contents of the permission.
+
+        """
+        return worklists_api.update_permission(
+            worklist_id, permission).codename
 
 
 class ItemsSubcontroller(rest.RestController):
@@ -149,23 +205,27 @@ class WorklistsController(rest.RestController):
 
         user_id = request.current_user_id
         if worklist and visible(worklist, user_id):
-            return wmodels.Worklist.from_db_model(worklist)
+            worklist_model = wmodels.Worklist.from_db_model(worklist)
+            worklist_model.owners = worklists_api.get_owners(worklist.id)
+            worklist_model.users = worklists_api.get_users(worklist.id)
+            return worklist_model
         else:
             raise exc.NotFound(_("Worklist %s not found") % worklist_id)
 
     @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Worklist], wtypes.text, int, int,
-                         bool, bool, wtypes.text, wtypes.text, int)
+                         bool, int, bool, wtypes.text, wtypes.text, int)
     def get_all(self, title=None, creator_id=None, project_id=None,
-                archived=False, hide_lanes=True, sort_field='id',
-                sort_dir='asc', board_id=None):
+                archived=False, user_id=None, hide_lanes=True,
+                sort_field='id', sort_dir='asc', board_id=None):
         """Retrieve definitions of all of the worklists.
 
         :param title: A string to filter the title by.
         :param creator_id: Filter worklists by their creator.
         :param project_id: Filter worklists by project ID.
         :param archived: Filter worklists by whether they are archived or not.
+        :param user_id: Filter worklists by the users with permissions.
         :param hide_lanes: If true, don't return worklists which are lanes in
         a board.
         :param sort_field: The name of the field to sort on.
@@ -179,14 +239,19 @@ class WorklistsController(rest.RestController):
                                           project_id=project_id,
                                           archived=archived,
                                           board_id=board_id,
+                                          user_id=user_id,
                                           sort_field=sort_field,
                                           sort_dir=sort_dir)
 
         user_id = request.current_user_id
-        visible_worklists = [wmodels.Worklist.from_db_model(w)
-                             for w in worklists
-                             if w.archived == archived
-                             and visible(w, user_id, hide_lanes)]
+        visible_worklists = []
+        for worklist in worklists:
+            if (visible(worklist, user_id, hide_lanes) and
+                worklist.archived == archived):
+                worklist_model = wmodels.Worklist.from_db_model(worklist)
+                worklist_model.owners = worklists_api.get_owners(worklist.id)
+                worklist_model.users = worklists_api.get_users(worklist.id)
+                visible_worklists.append(worklist_model)
 
         # Apply the query response headers
         response.headers['X-Total'] = str(len(visible_worklists))
@@ -208,8 +273,27 @@ class WorklistsController(rest.RestController):
         if worklist.creator_id and worklist.creator_id != user_id:
             abort(400, _("You can't select the creator of a worklist."))
         worklist_dict.update({"creator_id": user_id})
+        owners = worklist_dict.pop('owners')
+        users = worklist_dict.pop('users')
+        if not owners:
+            owners = [user_id]
+        if not users:
+            users = []
 
         created_worklist = worklists_api.create(worklist_dict)
+
+        edit_permission = {
+            'name': 'edit_worklist_%d' % created_worklist.id,
+            'codename': 'edit_worklist',
+            'users': owners
+        }
+        move_permission = {
+            'name': 'move_items_%d' % created_worklist.id,
+            'codename': 'move_items',
+            'users': users
+        }
+        worklists_api.create_permission(created_worklist.id, edit_permission)
+        worklists_api.create_permission(created_worklist.id, move_permission)
 
         return wmodels.Worklist.from_db_model(created_worklist)
 
@@ -230,7 +314,14 @@ class WorklistsController(rest.RestController):
         updated_worklist = worklists_api.update(
             id, worklist.as_dict(omit_unset=True))
 
-        return wmodels.Worklist.from_db_model(updated_worklist)
+        if visible(updated_worklist, user_id):
+            worklist_model = wmodels.Worklist.from_db_model(updated_worklist)
+            worklist_model.owners = worklists_api.get_owners(
+                updated_worklist.id)
+            worklist_model.users = worklists_api.get_users(updated_worklist.id)
+            return worklist_model
+        else:
+            raise exc.NotFound(_("Worklist %s not found"))
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
@@ -246,8 +337,7 @@ class WorklistsController(rest.RestController):
         if not editable(worklist, user_id):
             raise exc.NotFound(_("Worklist %s not found") % worklist_id)
 
-        worklist_dict = wmodels.Worklist.from_db_model(worklist).as_dict()
-        worklist_dict.update({"archived": True})
-        worklists_api.update(worklist_id, worklist_dict)
+        worklists_api.update(worklist_id, {"archived": True})
 
     items = ItemsSubcontroller()
+    permissions = PermissionsController()
