@@ -123,16 +123,16 @@ class NotificationHook(hooks.PecanHook):
             return None
 
     def parse(self, s):
-        url_pattern = re.match("^\/v1\/([a-z_]+)\/?([0-9]+)?"
+        url_pattern = re.match("^(\/api)?\/v1\/([a-z_]+)\/?([0-9]+)?"
                                "\/?([a-z]+)?\/?([0-9]+)?$", s)
-        if not url_pattern or url_pattern.groups()[0] == "openid":
+        if not url_pattern or url_pattern.groups()[1] == "openid":
             return None, None, None, None
 
         groups = url_pattern.groups()
-        resource = self.singularize_resource(groups[0])
-        sub_resource = self.singularize_resource(groups[2])
+        resource = self.singularize_resource(groups[1])
+        sub_resource = self.singularize_resource(groups[3])
 
-        return resource, groups[1], sub_resource, groups[3]
+        return resource, groups[2], sub_resource, groups[4]
 
     def singularize_resource(self, resource_name):
         """Convert a resource name into its singular version."""
