@@ -154,3 +154,44 @@ Optional steps: Seed database with base data
 4. Create the projects and projectgroups in the DB::
 
     tox -e venv "storyboard-db-manage --config-file ./etc/storyboard.conf load_projects ./etc/projects.yaml"
+
+
+Optional steps: Set up the notifications daemon
+===============================================
+
+NOTE: If you followed the "Launch the development VM" instuctions
+above, this step is unnecessary.
+
+1. Install rabbitmq on your development machine::
+
+    sudo apt-get install rabbitmq-server
+
+2. Create a rabbitmq user/password for StoryBoard (more information
+   can be found in the `rabbitmq manpages`_)::
+
+    #                         (username) (password)
+    sudo rabbitmqctl add_user storyboard storyboard
+    sudo rabbitmqctl set_permissions -p / storyboard ".*" ".*" ".*"
+
+.. _rabbitmq manpages: https://www.rabbitmq.com/man/rabbitmqctl.1.man.html#User%20management
+
+3. Set up your storyboard.conf file for notifications using rabbitmq::
+
+    [DEFAULT]
+    enable_notifications = True
+
+    [notifications]
+    rabbit_host=127.0.0.1
+    rabbit_login_method = AMQPLAIN
+    rabbit_userid = storyboard
+    rabbit_password = storyboard
+    rabbit_port = 5672
+    rabbit_virtual_host = /
+
+4. Restart your API server (if it is running)::
+
+    tox -e venv "storyboard-api --config-file ./etc/storyboard.conf"
+
+5. Run the worker daemon::
+
+    tox -e venv "storyboard-worker-daemon --config-file ./etc/storyboard.conf"
