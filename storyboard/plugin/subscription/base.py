@@ -63,7 +63,7 @@ class Subscription(WorkerTaskBase):
                                   author=author,
                                   subscribers=subscribers)
 
-        if method == 'DELETE' and not sub_resource_id:
+        if method == 'DELETE' and not (sub_resource_id or sub_resource):
             self.handle_deletions(session, resource, resource_id)
 
     def handle_deletions(self, session, resource_name, resource_id):
