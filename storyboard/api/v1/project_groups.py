@@ -116,9 +116,9 @@ class ProjectGroupsController(rest.RestController):
     @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.ProjectGroup], int, int, int, wtypes.text,
-                         wtypes.text, wtypes.text, wtypes.text)
+                         wtypes.text, int, wtypes.text, wtypes.text)
     def get(self, marker=None, offset=None, limit=None, name=None, title=None,
-            sort_field='id', sort_dir='asc'):
+            subscriber_id=None, sort_field='id', sort_dir='asc'):
         """Retrieve a list of projects groups.
 
         :param marker: The resource id where the page should begin.
@@ -126,6 +126,7 @@ class ProjectGroupsController(rest.RestController):
         :param limit: The number of project groups to retrieve.
         :param name: A string to filter the name by.
         :param title: A string to filter the title by.
+        :param subscriber_id: The ID of a subscriber to filter by.
         :param sort_field: The name of the field to sort on.
         :param sort_dir: Sort direction for results (asc, desc).
         """
@@ -138,16 +139,18 @@ class ProjectGroupsController(rest.RestController):
         if marker is not None:
             marker_group = project_groups.project_group_get(marker)
 
-        groups = project_groups.project_group_get_all(marker=marker_group,
-                                                      offset=offset,
-                                                      limit=limit,
-                                                      name=name,
-                                                      title=title,
-                                                      sort_field=sort_field,
-                                                      sort_dir=sort_dir)
+        groups = project_groups.project_group_get_all(
+            marker=marker_group,
+            offset=offset,
+            limit=limit,
+            name=name,
+            title=title,
+            subscriber_id=subscriber_id,
+            sort_field=sort_field,
+            sort_dir=sort_dir)
 
-        group_count = project_groups.project_group_get_count(name=name,
-                                                             title=title)
+        group_count = project_groups.project_group_get_count(
+            name=name, title=title, subscriber_id=subscriber_id)
 
         # Apply the query response headers.
         if limit:

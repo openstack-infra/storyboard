@@ -37,18 +37,60 @@ def project_group_get(project_group_id):
     return _entity_get(project_group_id)
 
 
-def project_group_get_all(marker=None, limit=None, sort_field=None,
-                          sort_dir=None, **kwargs):
-    return api_base.entity_get_all(models.ProjectGroup,
-                                   marker=marker,
-                                   limit=limit,
-                                   sort_field=sort_field,
-                                   sort_dir=sort_dir,
-                                   **kwargs)
+def project_group_get_all(marker=None, limit=None, offset=None,
+                          subscriber_id=None, sort_field=None, sort_dir=None,
+                          **kwargs):
+    # Sanity checks, in case someone accidentally explicitly passes in 'None'
+    if not sort_field:
+        sort_field = 'id'
+    if not sort_dir:
+        sort_dir = 'asc'
+
+    query = api_base.model_query(models.ProjectGroup)
+    query = api_base.apply_query_filters(query=query,
+                                         model=models.ProjectGroup,
+                                         **kwargs)
+
+    # Filter by subscriber ID
+    if subscriber_id is not None:
+        subs = api_base.model_query(models.Subscription)
+        subs = api_base.apply_query_filters(query=subs,
+                                            model=models.Subscription,
+                                            target_type='project_group',
+                                            user_id=subscriber_id)
+        subs = subs.subquery()
+        query = query.join(subs, subs.c.target_id == models.ProjectGroup.id)
+
+    query = api_base.paginate_query(query=query,
+                                    model=models.ProjectGroup,
+                                    limit=limit,
+                                    sort_key=sort_field,
+                                    marker=marker,
+                                    offset=offset,
+                                    sort_dir=sort_dir)
+
+    # Execute the query
+    return query.all()
 
 
-def project_group_get_count(**kwargs):
-    return api_base.entity_get_count(models.ProjectGroup, **kwargs)
+def project_group_get_count(subscriber_id=None, **kwargs):
+    # Construct the query
+    query = api_base.model_query(models.ProjectGroup)
+    query = api_base.apply_query_filters(query=query,
+                                         model=models.ProjectGroup,
+                                         **kwargs)
+
+    # Filter by subscriber ID
+    if subscriber_id is not None:
+        subs = api_base.model_query(models.Subscription)
+        subs = api_base.apply_query_filters(query=subs,
+                                            model=models.Subscription,
+                                            target_type='project_group',
+                                            user_id=subscriber_id)
+        subs = subs.subquery()
+        query = query.join(subs, subs.c.target_id == models.ProjectGroup.id)
+
+    return query.count()
 
 
 def project_group_create(values):
