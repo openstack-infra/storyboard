@@ -23,7 +23,6 @@ from email.utils import formatdate
 
 from jinja2 import Environment
 from jinja2 import PackageLoader
-from jinja2 import Template
 
 
 class EmailFactory(object):
@@ -52,7 +51,7 @@ class EmailFactory(object):
 
         # Store internal values.
         self.sender = sender
-        self.subject = Template(subject)
+        self.subject = self.env.get_template(subject)
         self.headers = dict()
 
         # Add the default text template.
