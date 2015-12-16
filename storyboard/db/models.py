@@ -31,6 +31,7 @@ from sqlalchemy import Enum
 from sqlalchemy.ext import declarative
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
+from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.orm import relationship
 from sqlalchemy import schema
 from sqlalchemy import select
@@ -154,7 +155,11 @@ class User(FullText, ModelBuilder, Base):
         "Permission", secondary="user_permissions", backref="users")
     enable_login = Column(Boolean, default=True)
 
-    preferences = relationship("UserPreference")
+    preferences = relationship("UserPreference",
+                               collection_class=attribute_mapped_collection(
+                                   'key'
+                               ),
+                               cascade="all, delete-orphan")
 
     _public_fields = ["id", "openid", "full_name", "last_login",
                       "enable_login"]
@@ -176,7 +181,7 @@ class UserPreference(ModelBuilder, Base):
             cast_func = {
                 'float': lambda x: float(x),
                 'int': lambda x: int(x),
-                'bool': lambda x: bool(x),
+                'bool': lambda x: bool(x == 'True'),
                 'string': lambda x: six.text_type(x)
             }[self.type]
 

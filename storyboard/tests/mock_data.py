@@ -29,6 +29,7 @@ from storyboard.db.models import Task
 from storyboard.db.models import Team
 from storyboard.db.models import TimeLineEvent
 from storyboard.db.models import User
+from storyboard.db.models import UserPreference
 
 
 def load():
@@ -56,6 +57,35 @@ def load():
              openid='otheruser_openid',
              full_name='Other User',
              is_superuser=False)
+    ])
+
+    # Load some preferences for the above users.
+    load_data([
+        UserPreference(id=1,
+                       user_id=1,
+                       key='foo',
+                       value='bar',
+                       type='string'),
+        UserPreference(id=2,
+                       user_id=1,
+                       key='plugin_email_enable',
+                       value='true',
+                       type='string'),
+        UserPreference(id=3,
+                       user_id=1,
+                       key='plugin_email_digest',
+                       value='True',
+                       type='bool'),
+        UserPreference(id=4,
+                       user_id=3,
+                       key='plugin_email_enable',
+                       value='true',
+                       type='string'),
+        UserPreference(id=5,
+                       user_id=3,
+                       key='plugin_email_digest',
+                       value='False',
+                       type='bool'),
     ])
 
     # Load a variety of sensibly named access tokens.

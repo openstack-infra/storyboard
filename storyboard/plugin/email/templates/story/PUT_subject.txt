@@ -1,0 +1,1 @@
+Story "{{resource.title}}" was updated.
