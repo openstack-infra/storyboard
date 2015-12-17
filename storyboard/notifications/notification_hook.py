@@ -73,6 +73,11 @@ class NotificationHook(hooks.PecanHook):
         (resource, resource_id, subresource, subresource_id) \
             = self.parse(request.path)
 
+        # FIXME: Ignore worklists and boards for now, since they cause a
+        # 500 error when moving cards that seems to be pika breaking.
+        if resource in ['board', 'worklist']:
+            return
+
         # On a POST method, the server has assigned an ID to the resource,
         # so we should be getting it from the resource rather than the URL.
         if state.request.method == 'POST':
