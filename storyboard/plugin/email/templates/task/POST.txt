@@ -1,0 +1,8 @@
+Task "{{resource.title}}" was created by {{author.full_name}}:
+
+URL: {{url}}#!/story/{{resource.story.id}}
+Story: {{resource.story.title}}
+Project: {{resource.project.name}}
+Assignee: {{resource.assignee.full_name}}
+Status: {{resource.status}}
+Priority: {{resource.priority}}

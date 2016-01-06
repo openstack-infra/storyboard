@@ -1,0 +1,15 @@
+Task "{{resource.title}}" was updated by {{author.full_name}}:
+
+URL: {{url}}#!/story/{{resource.story.id}}
+
+Full Task Details:
+
+Task: {{resource.title}}
+Story: {{resource.story.title}}
+Project: {{resource.project.name}}
+Assignee: {{resource.assignee.full_name}}
+Status: {{resource.status}}
+Priority: {{resource.priority}}
+
+Type of Change: {{after}}
+(prior to change, {{before}} )
