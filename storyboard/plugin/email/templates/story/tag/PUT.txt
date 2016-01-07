@@ -1,0 +1,10 @@
+Tag "{{resource.tags[-1].name}}" was added to story "{{resource.title}}" by {{author.full_name}}
+
+New Tag: "{{resource.tags[-1].name}}"
+
+URL: {{url}}#!/story/{{resource.id}}
+
+All Tags:
+{% for key in resource.tags %}
+"{{key.name}}"
+{% endfor %}
