@@ -69,13 +69,13 @@ class StoriesController(rest.RestController):
     @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Story], wtypes.text, wtypes.text,
-                         [wtypes.text], int, int, int, int, [wtypes.text], int,
-                         int, int, wtypes.text, wtypes.text, wtypes.text)
+                         [wtypes.text], int, int, int, int, int, [wtypes.text],
+                         int, int, int, wtypes.text, wtypes.text, wtypes.text)
     def get_all(self, title=None, description=None, status=None,
                 assignee_id=None, creator_id=None, project_group_id=None,
-                project_id=None, tags=None, marker=None, offset=None,
-                limit=None, tags_filter_type='all', sort_field='id',
-                sort_dir='asc'):
+                project_id=None, subscriber_id=None, tags=None, marker=None,
+                offset=None, limit=None, tags_filter_type='all',
+                sort_field='id', sort_dir='asc'):
         """Retrieve definitions of all of the stories.
 
         :param title: A string to filter the title by.
@@ -85,6 +85,7 @@ class StoriesController(rest.RestController):
         :param creator_id: Filter stories by who created them.
         :param project_group_id: Filter stories by project group.
         :param project_id: Filter stories by project ID.
+        :param subscriber_id: Filter stories by subscriber ID.
         :param tags: A list of tags to filter by.
         :param marker: The resource id where the page should begin.
         :param offset: The offset to start the page at.
@@ -111,6 +112,7 @@ class StoriesController(rest.RestController):
                            creator_id=creator_id,
                            project_group_id=project_group_id,
                            project_id=project_id,
+                           subscriber_id=subscriber_id,
                            tags=tags,
                            marker=marker_story,
                            offset=offset,
@@ -125,6 +127,7 @@ class StoriesController(rest.RestController):
                              creator_id=creator_id,
                              project_group_id=project_group_id,
                              project_id=project_id,
+                             subscriber_id=subscriber_id,
                              tags=tags,
                              tags_filter_type=tags_filter_type)
 

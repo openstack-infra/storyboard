@@ -29,7 +29,8 @@ def project_get_by_name(name):
 
 
 def project_get_all(marker=None, offset=None, limit=None, sort_field=None,
-                    sort_dir=None, project_group_id=None, **kwargs):
+                    sort_dir=None, project_group_id=None, subscriber_id=None,
+                    **kwargs):
     # Sanity checks, in case someone accidentally explicitly passes in 'None'
     if not sort_field:
         sort_field = 'id'
@@ -39,6 +40,16 @@ def project_get_all(marker=None, offset=None, limit=None, sort_field=None,
     # Construct the query
     query = project_build_query(project_group_id=project_group_id,
                                 **kwargs)
+
+    # Filter by subscriber ID
+    if subscriber_id is not None:
+        subs = api_base.model_query(models.Subscription)
+        subs = api_base.apply_query_filters(query=subs,
+                                            model=models.Subscription,
+                                            target_type='project',
+                                            user_id=subscriber_id)
+        subs = subs.subquery()
+        query = query.join(subs, subs.c.target_id == models.Project.id)
 
     query = api_base.paginate_query(query=query,
                                     model=models.Project,
@@ -52,10 +63,20 @@ def project_get_all(marker=None, offset=None, limit=None, sort_field=None,
     return query.all()
 
 
-def project_get_count(project_group_id=None, **kwargs):
+def project_get_count(project_group_id=None, subscriber_id=None, **kwargs):
     # Construct the query
     query = project_build_query(project_group_id=project_group_id,
                                 **kwargs)
+
+    # Filter by subscriber ID
+    if subscriber_id is not None:
+        subs = api_base.model_query(models.Subscription)
+        subs = api_base.apply_query_filters(query=subs,
+                                            model=models.Subscription,
+                                            target_type='project',
+                                            user_id=subscriber_id)
+        subs = subs.subquery()
+        query = query.join(subs, subs.c.target_id == models.Project.id)
 
     return query.count()
 

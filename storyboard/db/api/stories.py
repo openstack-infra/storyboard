@@ -56,8 +56,9 @@ def story_get(story_id, session=None):
 
 def story_get_all(title=None, description=None, status=None, assignee_id=None,
                   creator_id=None, project_group_id=None, project_id=None,
-                  tags=None, marker=None, offset=None, limit=None,
-                  tags_filter_type="all", sort_field='id', sort_dir='asc'):
+                  subscriber_id=None, tags=None, marker=None, offset=None,
+                  limit=None, tags_filter_type="all", sort_field='id',
+                  sort_dir='asc'):
     # Sanity checks, in case someone accidentally explicitly passes in 'None'
     if not sort_field:
         sort_field = 'id'
@@ -73,6 +74,16 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
                                   project_id=project_id,
                                   tags=tags,
                                   tags_filter_type=tags_filter_type)
+
+    # Filter by subscriber ID
+    if subscriber_id is not None:
+        subs = api_base.model_query(models.Subscription)
+        subs = api_base.apply_query_filters(query=subs,
+                                            model=models.Subscription,
+                                            target_type='story',
+                                            user_id=subscriber_id)
+        subs = subs.subquery()
+        subquery = subquery.join(subs, subs.c.target_id == models.Story.id)
 
     # Turn the whole shebang into a subquery.
     subquery = subquery.subquery('filtered_stories')
@@ -102,7 +113,8 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
 
 def story_get_count(title=None, description=None, status=None,
                     assignee_id=None, creator_id=None, project_group_id=None,
-                    project_id=None, tags=None, tags_filter_type="all"):
+                    project_id=None, subscriber_id=None, tags=None,
+                    tags_filter_type="all"):
     query = _story_build_query(title=title,
                                description=description,
                                assignee_id=assignee_id,
@@ -111,6 +123,16 @@ def story_get_count(title=None, description=None, status=None,
                                project_id=project_id,
                                tags=tags,
                                tags_filter_type=tags_filter_type)
+
+    # Filter by subscriber ID
+    if subscriber_id is not None:
+        subs = api_base.model_query(models.Subscription)
+        subs = api_base.apply_query_filters(query=subs,
+                                            model=models.Subscription,
+                                            target_type='story',
+                                            user_id=subscriber_id)
+        subs = subs.subquery()
+        query = query.join(subs, subs.c.target_id == models.Story.id)
 
     # If we're also asking for status, we have to attach storysummary here,
     # since story status is derived.

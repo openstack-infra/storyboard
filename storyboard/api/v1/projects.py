@@ -82,10 +82,10 @@ class ProjectsController(rest.RestController):
     @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Project], int, int, int, wtypes.text,
-                         wtypes.text, int, wtypes.text, wtypes.text)
+                         wtypes.text, int, int, wtypes.text, wtypes.text)
     def get(self, marker=None, offset=None, limit=None, name=None,
-            description=None, project_group_id=None, sort_field='id',
-            sort_dir='asc'):
+            description=None, project_group_id=None, subscriber_id=None,
+            sort_field='id', sort_dir='asc'):
         """Retrieve a list of projects.
 
         :param marker: The resource id where the page should begin.
@@ -95,6 +95,7 @@ class ProjectsController(rest.RestController):
         :param description: A string to filter the description by.
         :param project_group_id: The ID of a project group to which the
                                  projects must belong.
+        :param subscriber_id: The ID of a subscriber to filter results by.
         :param sort_field: The name of the field to sort on.
         :param sort_dir: Sort direction for results (asc, desc).
         """
@@ -115,12 +116,14 @@ class ProjectsController(rest.RestController):
                                          name=name,
                                          description=description,
                                          project_group_id=project_group_id,
+                                         subscriber_id=subscriber_id,
                                          sort_field=sort_field,
                                          sort_dir=sort_dir)
         project_count = \
             projects_api.project_get_count(name=name,
                                            description=description,
-                                           project_group_id=project_group_id)
+                                           project_group_id=project_group_id,
+                                           subscriber_id=subscriber_id)
 
         # Apply the query response headers.
         if limit:
