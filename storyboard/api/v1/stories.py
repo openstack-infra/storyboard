@@ -43,6 +43,12 @@ CONF = cfg.CONF
 SEARCH_ENGINE = search_engine.get_engine()
 
 
+def create_story_wmodel(story):
+    wstory = wmodels.Story.from_db_model(story)
+    wstory.task_statuses = stories_api.summarize_task_statuses(story)
+    return wstory
+
+
 class StoriesController(rest.RestController):
     """Manages operations on stories."""
 
@@ -62,7 +68,7 @@ class StoriesController(rest.RestController):
         story = stories_api.story_get(story_id)
 
         if story:
-            return wmodels.Story.from_db_model(story)
+            return create_story_wmodel(story)
         else:
             raise exc.NotFound(_("Story %s not found") % story_id)
 
@@ -140,7 +146,7 @@ class StoriesController(rest.RestController):
         if offset is not None:
             response.headers['X-Offset'] = str(offset)
 
-        return [wmodels.Story.from_db_model(s) for s in stories]
+        return [create_story_wmodel(s) for s in stories]
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
@@ -222,7 +228,7 @@ class StoriesController(rest.RestController):
         events_api.story_details_changed_event(story_id, user_id,
                                                updated_story.title)
 
-        return wmodels.Story.from_db_model(updated_story)
+        return create_story_wmodel(updated_story)
 
     @decorators.db_exceptions
     @secure(checks.superuser)
@@ -255,7 +261,7 @@ class StoriesController(rest.RestController):
                                               offset=offset,
                                               limit=limit)
 
-        return [wmodels.Story.from_db_model(story) for story in stories]
+        return [create_story_wmodel(story) for story in stories]
 
     @expose()
     def _route(self, args, request):

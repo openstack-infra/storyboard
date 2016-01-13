@@ -34,12 +34,9 @@ def summarize_task_statuses(story_summary):
     task_statuses = []
     for task_status in models.Task.TASK_STATUSES:
         task_count = wmodels.TaskStatusCount(
-            key=task_status, count=getattr(
-                story_summary, task_status))
+            key=task_status, count=getattr(story_summary, task_status))
         task_statuses.append(task_count)
-        delattr(story_summary, task_status)
-    story_summary.task_statuses = task_statuses
-    return story_summary
+    return task_statuses
 
 
 def story_get(story_id, session=None):
@@ -48,10 +45,7 @@ def story_get(story_id, session=None):
         .options(subqueryload(models.StorySummary.tags))\
         .filter_by(id=story_id).first()
 
-    if story_summary:
-        return summarize_task_statuses(story_summary)
-
-    return None
+    return story_summary
 
 
 def story_get_all(title=None, description=None, status=None, assignee_id=None,
@@ -107,8 +101,7 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
                                     sort_dir=sort_dir)
 
     raw_stories = query.all()
-    stories = map(summarize_task_statuses, raw_stories)
-    return stories
+    return raw_stories
 
 
 def story_get_count(title=None, description=None, status=None,

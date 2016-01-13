@@ -19,7 +19,6 @@ import sqlalchemy_fulltext.modes as FullTextMode
 
 from storyboard.api.v1.search import search_engine
 from storyboard.db.api import base as api_base
-from storyboard.db.api import stories as stories_api
 from storyboard.db import models
 
 
@@ -70,8 +69,7 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
         query = query.join(subquery,
                            models.StorySummary.id == subquery.c.id)
 
-        raw_stories = query.all()
-        stories = map(stories_api.summarize_task_statuses, raw_stories)
+        stories = query.all()
         return stories
 
     def tasks_query(self, q, marker=None, offset=None, limit=None, **kwargs):
