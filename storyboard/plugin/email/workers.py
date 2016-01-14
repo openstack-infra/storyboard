@@ -76,7 +76,16 @@ class EmailWorkerBase(EmailPluginBase, WorkerTaskBase):
             return
 
         # We only care if the current resource has subscribers.
-        subscribers = self.get_subscribers(session, resource, resource_id)
+        if resource == 'task' and method == 'DELETE':
+            # FIXME(SotK): Workaround the fact that the task won't be in the
+            # database anymore if it has been deleted.
+            # We should archive instead of delete to solve this.
+            # NOTE: People who are only subscribed to the task (not the story)
+            # won't get an email.
+            subscribers = self.get_subscribers(session, 'story',
+                                               resource_before['story_id'])
+        else:
+            subscribers = self.get_subscribers(session, resource, resource_id)
         if not subscribers:
             return
 
