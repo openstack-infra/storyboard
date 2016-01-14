@@ -65,8 +65,8 @@ class TestWorkerTaskBase(base.FunctionalTest):
 
 
 class TestWorkerPlugin(plugin_base.WorkerTaskBase):
-    def handle(self, session, author, method, path, status, resource,
-               resource_id, sub_resource=None, sub_resource_id=None,
+    def handle(self, session, author, method, url, path, query_string, status,
+               resource, resource_id, sub_resource=None, sub_resource_id=None,
                resource_before=None, resource_after=None):
         pass
 

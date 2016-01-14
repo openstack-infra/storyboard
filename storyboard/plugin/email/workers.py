@@ -47,15 +47,17 @@ class EmailWorkerBase(EmailPluginBase, WorkerTaskBase):
 
     __metaclass__ = abc.ABCMeta
 
-    def handle(self, session, author, method, path, status, resource,
-               resource_id, sub_resource=None, sub_resource_id=None,
+    def handle(self, session, author, method, url, path, query_string, status,
+               resource, resource_id, sub_resource=None, sub_resource_id=None,
                resource_before=None, resource_after=None):
         """Handle an event.
 
         :param session: An event-specific SQLAlchemy session.
         :param author: The author's user record.
         :param method: The HTTP Method.
+        :param url: The Referer header from the request.
         :param path: The full HTTP Path requested.
+        :param query_string: The HTTP query string from the request.
         :param status: The returned HTTP Status of the response.
         :param resource: The resource type.
         :param resource_id: The ID of the resource.
@@ -85,8 +87,10 @@ class EmailWorkerBase(EmailPluginBase, WorkerTaskBase):
                           author=author,
                           subscribers=subscribers,
                           method=method,
+                          url=url,
                           status=status,
                           path=path,
+                          query_string=query_string,
                           resource=resource,
                           resource_id=resource_id,
                           sub_resource=sub_resource,
@@ -95,17 +99,19 @@ class EmailWorkerBase(EmailPluginBase, WorkerTaskBase):
                           resource_after=resource_after)
 
     @abc.abstractmethod
-    def handle_email(self, session, author, subscribers, method, path, status,
-                     resource, resource_id, sub_resource=None,
-                     sub_resource_id=None, resource_before=None,
-                     resource_after=None):
+    def handle_email(self, session, author, subscribers, method, url, path,
+                     query_string, status, resource, resource_id,
+                     sub_resource=None, sub_resource_id=None,
+                     resource_before=None, resource_after=None):
         """Handle an email notification for the given subscribers.
 
         :param session: An event-specific SQLAlchemy session.
         :param author: The author's user record.
         :param subscribers: A list of subscribers that should receive an email.
         :param method: The HTTP Method.
+        :param url: The Referer header from the request.
         :param path: The full HTTP Path requested.
+        :param query_string: The query string from the request.
         :param status: The returned HTTP Status of the response.
         :param resource: The resource type.
         :param resource_id: The ID of the resource.
@@ -189,10 +195,10 @@ class SubscriptionEmailWorker(EmailWorkerBase):
     have indicated that they wish to receive emails, but don't want digests.
     """
 
-    def handle_email(self, session, author, subscribers, method, path, status,
-                     resource, resource_id, sub_resource=None,
-                     sub_resource_id=None, resource_before=None,
-                     resource_after=None):
+    def handle_email(self, session, author, subscribers, method, url, path,
+                     query_string, status, resource, resource_id,
+                     sub_resource=None, sub_resource_id=None,
+                     resource_before=None, resource_after=None):
         """Send an email for a specific event.
 
         We assume that filtering logic has already occurred when this method
@@ -202,7 +208,9 @@ class SubscriptionEmailWorker(EmailWorkerBase):
         :param author: The author's user record.
         :param subscribers: A list of subscribers that should receive an email.
         :param method: The HTTP Method.
+        :param url: The Referer header from the request.
         :param path: The full HTTP Path requested.
+        :param query_string: The query string from the request.
         :param status: The returned HTTP Status of the response.
         :param resource: The resource type.
         :param resource_id: The ID of the resource.
@@ -269,6 +277,8 @@ class SubscriptionEmailWorker(EmailWorkerBase):
                                             author=author,
                                             resource=resource_instance,
                                             sub_resource=sub_resource_instance,
+                                            url=url,
+                                            query_string=query_string,
                                             before=before,
                                             after=after)
                     # Send the email.

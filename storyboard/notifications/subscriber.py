@@ -74,7 +74,9 @@ def handle_event(ext, body):
     payload = json.loads(body)
     return ext.obj.event(author_id=payload['author_id'] or None,
                          method=payload['method'] or None,
+                         url=payload['url'] or None,
                          path=payload['path'] or None,
+                         query_string=payload['query_string'] or None,
                          status=payload['status'] or None,
                          resource=payload['resource'] or None,
                          resource_id=payload['resource_id'] or None,
