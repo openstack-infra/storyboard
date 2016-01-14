@@ -1,0 +1,5 @@
+{{author.full_name}} added comment to story "{{resource.title}}":
+
+{{sub_resource.content}}
+
+at {{sub_resource.created_at}}

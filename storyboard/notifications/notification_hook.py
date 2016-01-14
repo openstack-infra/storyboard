@@ -36,7 +36,8 @@ class_mappings = {'task': [models.Task, wmodels.Task],
                   'milestone': [models.Milestone, wmodels.Milestone],
                   'tag': [models.StoryTag, wmodels.Tag],
                   'worklist': [models.Worklist, wmodels.Worklist],
-                  'board': [models.Board, wmodels.Board]}
+                  'board': [models.Board, wmodels.Board],
+                  'comment': [models.Comment, wmodels.Comment]}
 
 
 class NotificationHook(hooks.PecanHook):

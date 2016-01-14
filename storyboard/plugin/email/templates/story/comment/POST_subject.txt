@@ -1,0 +1,1 @@
+{{author.full_name}} commented on "{{resource.title}}"
