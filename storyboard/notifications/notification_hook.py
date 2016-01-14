@@ -102,7 +102,9 @@ class NotificationHook(hooks.PecanHook):
         # happening.
         publish(author_id=request.current_user_id,
                 method=request.method,
+                url=request.headers.get('Referer'),
                 path=request.path,
+                query_string=request.query_string,
                 status=response.status_code,
                 resource=resource,
                 resource_id=resource_id,

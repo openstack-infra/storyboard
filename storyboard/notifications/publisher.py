@@ -131,16 +131,19 @@ class Payload(object):
         self.payload = payload
 
 
-def publish(resource, author_id=None, method=None, path=None, status=None,
-            resource_id=None, sub_resource=None, sub_resource_id=None,
-            resource_before=None, resource_after=None):
+def publish(resource, author_id=None, method=None, url=None, path=None,
+            query_string=None, status=None, resource_id=None,
+            sub_resource=None, sub_resource_id=None, resource_before=None,
+            resource_after=None):
     """Send a message for an API event to the storyboard exchange. The message
     will be automatically JSON encoded.
 
     :param resource: The extrapolated resource type (project, story, etc).
     :param author_id: The ID of the author who performed this action.
     :param method: The HTTP Method used.
+    :param url: The Referer header from the request.
     :param path: The HTTP Path used.
+    :param query_string: The HTTP query string used.
     :param status: The HTTP Status code of the response.
     :param resource_id: The ID of the resource.
     :param sub_resource: The extracted subresource (user_token, etc)
@@ -158,7 +161,9 @@ def publish(resource, author_id=None, method=None, path=None, status=None,
     payload = {
         "author_id": author_id,
         "method": method,
+        "url": url,
         "path": path,
+        "query_string": query_string,
         "status": status,
         "resource": resource,
         "resource_id": resource_id,

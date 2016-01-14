@@ -252,6 +252,8 @@ class TestNotificationHook(base.BaseDbTestCase):
         mock_state = Mock()
         mock_state.request.current_user_id = '1'
         mock_state.request.method = 'PUT'
+        mock_state.request.headers = {'Referer': 'http://localhost/'}
+        mock_state.request.query_string = ''
         mock_state.request.path = '/v1/tasks/1'
         mock_state.response.status_code = '200'
         mock_state.old_entity_values = sot_json
@@ -261,7 +263,9 @@ class TestNotificationHook(base.BaseDbTestCase):
         mock_publish.assert_called_with(
             author_id=mock_state.request.current_user_id,
             method=mock_state.request.method,
+            url=mock_state.request.headers['Referer'],
             path=mock_state.request.path,
+            query_string=mock_state.request.query_string,
             status=mock_state.response.status_code,
             resource='task',
             resource_id='1',

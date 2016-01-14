@@ -161,8 +161,8 @@ class WorkerTaskBase(PluginBase):
 
     __metaclass__ = abc.ABCMeta
 
-    def event(self, author_id, method, path, status, resource, resource_id,
-              sub_resource=None, sub_resource_id=None,
+    def event(self, author_id, method, url, path, query_string, status,
+              resource, resource_id, sub_resource=None, sub_resource_id=None,
               resource_before=None, resource_after=None):
         """Handle an event.
 
@@ -176,7 +176,9 @@ class WorkerTaskBase(PluginBase):
             self.handle(session=session,
                         author=author,
                         method=method,
+                        url=url,
                         path=path,
+                        query_string=query_string,
                         status=status,
                         resource=resource,
                         resource_id=resource_id,
@@ -193,15 +195,17 @@ class WorkerTaskBase(PluginBase):
         return db_api.entity_get(klass, resource_id, session=session)
 
     @abc.abstractmethod
-    def handle(self, session, author, method, path, status, resource,
-               resource_id, sub_resource=None, sub_resource_id=None,
+    def handle(self, session, author, method, url, path, query_string, status,
+               resource, resource_id, sub_resource=None, sub_resource_id=None,
                resource_before=None, resource_after=None):
         """Handle an event.
 
         :param session: An event-specific SQLAlchemy session.
         :param author: The author's user record.
         :param method: The HTTP Method.
+        :param url: The Referer header from the request.
         :param path: The full HTTP Path requested.
+        :param query_string: The HTTP query string provided.
         :param status: The returned HTTP Status of the response.
         :param resource: The resource type.
         :param resource_id: The ID of the resource.

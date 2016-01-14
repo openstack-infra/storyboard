@@ -59,7 +59,9 @@ def event_create(values):
 
         publish(author_id=request.current_user_id or None,
                 method="POST",
+                url=request.headers.get('Referer') or None,
                 path=request.path or None,
+                query_string=request.query_string or None,
                 status=response.status_code or None,
                 resource="timeline_event",
                 resource_id=new_event.id or None,

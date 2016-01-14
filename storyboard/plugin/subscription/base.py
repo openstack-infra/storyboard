@@ -28,8 +28,8 @@ class Subscription(WorkerTaskBase):
         """
         return True
 
-    def handle(self, session, author, method, path, status, resource,
-               resource_id, sub_resource=None, sub_resource_id=None,
+    def handle(self, session, author, method, url, path, query_string, status,
+               resource, resource_id, sub_resource=None, sub_resource_id=None,
                resource_before=None, resource_after=None):
         """This worker handles API events and attempts to determine whether
         they correspond to user subscriptions.
@@ -37,7 +37,9 @@ class Subscription(WorkerTaskBase):
         :param session: An event-specific SQLAlchemy session.
         :param author: The author's user record.
         :param method: The HTTP Method.
+        :param url: The Referer header from the request.
         :param path: The full HTTP Path requested.
+        :param query_string: The HTTP query string from the request.
         :param status: The returned HTTP Status of the response.
         :param resource: The resource type.
         :param resource_id: The ID of the resource.
