@@ -83,7 +83,10 @@ class NotificationHook(hooks.PecanHook):
         if state.request.method == 'POST':
             response_body = json.loads(response.body)
             if response_body:
-                resource_id = response_body.get('id')
+                if not subresource:
+                    resource_id = response_body.get('id')
+                elif subresource == 'comment':
+                    subresource_id = response_body.get('comment').get('id')
             else:
                 resource_id = None
 
