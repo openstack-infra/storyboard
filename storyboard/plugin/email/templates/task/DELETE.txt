@@ -1,0 +1,3 @@
+{{author.full_name}} deleted the task "{{before['title']}}".
+
+This task's story was {{url}}#!/story/{{before['story_id']}}
