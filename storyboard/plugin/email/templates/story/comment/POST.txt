@@ -1,5 +1,7 @@
 {{author.full_name}} added comment to story "{{resource.title}}":
 
-{{sub_resource.content}}
+"{{sub_resource.content}}"
+
+URL: {{url}}#!/story/{{resource.id}}
 
 at {{sub_resource.created_at}}
