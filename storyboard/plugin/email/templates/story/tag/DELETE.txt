@@ -1,0 +1,9 @@
+Tag "{{query_string.split('=', 1)[1]}}" was deleted from story "{{resource.title}}" by {{author.full_name}}:
+
+URL: {{url}}#!/story/{{resource.id}} 
+
+Remaining Tags:
+
+{% for key in resource.tags %}
+"{{key.name}}"
+{% endfor %}
