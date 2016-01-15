@@ -335,6 +335,7 @@ class Task(FullText, ModelBuilder, Base):
     story_id = Column(Integer, ForeignKey('stories.id'))
     project_id = Column(Integer, ForeignKey('projects.id'))
     assignee_id = Column(Integer, ForeignKey('users.id'), nullable=True)
+    assignee = relationship('User', foreign_keys=[assignee_id])
     branch_id = Column(Integer, ForeignKey('branches.id'), nullable=True)
     milestone_id = Column(Integer, ForeignKey('milestones.id'), nullable=True)
     priority = Column(Enum(*_TASK_PRIORITIES), default='medium')
