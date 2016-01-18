@@ -154,7 +154,7 @@ class _PosixLock(object):
         # Hash the name because it's not valid to have POSIX semaphore
         # names with things like / in them. Then use base64 to encode
         # the digest() instead taking the hexdigest() because the
-        # result is shorter and most systems can't have shm sempahore
+        # result is shorter and most systems can't have shm semaphore
         # names longer than 31 characters.
         h = hashlib.sha1()
         h.update(name.encode('ascii'))
