@@ -21,7 +21,11 @@ from storyboard.api.v1 import base
 from storyboard.common.custom_types import NameType
 from storyboard.common import event_resolvers
 from storyboard.common import event_types
+from storyboard.db.api import boards as boards_api
 from storyboard.db.api import comments as comments_api
+from storyboard.db.api import stories as stories_api
+from storyboard.db.api import tasks as tasks_api
+from storyboard.db.api import worklists as worklists_api
 from storyboard.db import models
 
 
@@ -456,38 +460,6 @@ class TaskStatus(base.APIBase):
     name = wtypes.text
 
 
-class Worklist(base.APIBase):
-    """Represents a worklist."""
-
-    title = wtypes.text
-    """The title of the worklist."""
-
-    creator_id = int
-    """The ID of the User who created this worklist."""
-
-    project_id = int
-    """The ID of the Project this worklist is associated with."""
-
-    permission_id = int
-    """The ID of the Permission which defines who can edit this worklist."""
-
-    private = bool
-    """A flag to identify if this is a private or public worklist."""
-
-    archived = bool
-    """A flag to identify whether or not the worklist has been archived."""
-
-    automatic = bool
-    """A flag to identify whether the contents are obtained by a filter or are
-    stored in the database."""
-
-    owners = wtypes.ArrayType(int)
-    """A list of the IDs of the users who have full permissions."""
-
-    users = wtypes.ArrayType(int)
-    """A list of the IDs of the users who can move items in the worklist."""
-
-
 # NOTE(SotK): Criteria/Criterion is used as the existing code in the webclient
 #             refers to such filters as Criteria.
 class WorklistCriterion(base.APIBase):
@@ -524,6 +496,62 @@ class WorklistItem(base.APIBase):
     list_position = int
     """The position of this item in the Worklist."""
 
+    task = Task
+    story = Story
+
+
+class Worklist(base.APIBase):
+    """Represents a worklist."""
+
+    title = wtypes.text
+    """The title of the worklist."""
+
+    creator_id = int
+    """The ID of the User who created this worklist."""
+
+    project_id = int
+    """The ID of the Project this worklist is associated with."""
+
+    permission_id = int
+    """The ID of the Permission which defines who can edit this worklist."""
+
+    private = bool
+    """A flag to identify if this is a private or public worklist."""
+
+    archived = bool
+    """A flag to identify whether or not the worklist has been archived."""
+
+    automatic = bool
+    """A flag to identify whether the contents are obtained by a filter or are
+    stored in the database."""
+
+    owners = wtypes.ArrayType(int)
+    """A list of the IDs of the users who have full permissions."""
+
+    users = wtypes.ArrayType(int)
+    """A list of the IDs of the users who can move items in the worklist."""
+
+    items = wtypes.ArrayType(WorklistItem)
+    """The items in the worklist."""
+
+    def resolve_items(self, worklist):
+        """Resolve the contents of this worklist."""
+        self.items = []
+        for item in worklist.items:
+            item_model = WorklistItem.from_db_model(item)
+            if item.item_type == 'story':
+                story = stories_api.story_get(item.item_id)
+                item_model.story = Story.from_db_model(story)
+            elif item.item_type == 'task':
+                task = tasks_api.task_get(item.item_id)
+                item_model.task = Task.from_db_model(task)
+            self.items.append(item_model)
+        self.items.sort(key=lambda x: x.list_position)
+
+    def resolve_permissions(self, worklist):
+        self.owners = worklists_api.get_owners(worklist)
+        self.users = worklists_api.get_users(worklist)
+
 
 class Lane(base.APIBase):
     """Represents a lane in a kanban board."""
@@ -534,8 +562,21 @@ class Lane(base.APIBase):
     list_id = int
     """The ID of the worklist which represents the lane."""
 
+    worklist = Worklist
+    """The worklist which represents the lane."""
+
     position = int
     """The position of the lane in the board."""
+
+    def resolve_list(self, lane, resolve_items=True):
+        """Resolve the worklist which represents the lane."""
+        self.worklist = Worklist.from_db_model(lane.worklist)
+        self.worklist.resolve_permissions(lane.worklist)
+        if resolve_items:
+            self.worklist.resolve_items(lane.worklist)
+        else:
+            self.worklist.items = [WorklistItem.from_db_model(item)
+                                   for item in lane.worklist.items]
 
 
 class Board(base.APIBase):
@@ -570,3 +611,17 @@ class Board(base.APIBase):
 
     users = wtypes.ArrayType(int)
     """A list of the IDs of the users who can move cards in the board."""
+
+    def resolve_lanes(self, board, resolve_items=True):
+        """Resolve the lanes of the board."""
+        self.lanes = []
+        for lane in board.lanes:
+            lane_model = Lane.from_db_model(lane)
+            lane_model.resolve_list(lane, resolve_items)
+            self.lanes.append(lane_model)
+        self.lanes.sort(key=lambda x: x.position)
+
+    def resolve_permissions(self, board):
+        """Resolve the permissions groups of the board."""
+        self.owners = boards_api.get_owners(board)
+        self.users = boards_api.get_users(board)

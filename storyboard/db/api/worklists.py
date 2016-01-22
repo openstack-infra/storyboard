@@ -179,15 +179,13 @@ def is_lane(worklist):
     return False
 
 
-def get_owners(worklist_id):
-    worklist = _worklist_get(worklist_id)
+def get_owners(worklist):
     for permission in worklist.permissions:
         if permission.codename == 'edit_worklist':
             return [user.id for user in permission.users]
 
 
-def get_users(worklist_id):
-    worklist = _worklist_get(worklist_id)
+def get_users(worklist):
     for permission in worklist.permissions:
         if permission.codename == 'move_items':
             return [user.id for user in permission.users]
