@@ -22,6 +22,7 @@ from storyboard.common.custom_types import NameType
 from storyboard.common import event_resolvers
 from storyboard.common import event_types
 from storyboard.db.api import comments as comments_api
+from storyboard.db import models
 
 
 class Comment(base.APIBase):
@@ -157,6 +158,14 @@ class Story(base.APIBase):
             story_type_id=1,
             status="active",
             tags=["t1", "t2"])
+
+    def summarize_task_statuses(self, story_summary):
+        """Populate the task_statuses array."""
+        self.task_statuses = []
+        for task_status in models.Task.TASK_STATUSES:
+            task_count = TaskStatusCount(
+                key=task_status, count=getattr(story_summary, task_status))
+            self.task_statuses.append(task_count)
 
 
 class Tag(base.APIBase):

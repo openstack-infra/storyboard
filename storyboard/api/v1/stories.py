@@ -44,9 +44,9 @@ SEARCH_ENGINE = search_engine.get_engine()
 
 
 def create_story_wmodel(story):
-    wstory = wmodels.Story.from_db_model(story)
-    wstory.task_statuses = stories_api.summarize_task_statuses(story)
-    return wstory
+    story_model = wmodels.Story.from_db_model(story)
+    story_model.summarize_task_statuses(story)
+    return story_model
 
 
 class StoriesController(rest.RestController):
