@@ -42,7 +42,7 @@ def visible(worklist, user=None, hide_lanes=False):
         return False
     if worklists_api.is_lane(worklist):
         board = boards_api.get_from_lane(worklist)
-        permissions = boards_api.get_permissions(board.id, user)
+        permissions = boards_api.get_permissions(board, user)
         if board.private:
             return any(name in permissions
                        for name in ['edit_board', 'move_cards'])
@@ -61,7 +61,7 @@ def editable(worklist, user=None):
         return False
     if worklists_api.is_lane(worklist):
         board = boards_api.get_from_lane(worklist)
-        permissions = boards_api.get_permissions(board.id, user)
+        permissions = boards_api.get_permissions(board, user)
         return any(name in permissions
                    for name in ['edit_board', 'move_cards'])
     return 'edit_worklist' in worklists_api.get_permissions(worklist.id, user)
@@ -206,8 +206,8 @@ class WorklistsController(rest.RestController):
         user_id = request.current_user_id
         if worklist and visible(worklist, user_id):
             worklist_model = wmodels.Worklist.from_db_model(worklist)
-            worklist_model.owners = worklists_api.get_owners(worklist.id)
-            worklist_model.users = worklists_api.get_users(worklist.id)
+            worklist_model.resolve_items(worklist)
+            worklist_model.resolve_permissions(worklist)
             return worklist_model
         else:
             raise exc.NotFound(_("Worklist %s not found") % worklist_id)
@@ -249,8 +249,11 @@ class WorklistsController(rest.RestController):
             if (visible(worklist, user_id, hide_lanes) and
                 worklist.archived == archived):
                 worklist_model = wmodels.Worklist.from_db_model(worklist)
-                worklist_model.owners = worklists_api.get_owners(worklist.id)
-                worklist_model.users = worklists_api.get_users(worklist.id)
+                worklist_model.resolve_permissions(worklist)
+                worklist_model.items = [
+                    wmodels.WorklistItem.from_db_model(item)
+                    for item in worklist.items
+                ]
                 visible_worklists.append(worklist_model)
 
         # Apply the query response headers
@@ -273,6 +276,8 @@ class WorklistsController(rest.RestController):
         if worklist.creator_id and worklist.creator_id != user_id:
             abort(400, _("You can't select the creator of a worklist."))
         worklist_dict.update({"creator_id": user_id})
+        if 'items' in worklist_dict:
+            del worklist_dict['items']
         owners = worklist_dict.pop('owners')
         users = worklist_dict.pop('users')
         if not owners:
@@ -311,14 +316,17 @@ class WorklistsController(rest.RestController):
         if not editable(worklists_api.get(id), user_id):
             raise exc.NotFound(_("Worklist %s not found") % id)
 
+        # We don't use this endpoint to update the worklist's contents
+        if worklist.items:
+            del worklist.items
+
         updated_worklist = worklists_api.update(
             id, worklist.as_dict(omit_unset=True))
 
         if visible(updated_worklist, user_id):
             worklist_model = wmodels.Worklist.from_db_model(updated_worklist)
-            worklist_model.owners = worklists_api.get_owners(
-                updated_worklist.id)
-            worklist_model.users = worklists_api.get_users(updated_worklist.id)
+            worklist_model.resolve_items(updated_worklist)
+            worklist_model.resolve_permissions(updated_worklist)
             return worklist_model
         else:
             raise exc.NotFound(_("Worklist %s not found"))

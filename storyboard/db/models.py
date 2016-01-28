@@ -583,7 +583,7 @@ class Board(FullText, ModelBuilder, Base):
     project_id = Column(Integer, ForeignKey('projects.id'))
     private = Column(Boolean, default=False)
     archived = Column(Boolean, default=False)
-    lanes = relationship(BoardWorklist)
+    lanes = relationship(BoardWorklist, backref='board')
     permissions = relationship("Permission", secondary="board_permissions")
 
     _public_fields = ["id", "title", "description", "creator_id",

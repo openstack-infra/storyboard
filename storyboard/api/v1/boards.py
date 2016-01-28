@@ -38,7 +38,7 @@ def visible(board, user=None):
     if not board:
         return False
     if user and board.private:
-        permissions = boards_api.get_permissions(board.id, user)
+        permissions = boards_api.get_permissions(board, user)
         return any(name in permissions
                    for name in ['edit_board', 'move_cards'])
     return not board.private
@@ -49,7 +49,7 @@ def editable(board, user=None):
         return False
     if not user:
         return False
-    return 'edit_board' in boards_api.get_permissions(board.id, user)
+    return 'edit_board' in boards_api.get_permissions(board, user)
 
 
 def get_lane(list_id, board):
@@ -68,11 +68,13 @@ def update_lanes(board_dict, board_id):
         if lane.list_id in new_list_ids:
             new_lane = get_lane(lane.list_id, board_dict)
             if lane.position != new_lane.position:
+                del new_lane.worklist
                 boards_api.update_lane(
-                    board_id, lane, new_lane.as_dict(omit_unset=True))
+                    board, lane, new_lane.as_dict(omit_unset=True))
     for lane in board_dict['lanes']:
         if lane.list_id not in existing_list_ids:
-            boards_api.add_lane(board_id, lane.as_dict(omit_unset=True))
+            lane.worklist = None
+            boards_api.add_lane(board, lane.as_dict(omit_unset=True))
 
     board = boards_api.get(board_id)
     del board_dict['lanes']
@@ -90,7 +92,8 @@ class PermissionsController(rest.RestController):
         :param board_id: The ID of the board.
 
         """
-        return boards_api.get_permissions(board_id, request.current_user_id)
+        board = boards_api.get(board_id)
+        return boards_api.get_permissions(board, request.current_user_id)
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
@@ -136,10 +139,8 @@ class BoardsController(rest.RestController):
         user_id = request.current_user_id
         if visible(board, user_id):
             board_model = wmodels.Board.from_db_model(board)
-            board_model.lanes = [wmodels.Lane.from_db_model(lane)
-                                 for lane in board.lanes]
-            board_model.owners = boards_api.get_owners(id)
-            board_model.users = boards_api.get_users(id)
+            board_model.resolve_lanes(board)
+            board_model.resolve_permissions(board)
             return board_model
         else:
             raise exc.NotFound(_("Board %s not found") % id)
@@ -173,10 +174,8 @@ class BoardsController(rest.RestController):
         for board in boards:
             if visible(board, user_id) and board.archived == archived:
                 board_model = wmodels.Board.from_db_model(board)
-                board_model.lanes = [wmodels.Lane.from_db_model(lane)
-                                     for lane in board.lanes]
-                board_model.owners = boards_api.get_owners(board.id)
-                board_model.users = boards_api.get_users(board.id)
+                board_model.resolve_lanes(board, resolve_items=False)
+                board_model.resolve_permissions(board)
                 visible_boards.append(board_model)
 
         # Apply the query response headers
@@ -209,7 +208,7 @@ class BoardsController(rest.RestController):
 
         created_board = boards_api.create(board_dict)
         for lane in lanes:
-            boards_api.add_lane(created_board.id, lane.as_dict())
+            boards_api.add_lane(created_board, lane.as_dict())
 
         edit_permission = {
             'name': 'edit_board_%d' % created_board.id,
@@ -244,13 +243,10 @@ class BoardsController(rest.RestController):
         update_lanes(board_dict, id)
         updated_board = boards_api.update(id, board_dict)
 
-        if visible(board, user_id):
+        if visible(updated_board, user_id):
             board_model = wmodels.Board.from_db_model(updated_board)
-            if board.lanes:
-                board_model.lanes = [wmodels.Lane.from_db_model(lane)
-                                     for lane in board.lanes]
-            board_model.owners = boards_api.get_owners(id)
-            board_model.users = boards_api.get_users(id)
+            board_model.resolve_lanes(updated_board)
+            board_model.resolve_permissions(updated_board)
             return board_model
         else:
             raise exc.NotFound(_("Board %s not found") % id)

@@ -16,7 +16,6 @@
 from sqlalchemy.orm import subqueryload
 from wsme.exc import ClientSideError
 
-from storyboard.common import exception as exc
 from storyboard.db.api import base as api_base
 from storyboard.db.api import users as users_api
 from storyboard.db import models
@@ -65,13 +64,9 @@ def update(id, values):
     return api_base.entity_update(models.Board, id, values)
 
 
-def add_lane(board_id, lane_dict):
-    board = _board_get(board_id)
-    if board is None:
-        raise exc.NotFound(_("Board %s not found") % board_id)
-
+def add_lane(board, lane_dict):
     # Make sure we're adding the lane to the right board
-    lane_dict['board_id'] = board_id
+    lane_dict['board_id'] = board.id
 
     if lane_dict.get('list_id') is None:
         raise ClientSideError(_("A lane must have a worklist_id."))
@@ -84,9 +79,9 @@ def add_lane(board_id, lane_dict):
     return board
 
 
-def update_lane(board_id, lane, new_lane):
+def update_lane(board, lane, new_lane):
     # Make sure we aren't messing up the board ID
-    new_lane['board_id'] = board_id
+    new_lane['board_id'] = board.id
 
     if new_lane.get('list_id') is None:
         raise ClientSideError(_("A lane must have a worklist_id."))
@@ -95,27 +90,26 @@ def update_lane(board_id, lane, new_lane):
 
 
 def get_from_lane(worklist):
-    for board in get_all():
-        if worklist.id in [lane.list_id for lane in board.lanes]:
-            return board
+    lanes = api_base.entity_get_all(models.BoardWorklist,
+                                    list_id=worklist.id)
+    if lanes:
+        lane = lanes[0]
+        return lane.board
 
 
-def get_owners(board_id):
-    board = _board_get(board_id)
+def get_owners(board):
     for permission in board.permissions:
         if permission.codename == 'edit_board':
             return [user.id for user in permission.users]
 
 
-def get_users(board_id):
-    board = _board_get(board_id)
+def get_users(board):
     for permission in board.permissions:
         if permission.codename == 'move_cards':
             return [user.id for user in permission.users]
 
 
-def get_permissions(board_id, user_id):
-    board = _board_get(board_id)
+def get_permissions(board, user_id):
     user = users_api.user_get(user_id)
     if user is not None:
         return [permission.codename for permission in board.permissions
