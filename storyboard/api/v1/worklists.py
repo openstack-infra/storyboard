@@ -48,7 +48,7 @@ def visible(worklist, user=None, hide_lanes=False):
                        for name in ['edit_board', 'move_cards'])
         return not board.private
     if user and worklist.private:
-        permissions = worklists_api.get_permissions(worklist.id, user)
+        permissions = worklists_api.get_permissions(worklist, user)
         return any(name in permissions
                    for name in ['edit_worklist', 'move_items'])
     return not worklist.private
@@ -64,7 +64,22 @@ def editable(worklist, user=None):
         permissions = boards_api.get_permissions(board, user)
         return any(name in permissions
                    for name in ['edit_board', 'move_cards'])
-    return 'edit_worklist' in worklists_api.get_permissions(worklist.id, user)
+    return 'edit_worklist' in worklists_api.get_permissions(worklist, user)
+
+
+def editable_contents(worklist, user=None):
+    if not worklist:
+        return False
+    if not user:
+        return False
+    if worklists_api.is_lane(worklist):
+        board = boards_api.get_from_lane(worklist)
+        permissions = boards_api.get_permissions(board, user)
+        return any(name in permissions
+                   for name in ['edit_board', 'move_cards'])
+    permissions = worklists_api.get_permissions(worklist, user)
+    return any(name in permissions
+               for name in ['edit_worklist', 'move_items'])
 
 
 class PermissionsController(rest.RestController):
@@ -80,7 +95,7 @@ class PermissionsController(rest.RestController):
 
         """
         return worklists_api.get_permissions(
-            worklist_id, request.current_user_id)
+            worklists_api.get(worklist_id), request.current_user_id)
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
@@ -148,7 +163,7 @@ class ItemsSubcontroller(rest.RestController):
 
         """
         user_id = request.current_user_id
-        if not editable(worklists_api.get(id), user_id):
+        if not editable_contents(worklists_api.get(id), user_id):
             raise exc.NotFound(_("Worklist %s not found") % id)
         worklists_api.add_item(id, item_id, item_type, list_position)
 
@@ -166,7 +181,7 @@ class ItemsSubcontroller(rest.RestController):
 
         """
         user_id = request.current_user_id
-        if not editable(worklists_api.get(id), user_id):
+        if not editable_contents(worklists_api.get(id), user_id):
             raise exc.NotFound(_("Worklist %s not found") % id)
         worklists_api.update_item(id, item_id, list_position, list_id)
 
@@ -184,7 +199,7 @@ class ItemsSubcontroller(rest.RestController):
 
         """
         user_id = request.current_user_id
-        if not editable(worklists_api.get(id), user_id):
+        if not editable_contents(worklists_api.get(id), user_id):
             raise exc.NotFound(_("Worklist %s not found") % id)
         worklists_api.remove_item(id, item_id)
 

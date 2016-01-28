@@ -191,8 +191,7 @@ def get_users(worklist):
             return [user.id for user in permission.users]
 
 
-def get_permissions(worklist_id, user_id):
-    worklist = _worklist_get(worklist_id)
+def get_permissions(worklist, user_id):
     user = users_api.user_get(user_id)
     if user is not None:
         return [permission.codename for permission in worklist.permissions
