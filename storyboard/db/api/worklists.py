@@ -113,8 +113,9 @@ def add_item(worklist_id, item_id, item_type, list_position):
     return worklist
 
 
-def get_item_by_id(item_id):
-    session = api_base.get_session()
+def get_item_by_id(item_id, session=None):
+    if not session:
+        session = api_base.get_session()
     query = session.query(models.WorklistItem).filter_by(id=str(item_id))
 
     return query.first()
@@ -128,26 +129,48 @@ def get_item_at_position(worklist_id, list_position):
     return query.first()
 
 
-def update_item_list_id(item, new_list_id):
+def update_item(worklist_id, item_id, list_position, list_id=None):
     session = api_base.get_session()
 
     with session.begin(subtransactions=True):
+        item = get_item_by_id(item_id, session)
+        old_pos = item.list_position
+        item.list_position = list_position
+
         old_list = _worklist_get(item.list_id)
-        new_list = _worklist_get(new_list_id)
 
-        if new_list is None:
-            raise exc.NotFound(_("Worklist %s not found") % new_list_id)
+        if list_id is not None and list_id != item.list_id:
+            # Item has moved from one list into a different one.
+            # Move the item and clean up the positions.
+            new_list = _worklist_get(list_id)
+            old_list.items.remove(item)
+            old_list.items.sort(key=lambda x: x.list_position)
+            modified = old_list.items[old_pos:]
+            for list_item in modified:
+                list_item.list_position -= 1
 
-        old_list.items.remove(item)
-        new_list.items.append(item)
+            new_list.items.sort(key=lambda x: x.list_position)
+            modified = new_list.items[list_position:]
+            for list_item in modified:
+                list_item.list_position += 1
+            new_list.items.append(item)
+        else:
+            # Item has changed position in the list.
+            # Update the position of every item between the original
+            # position and the final position.
+            old_list.items.sort(key=lambda x: x.list_position)
+            if old_pos > list_position:
+                direction = 'down'
+                modified = old_list.items[list_position:old_pos + 1]
+            else:
+                direction = 'up'
+                modified = old_list.items[old_pos:list_position + 1]
 
-
-def update_item(worklist_id, item_id, list_position, list_id=None):
-    item = get_item_by_id(item_id)
-    update_dict = {'list_position': list_position}
-    if list_id is not None:
-        update_item_list_id(item, list_id)
-    api_base.entity_update(models.WorklistItem, item_id, update_dict)
+            for list_item in modified:
+                if direction == 'up' and list_item != item:
+                    list_item.list_position -= 1
+                elif direction == 'down' and list_item != item:
+                    list_item.list_position += 1
 
 
 def remove_item(worklist_id, item_id):
