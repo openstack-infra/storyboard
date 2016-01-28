@@ -15,7 +15,6 @@
 
 from sqlalchemy.orm import subqueryload
 
-from storyboard.api.v1 import wmodels
 from storyboard.common import exception as exc
 from storyboard.db.api import base as api_base
 from storyboard.db.api import story_tags
@@ -28,15 +27,6 @@ def story_get_simple(story_id, session=None):
     return api_base.model_query(models.Story, session) \
         .options(subqueryload(models.Story.tags)) \
         .filter_by(id=story_id).first()
-
-
-def summarize_task_statuses(story_summary):
-    task_statuses = []
-    for task_status in models.Task.TASK_STATUSES:
-        task_count = wmodels.TaskStatusCount(
-            key=task_status, count=getattr(story_summary, task_status))
-        task_statuses.append(task_count)
-    return task_statuses
 
 
 def story_get(story_id, session=None):
