@@ -1,6 +1,6 @@
-=====================
- Installing Manually
-=====================
+============================
+ Quick Install for Operators
+============================
 
 Installing the API service
 ==========================

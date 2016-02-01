@@ -1,6 +1,6 @@
-================================================
- Installing and Running the Development Version
-================================================
+=======================================
+ Installing and Running for Developers
+=======================================
 
 Storyboard has two components: this API server, and the
 Javascript-based web client.
