@@ -541,9 +541,13 @@ class Worklist(base.APIBase):
             item_model = WorklistItem.from_db_model(item)
             if item.item_type == 'story':
                 story = stories_api.story_get(item.item_id)
+                if story is None:
+                    continue
                 item_model.story = Story.from_db_model(story)
             elif item.item_type == 'task':
                 task = tasks_api.task_get(item.item_id)
+                if task is None or task.story is None:
+                    continue
                 item_model.task = Task.from_db_model(task)
             self.items.append(item_model)
         self.items.sort(key=lambda x: x.list_position)
