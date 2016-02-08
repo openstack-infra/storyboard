@@ -331,6 +331,7 @@ class Task(FullText, ModelBuilder, Base):
 
     creator_id = Column(Integer, ForeignKey('users.id'))
     title = Column(Unicode(CommonLength.top_large_length), nullable=True)
+    link = Column(UnicodeText())
     status = Column(Enum(*TASK_STATUSES.keys()), default='todo')
     story_id = Column(Integer, ForeignKey('stories.id'))
     project_id = Column(Integer, ForeignKey('projects.id'))
