@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 from oslo_config import cfg
 from pecan import abort
 from pecan import request
@@ -366,7 +367,7 @@ class TasksPrimaryController(rest.RestController):
         :param task: A task within the request body.
         """
 
-        original_task = tasks_api.task_get(task_id)
+        original_task = copy.deepcopy(tasks_api.task_get(task_id))
 
         if not original_task:
             raise exc.NotFound(_("Task %s not found.") % task_id)
@@ -387,7 +388,7 @@ class TasksPrimaryController(rest.RestController):
 
         :param task_id: An ID of the task.
         """
-        original_task = tasks_api.task_get(task_id)
+        original_task = copy.deepcopy(tasks_api.task_get(task_id))
 
         if not original_task:
             raise exc.NotFound(_("Task %s not found.") % task_id)
@@ -550,7 +551,7 @@ class TasksNestedController(rest.RestController):
         :param task: a task within the request body.
         """
 
-        original_task = tasks_api.task_get(task_id)
+        original_task = copy.deepcopy(tasks_api.task_get(task_id))
 
         if not original_task:
             raise exc.NotFound(_("Task %s not found") % task_id)
@@ -575,7 +576,8 @@ class TasksNestedController(rest.RestController):
         :param story_id: An ID of the story.
         :param task_id: An ID of the task.
         """
-        original_task = tasks_api.task_get(task_id)
+
+        original_task = copy.deepcopy(tasks_api.task_get(task_id))
 
         if not original_task:
             raise exc.NotFound(_("Task %s not found.") % task_id)
