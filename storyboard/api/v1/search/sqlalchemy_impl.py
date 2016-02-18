@@ -25,7 +25,7 @@ from storyboard.db import models
 class SqlAlchemySearchImpl(search_engine.SearchEngine):
     def _build_fulltext_search(self, model_cls, query, q):
         query = query.filter(FullTextSearch(q, model_cls,
-                                            mode=FullTextMode.NATURAL))
+                                            mode=FullTextMode.BOOLEAN))
 
         return query
 
