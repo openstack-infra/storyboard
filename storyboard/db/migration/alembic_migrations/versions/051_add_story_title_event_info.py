@@ -11,8 +11,8 @@
 # under the License.
 #
 
-"""This migration creates a reference between oauth access tokens and refresh
-tokens.
+"""This migration adds the 'story_title' to the 'events_info' column of
+'subscription_events' table for tags_added and tags_deleted events.
 
 Revision ID: 051
 Revises: 050
