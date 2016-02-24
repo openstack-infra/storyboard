@@ -250,3 +250,51 @@ def update_permission(worklist_id, permission_dict):
         raise ClientSideError(_("Permission %s does not exist")
                               % permission_dict['codename'])
     return api_base.entity_update(models.Permission, id, permission_dict)
+
+
+def visible(worklist, user=None, hide_lanes=False):
+    if hide_lanes:
+        if is_lane(worklist):
+            return False
+    if not worklist:
+        return False
+    if is_lane(worklist):
+        board = boards.get_from_lane(worklist)
+        permissions = boards.get_permissions(board, user)
+        if board.private:
+            return any(name in permissions
+                       for name in ['edit_board', 'move_cards'])
+        return not board.private
+    if user and worklist.private:
+        permissions = get_permissions(worklist, user)
+        return any(name in permissions
+                   for name in ['edit_worklist', 'move_items'])
+    return not worklist.private
+
+
+def editable(worklist, user=None):
+    if not worklist:
+        return False
+    if not user:
+        return False
+    if is_lane(worklist):
+        board = boards.get_from_lane(worklist)
+        permissions = boards.get_permissions(board, user)
+        return any(name in permissions
+                   for name in ['edit_board', 'move_cards'])
+    return 'edit_worklist' in get_permissions(worklist, user)
+
+
+def editable_contents(worklist, user=None):
+    if not worklist:
+        return False
+    if not user:
+        return False
+    if is_lane(worklist):
+        board = boards.get_from_lane(worklist)
+        permissions = boards.get_permissions(board, user)
+        return any(name in permissions
+                   for name in ['edit_board', 'move_cards'])
+    permissions = get_permissions(worklist, user)
+    return any(name in permissions
+               for name in ['edit_worklist', 'move_items'])

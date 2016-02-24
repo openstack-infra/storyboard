@@ -26,60 +26,11 @@ from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import wmodels
 from storyboard.common import decorators
 from storyboard.common import exception as exc
-from storyboard.db.api import boards as boards_api
 from storyboard.db.api import worklists as worklists_api
 from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 CONF = cfg.CONF
-
-
-def visible(worklist, user=None, hide_lanes=False):
-    if hide_lanes:
-        if worklists_api.is_lane(worklist):
-            return False
-    if not worklist:
-        return False
-    if worklists_api.is_lane(worklist):
-        board = boards_api.get_from_lane(worklist)
-        permissions = boards_api.get_permissions(board, user)
-        if board.private:
-            return any(name in permissions
-                       for name in ['edit_board', 'move_cards'])
-        return not board.private
-    if user and worklist.private:
-        permissions = worklists_api.get_permissions(worklist, user)
-        return any(name in permissions
-                   for name in ['edit_worklist', 'move_items'])
-    return not worklist.private
-
-
-def editable(worklist, user=None):
-    if not worklist:
-        return False
-    if not user:
-        return False
-    if worklists_api.is_lane(worklist):
-        board = boards_api.get_from_lane(worklist)
-        permissions = boards_api.get_permissions(board, user)
-        return any(name in permissions
-                   for name in ['edit_board', 'move_cards'])
-    return 'edit_worklist' in worklists_api.get_permissions(worklist, user)
-
-
-def editable_contents(worklist, user=None):
-    if not worklist:
-        return False
-    if not user:
-        return False
-    if worklists_api.is_lane(worklist):
-        board = boards_api.get_from_lane(worklist)
-        permissions = boards_api.get_permissions(board, user)
-        return any(name in permissions
-                   for name in ['edit_board', 'move_cards'])
-    permissions = worklists_api.get_permissions(worklist, user)
-    return any(name in permissions
-               for name in ['edit_worklist', 'move_items'])
 
 
 class PermissionsController(rest.RestController):
@@ -139,7 +90,7 @@ class ItemsSubcontroller(rest.RestController):
         """
         worklist = worklists_api.get(worklist_id)
         user_id = request.current_user_id
-        if not worklist or not visible(worklist, user_id):
+        if not worklist or not worklists_api.visible(worklist, user_id):
             raise exc.NotFound(_("Worklist %s not found") % worklist_id)
 
         if worklist.items is None:
@@ -163,7 +114,8 @@ class ItemsSubcontroller(rest.RestController):
 
         """
         user_id = request.current_user_id
-        if not editable_contents(worklists_api.get(id), user_id):
+        if not worklists_api.editable_contents(worklists_api.get(id),
+                                               user_id):
             raise exc.NotFound(_("Worklist %s not found") % id)
         worklists_api.add_item(id, item_id, item_type, list_position)
 
@@ -184,7 +136,8 @@ class ItemsSubcontroller(rest.RestController):
 
         """
         user_id = request.current_user_id
-        if not editable_contents(worklists_api.get(id), user_id):
+        if not worklists_api.editable_contents(worklists_api.get(id),
+                                               user_id):
             raise exc.NotFound(_("Worklist %s not found") % id)
         if worklists_api.get_item_by_id(item_id) is None:
             raise exc.NotFound(_("Item %s seems to have been deleted, "
@@ -205,7 +158,8 @@ class ItemsSubcontroller(rest.RestController):
 
         """
         user_id = request.current_user_id
-        if not editable_contents(worklists_api.get(id), user_id):
+        if not worklists_api.editable_contents(worklists_api.get(id),
+                                               user_id):
             raise exc.NotFound(_("Worklist %s not found") % id)
         if worklists_api.get_item_by_id(item_id) is None:
             raise exc.NotFound(_("Item %s seems to have already been deleted,"
@@ -228,7 +182,7 @@ class WorklistsController(rest.RestController):
         worklist = worklists_api.get(worklist_id)
 
         user_id = request.current_user_id
-        if worklist and visible(worklist, user_id):
+        if worklist and worklists_api.visible(worklist, user_id):
             worklist_model = wmodels.Worklist.from_db_model(worklist)
             worklist_model.resolve_items(worklist)
             worklist_model.resolve_permissions(worklist)
@@ -270,7 +224,7 @@ class WorklistsController(rest.RestController):
         user_id = request.current_user_id
         visible_worklists = []
         for worklist in worklists:
-            if (visible(worklist, user_id, hide_lanes) and
+            if (worklists_api.visible(worklist, user_id, hide_lanes) and
                 worklist.archived == archived):
                 worklist_model = wmodels.Worklist.from_db_model(worklist)
                 worklist_model.resolve_permissions(worklist)
@@ -337,7 +291,7 @@ class WorklistsController(rest.RestController):
 
         """
         user_id = request.current_user_id
-        if not editable(worklists_api.get(id), user_id):
+        if not worklists_api.editable(worklists_api.get(id), user_id):
             raise exc.NotFound(_("Worklist %s not found") % id)
 
         # We don't use this endpoint to update the worklist's contents
@@ -347,7 +301,7 @@ class WorklistsController(rest.RestController):
         updated_worklist = worklists_api.update(
             id, worklist.as_dict(omit_unset=True))
 
-        if visible(updated_worklist, user_id):
+        if worklists_api.visible(updated_worklist, user_id):
             worklist_model = wmodels.Worklist.from_db_model(updated_worklist)
             worklist_model.resolve_items(updated_worklist)
             worklist_model.resolve_permissions(updated_worklist)
@@ -366,7 +320,7 @@ class WorklistsController(rest.RestController):
         """
         worklist = worklists_api.get(worklist_id)
         user_id = request.current_user_id
-        if not editable(worklist, user_id):
+        if not worklists_api.editable(worklist, user_id):
             raise exc.NotFound(_("Worklist %s not found") % worklist_id)
 
         worklists_api.update(worklist_id, {"archived": True})

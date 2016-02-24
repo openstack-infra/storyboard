@@ -145,3 +145,21 @@ def update_permission(board_id, permission_dict):
         raise ClientSideError(_("Permission %s does not exist")
                               % permission_dict['codename'])
     return api_base.entity_update(models.Permission, id, permission_dict)
+
+
+def visible(board, user=None):
+    if not board:
+        return False
+    if user and board.private:
+        permissions = get_permissions(board, user)
+        return any(name in permissions
+                   for name in ['edit_board', 'move_cards'])
+    return not board.private
+
+
+def editable(board, user=None):
+    if not board:
+        return False
+    if not user:
+        return False
+    return 'edit_board' in get_permissions(board, user)
