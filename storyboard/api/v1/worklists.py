@@ -45,8 +45,12 @@ class PermissionsController(rest.RestController):
         :param worklist_id: The ID of the worklist.
 
         """
-        return worklists_api.get_permissions(
-            worklists_api.get(worklist_id), request.current_user_id)
+        worklist = worklists_api.get(worklist_id)
+        if worklists_api.visible(worklist, request.current_user_id):
+            return worklists_api.get_permissions(worklist,
+                                                 request.current_user_id)
+        else:
+            raise exc.NotFound(_("Worklist %s not found") % worklist_id)
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
@@ -59,7 +63,11 @@ class PermissionsController(rest.RestController):
         :param permission: The dict to use to create the permission.
 
         """
-        return worklists_api.create_permission(worklist_id)
+        if worklists_api.editable(worklists_api.get(worklist_id),
+                                  request.current_user_id):
+            return worklists_api.create_permission(worklist_id)
+        else:
+            raise exc.NotFound(_("Worklist %s not found") % worklist_id)
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
@@ -72,8 +80,12 @@ class PermissionsController(rest.RestController):
         :param permission: The new contents of the permission.
 
         """
-        return worklists_api.update_permission(
-            worklist_id, permission).codename
+        if worklists_api.editable(worklists_api.get(worklist_id),
+                                  request.current_user_id):
+            return worklists_api.update_permission(
+                worklist_id, permission).codename
+        else:
+            raise exc.NotFound(_("Worklist %s not found") % worklist_id)
 
 
 class ItemsSubcontroller(rest.RestController):

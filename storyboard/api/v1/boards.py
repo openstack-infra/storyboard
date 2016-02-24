@@ -75,7 +75,10 @@ class PermissionsController(rest.RestController):
 
         """
         board = boards_api.get(board_id)
-        return boards_api.get_permissions(board, request.current_user_id)
+        if boards_api.visible(board, request.current_user_id):
+            return boards_api.get_permissions(board, request.current_user_id)
+        else:
+            raise exc.NotFound(_("Board %s not found") % board_id)
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
@@ -88,7 +91,11 @@ class PermissionsController(rest.RestController):
         :param permission: The dict to use to create the permission.
 
         """
-        return boards_api.create_permission(board_id)
+        if boards_api.editable(boards_api.get(board_id),
+                               request.current_user_id):
+            return boards_api.create_permission(board_id)
+        else:
+            raise exc.NotFound(_("Board %s not found") % board_id)
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
@@ -101,7 +108,11 @@ class PermissionsController(rest.RestController):
         :param permission: The new contents of the permission.
 
         """
-        return boards_api.update_permission(board_id, permission).codename
+        if boards_api.editable(boards_api.get(board_id),
+                               request.current_user_id):
+            return boards_api.update_permission(board_id, permission).codename
+        else:
+            raise exc.NotFound(_("Board %s not found") % board_id)
 
 
 class BoardsController(rest.RestController):
