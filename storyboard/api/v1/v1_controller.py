@@ -16,6 +16,7 @@
 from storyboard.api.v1.auth import AuthController
 from storyboard.api.v1.boards import BoardsController
 from storyboard.api.v1.branches import BranchesController
+from storyboard.api.v1.due_dates import DueDatesController
 from storyboard.api.v1.milestones import MilestonesController
 from storyboard.api.v1.project_groups import ProjectGroupsController
 from storyboard.api.v1.projects import ProjectsController
@@ -48,5 +49,6 @@ class V1Controller(object):
     systeminfo = SystemInfoController()
     worklists = WorklistsController()
     boards = BoardsController()
+    due_dates = DueDatesController()
 
     openid = AuthController()

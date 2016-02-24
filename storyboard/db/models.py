@@ -457,6 +457,7 @@ def _story_build_summary_query():
 class StorySummary(Base):
     __table__ = _story_build_summary_query()
     tags = relationship('StoryTag', secondary='story_storytags')
+    due_dates = relationship('DueDate', secondary='story_due_dates')
 
     def as_dict(self):
         d = super(StorySummary, self).as_dict()
@@ -465,7 +466,7 @@ class StorySummary(Base):
         return d
 
     _public_fields = ["id", "creator_id", "title", "description", "is_bug",
-                      "tasks", "comments", "tags", "status",
+                      "tasks", "comments", "tags", "status", "due_dates",
                       "task_statuses"]
 
 
@@ -528,6 +529,9 @@ class WorklistItem(ModelBuilder, Base):
     list_position = Column(Integer, nullable=False)
     item_type = Column(Enum(*_ITEM_TYPES), nullable=False)
     item_id = Column(Integer, nullable=False)
+    display_due_date = Column(Integer,
+                              ForeignKey('due_dates.id'),
+                              nullable=True)
 
     _public_fields = ["id", "list_id", "list_position", "item_type",
                       "item_id"]
@@ -600,4 +604,57 @@ worklist_permissions = Table(
     'worklist_permissions', Base.metadata,
     Column('worklist_id', Integer, ForeignKey('worklists.id')),
     Column('permission_id', Integer, ForeignKey('permissions.id')),
+)
+
+
+class DueDate(FullText, ModelBuilder, Base):
+    __tablename__ = "due_dates"
+    __fulltext_columns__ = ['name']
+
+    name = Column(Unicode(CommonLength.top_middle_length), nullable=True)
+    date = Column(UTCDateTime)
+    private = Column(Boolean, default=False)
+    creator_id = Column(Integer, ForeignKey('users.id'))
+    permissions = relationship('Permission', secondary='due_date_permissions')
+    tasks = relationship('Task',
+                         secondary='task_due_dates',
+                         backref='due_dates')
+    stories = relationship('Story',
+                           secondary='story_due_dates',
+                           backref='due_dates')
+    boards = relationship('Board',
+                          secondary='board_due_dates',
+                          backref='due_dates')
+    worklists = relationship('Worklist',
+                             secondary='worklist_due_dates',
+                             backref='due_dates')
+
+due_date_permissions = Table(
+    'due_date_permissions', Base.metadata,
+    Column('due_date_id', Integer, ForeignKey('due_dates.id')),
+    Column('permission_id', Integer, ForeignKey('permissions.id')),
+)
+
+task_due_dates = Table(
+    'task_due_dates', Base.metadata,
+    Column('task_id', Integer, ForeignKey('tasks.id')),
+    Column('due_date_id', Integer, ForeignKey('due_dates.id')),
+)
+
+story_due_dates = Table(
+    'story_due_dates', Base.metadata,
+    Column('story_id', Integer, ForeignKey('stories.id')),
+    Column('due_date_id', Integer, ForeignKey('due_dates.id')),
+)
+
+board_due_dates = Table(
+    'board_due_dates', Base.metadata,
+    Column('board_id', Integer, ForeignKey('boards.id')),
+    Column('due_date_id', Integer, ForeignKey('due_dates.id')),
+)
+
+worklist_due_dates = Table(
+    'worklist_due_dates', Base.metadata,
+    Column('worklist_id', Integer, ForeignKey('worklists.id')),
+    Column('due_date_id', Integer, ForeignKey('due_dates.id')),
 )

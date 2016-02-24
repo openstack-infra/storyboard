@@ -23,6 +23,7 @@ from storyboard.common import event_resolvers
 from storyboard.common import event_types
 from storyboard.db.api import boards as boards_api
 from storyboard.db.api import comments as comments_api
+from storyboard.db.api import due_dates as due_dates_api
 from storyboard.db.api import stories as stories_api
 from storyboard.db.api import tasks as tasks_api
 from storyboard.db.api import worklists as worklists_api
@@ -461,6 +462,74 @@ class AccessToken(base.APIBase):
 class TaskStatus(base.APIBase):
     key = wtypes.text
     name = wtypes.text
+
+
+class DueDate(base.APIBase):
+    """Represents a due date for tasks/stories."""
+
+    name = wtypes.text
+    """The name of the due date."""
+
+    date = datetime
+    """The date of the due date"""
+
+    private = bool
+    """A flag to identify whether this is a private or public due date."""
+
+    creator_id = int
+    """The ID of the user that created the DueDate."""
+
+    tasks = wtypes.ArrayType(Task)
+    """A list containing all the tasks with this due date."""
+
+    stories = wtypes.ArrayType(Story)
+    """A list containing all the stories with this due date."""
+
+    count = int
+    """The number of tasks and stories with this dues date."""
+
+    owners = wtypes.ArrayType(int)
+    """A list of the IDs of the users who can change this date."""
+
+    users = wtypes.ArrayType(int)
+    """A list of the IDs of the users who can assign this date to tasks."""
+
+    board_id = int
+    """The ID of a board which contains this due date.
+
+    Used by PUT requests adding the due date to a board."""
+
+    worklist_id = int
+    """The ID of a worklist which contains this due date.
+
+    Used by PUT requests adding the due date to a worklist."""
+
+    editable = bool
+    """Whether or not the due date is editable by the request sender."""
+
+    assignable = bool
+    """Whether or not the due date is assignable by the request sender."""
+
+    def resolve_count_in_board(self, due_date, board):
+        self.count = 0
+        for lane in board.lanes:
+            for card in lane.worklist.items:
+                if card.display_due_date == due_date.id:
+                    self.count += 1
+
+    def resolve_items(self, due_date):
+        """Resolve the various lists for the due date."""
+        self.tasks = [Task.from_db_model(task) for task in due_date.tasks]
+        self.stories = [Story.from_db_model(story)
+                        for story in due_date.stories]
+        self.count = len(self.tasks) + len(self.stories)
+
+    def resolve_permissions(self, due_date, user=None):
+        """Resolve the permissions groups of the due date."""
+        self.owners = due_dates_api.get_owners(due_date)
+        self.users = due_dates_api.get_users(due_date)
+        self.editable = due_dates_api.editable(due_date, user)
+        self.assignable = due_dates_api.assignable(due_date, user)
 
 
 # NOTE(SotK): Criteria/Criterion is used as the existing code in the webclient
