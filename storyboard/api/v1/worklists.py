@@ -136,8 +136,9 @@ class ItemsSubcontroller(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose(wmodels.WorklistItem, int, int, int, int)
-    def put(self, id, item_id, list_position, list_id=None):
+    @wsme_pecan.wsexpose(wmodels.WorklistItem, int, int, int, int, int)
+    def put(self, id, item_id, list_position, list_id=None,
+            display_due_date=None):
         """Update a WorklistItem.
 
         This method also updates the positions of other items in affected
@@ -145,6 +146,7 @@ class ItemsSubcontroller(rest.RestController):
 
         :param id: The ID of the worklist.
         :param item_id: The ID of the worklist_item to be moved.
+        :param display_due_date: The ID of the due date displayed on the item.
 
         """
         user_id = request.current_user_id
@@ -154,10 +156,14 @@ class ItemsSubcontroller(rest.RestController):
         if worklists_api.get_item_by_id(item_id) is None:
             raise exc.NotFound(_("Item %s seems to have been deleted, "
                                  "try refreshing your page.") % item_id)
-        worklists_api.update_item(id, item_id, list_position, list_id)
+        worklists_api.move_item(id, item_id, list_position, list_id)
+        if display_due_date is not None:
+            worklists_api.update_item(item_id, display_due_date)
 
-        return wmodels.WorklistItem.from_db_model(
-            worklists_api.get_item_by_id(item_id))
+        updated = worklists_api.get_item_by_id(item_id)
+        result = wmodels.WorklistItem.from_db_model(updated)
+        result.resolve_due_date(updated)
+        return result
 
     @decorators.db_exceptions
     @secure(checks.authenticated)

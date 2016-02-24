@@ -129,13 +129,16 @@ def get_item_at_position(worklist_id, list_position):
     return query.first()
 
 
-def update_item(worklist_id, item_id, list_position, list_id=None):
+def move_item(worklist_id, item_id, list_position, list_id=None):
     session = api_base.get_session()
 
     with session.begin(subtransactions=True):
         item = get_item_by_id(item_id, session)
         old_pos = item.list_position
         item.list_position = list_position
+
+        if old_pos == list_position and list_id == item.list_id:
+            return
 
         old_list = _worklist_get(item.list_id)
 
@@ -171,6 +174,15 @@ def update_item(worklist_id, item_id, list_position, list_id=None):
                     list_item.list_position -= 1
                 elif direction == 'down' and list_item != item:
                     list_item.list_position += 1
+
+
+def update_item(item_id, display_due_date):
+    if display_due_date == -1:
+        display_due_date = None
+    updated = {
+        'display_due_date': display_due_date
+    }
+    return api_base.entity_update(models.WorklistItem, item_id, updated)
 
 
 def remove_item(worklist_id, item_id):
