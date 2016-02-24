@@ -15,6 +15,7 @@
 
 from datetime import datetime
 
+from pecan import request
 from wsme import types as wtypes
 
 from storyboard.api.v1 import base
@@ -152,6 +153,8 @@ class Story(base.APIBase):
     tags = wtypes.ArrayType(wtypes.text)
     """Tag list assigned to this story."""
 
+    due_dates = wtypes.ArrayType(int)
+
     @classmethod
     def sample(cls):
         return cls(
@@ -223,6 +226,8 @@ class Task(base.APIBase):
 
     milestone_id = int
     """The ID of corresponding Milestone"""
+
+    due_dates = wtypes.ArrayType(int)
 
 
 class Branch(base.APIBase):
@@ -568,8 +573,21 @@ class WorklistItem(base.APIBase):
     list_position = int
     """The position of this item in the Worklist."""
 
+    display_due_date = int
+    """The ID of the due date displayed on this item."""
+
+    resolved_due_date = DueDate
+    """The due date displayed on this item."""
+
     task = Task
     story = Story
+
+    def resolve_due_date(self, worklist_item):
+        due_date = due_dates_api.get(worklist_item.display_due_date)
+        resolved = None
+        if due_dates_api.visible(due_date, request.current_user_id):
+            resolved = DueDate.from_db_model(due_date)
+        self.resolved_due_date = resolved
 
 
 class Worklist(base.APIBase):
@@ -609,6 +627,7 @@ class Worklist(base.APIBase):
     def resolve_items(self, worklist):
         """Resolve the contents of this worklist."""
         self.items = []
+        user_id = request.current_user_id
         for item in worklist.items:
             item_model = WorklistItem.from_db_model(item)
             if item.item_type == 'story':
@@ -616,11 +635,18 @@ class Worklist(base.APIBase):
                 if story is None:
                     continue
                 item_model.story = Story.from_db_model(story)
+                due_dates = [date.id for date in story.due_dates
+                             if due_dates_api.visible(date, user_id)]
+                item_model.story.due_dates = due_dates
             elif item.item_type == 'task':
                 task = tasks_api.task_get(item.item_id)
                 if task is None or task.story is None:
                     continue
                 item_model.task = Task.from_db_model(task)
+                due_dates = [date.id for date in task.due_dates
+                             if due_dates_api.visible(date, user_id)]
+                item_model.task.due_dates = due_dates
+            item_model.resolve_due_date(item)
             self.items.append(item_model)
         self.items.sort(key=lambda x: x.list_position)
 
@@ -682,6 +708,9 @@ class Board(base.APIBase):
     lanes = wtypes.ArrayType(Lane)
     """A list containing the representions of the lanes in this board."""
 
+    due_dates = wtypes.ArrayType(DueDate)
+    """A list containing the due dates used in this board."""
+
     owners = wtypes.ArrayType(int)
     """A list of the IDs of the users who have full permissions."""
 
@@ -696,6 +725,17 @@ class Board(base.APIBase):
             lane_model.resolve_list(lane, resolve_items)
             self.lanes.append(lane_model)
         self.lanes.sort(key=lambda x: x.position)
+
+    def resolve_due_dates(self, board):
+        self.due_dates = []
+        for due_date in board.due_dates:
+            if due_dates_api.visible(due_date, request.current_user_id):
+                due_date_model = DueDate.from_db_model(due_date)
+                due_date_model.resolve_items(due_date)
+                due_date_model.resolve_permissions(
+                    due_date, request.current_user_id)
+                due_date_model.resolve_count_in_board(due_date, board)
+                self.due_dates.append(due_date_model)
 
     def resolve_permissions(self, board):
         """Resolve the permissions groups of the board."""

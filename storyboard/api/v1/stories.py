@@ -177,6 +177,10 @@ class StoriesController(rest.RestController):
         if not "tags" in story_dict or not story_dict["tags"]:
             story_dict["tags"] = []
 
+        # We can't set due dates when creating stories at the moment.
+        if "due_dates" in story_dict:
+            del story_dict['due_dates']
+
         created_story = stories_api.story_create(story_dict)
         events_api.story_created_event(created_story.id, user_id, story.title)
 

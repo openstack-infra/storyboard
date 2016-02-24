@@ -133,6 +133,7 @@ class BoardsController(rest.RestController):
         if boards_api.visible(board, user_id):
             board_model = wmodels.Board.from_db_model(board)
             board_model.resolve_lanes(board)
+            board_model.resolve_due_dates(board)
             board_model.resolve_permissions(board)
             return board_model
         else:
@@ -200,6 +201,10 @@ class BoardsController(rest.RestController):
         if not users:
             users = []
 
+        # We can't set due dates when creating boards at the moment.
+        if 'due_dates' in board_dict:
+            del board_dict['due_dates']
+
         created_board = boards_api.create(board_dict)
         for lane in lanes:
             boards_api.add_lane(created_board, lane.as_dict())
@@ -235,6 +240,11 @@ class BoardsController(rest.RestController):
 
         board_dict = board.as_dict(omit_unset=True)
         update_lanes(board_dict, id)
+
+        # This is not how we add due dates.
+        if 'due_dates' in board_dict:
+            del board_dict['due_dates']
+
         updated_board = boards_api.update(id, board_dict)
 
         if boards_api.visible(updated_board, user_id):

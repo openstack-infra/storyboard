@@ -350,7 +350,12 @@ class TasksPrimaryController(rest.RestController):
         creator_id = request.current_user_id
         task.creator_id = creator_id
 
-        created_task = tasks_api.task_create(task.as_dict())
+        # We can't set due dates when creating tasks at the moment.
+        task_dict = task.as_dict()
+        if "due_dates" in task_dict:
+            del task_dict['due_dates']
+
+        created_task = tasks_api.task_create(task_dict)
 
         events_api.task_created_event(story_id=task.story_id,
                                       task_id=created_task.id,
@@ -535,7 +540,12 @@ class TasksNestedController(rest.RestController):
         creator_id = request.current_user_id
         task.creator_id = creator_id
 
-        created_task = tasks_api.task_create(task.as_dict())
+        # We can't set due dates when creating tasks at the moment.
+        task_dict = task.as_dict()
+        if "due_dates" in task_dict:
+            del task_dict['due_dates']
+
+        created_task = tasks_api.task_create(task_dict)
 
         events_api.task_created_event(story_id=task.story_id,
                                       task_id=created_task.id,
