@@ -205,6 +205,9 @@ class Task(base.APIBase):
     story_id = int
     """The ID of the corresponding Story."""
 
+    link = wtypes.text
+    """A related resource for this task."""
+
     project_id = int
     """The ID of the corresponding Project."""
 

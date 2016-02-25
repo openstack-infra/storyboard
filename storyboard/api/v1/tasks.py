@@ -271,11 +271,11 @@ class TasksPrimaryController(rest.RestController):
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Task], wtypes.text, int, int, int, int, int,
                          int, [wtypes.text], [wtypes.text], int, int,
-                         wtypes.text, wtypes.text)
+                         wtypes.text, wtypes.text, wtypes.text)
     def get_all(self, title=None, story_id=None, assignee_id=None,
                 project_id=None, project_group_id=None, branch_id=None,
                 milestone_id=None, status=None, priority=None, marker=None,
-                limit=None, sort_field='id', sort_dir='asc'):
+                limit=None, link=None, sort_field='id', sort_dir='asc'):
         """Retrieve definitions of all of the tasks.
 
         :param title: Search by task title.
@@ -302,6 +302,7 @@ class TasksPrimaryController(rest.RestController):
 
         tasks = tasks_api \
             .task_get_all(title=title,
+                          link=link,
                           story_id=story_id,
                           assignee_id=assignee_id,
                           project_id=project_id,
@@ -316,6 +317,7 @@ class TasksPrimaryController(rest.RestController):
                           limit=limit)
         task_count = tasks_api \
             .task_get_count(title=title,
+                            link=link,
                             story_id=story_id,
                             assignee_id=assignee_id,
                             project_id=project_id,
@@ -448,11 +450,11 @@ class TasksNestedController(rest.RestController):
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Task], int, wtypes.text, int, int, int, int,
                          int, [wtypes.text], [wtypes.text], int, int,
-                         wtypes.text, wtypes.text)
+                         wtypes.text, wtypes.text, wtypes.text)
     def get_all(self, story_id, title=None, assignee_id=None, project_id=None,
                 project_group_id=None, branch_id=None, milestone_id=None,
                 status=None, priority=None, marker=None, limit=None,
-                sort_field='id', sort_dir='asc'):
+                sort_field='id', sort_dir='asc', link=None):
         """Retrieve definitions of all of the tasks.
 
         :param story_id: filter tasks by story ID.
@@ -479,6 +481,7 @@ class TasksNestedController(rest.RestController):
 
         tasks = tasks_api \
             .task_get_all(title=title,
+                          link=link,
                           story_id=story_id,
                           assignee_id=assignee_id,
                           project_id=project_id,
@@ -493,6 +496,7 @@ class TasksNestedController(rest.RestController):
                           limit=limit)
         task_count = tasks_api \
             .task_get_count(title=title,
+                            link=link,
                             story_id=story_id,
                             assignee_id=assignee_id,
                             project_id=project_id,
