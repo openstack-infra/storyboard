@@ -1,4 +1,4 @@
-# Copyright (c) 2015 Codethink Limited
+# Copyright (c) 2015-2016 Codethink Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -95,6 +95,17 @@ def get_from_lane(worklist):
     if lanes:
         lane = lanes[0]
         return lane.board
+
+
+# FIXME: This assumes that boards only contain a task or story once, which
+#        is not actually enforced when creating a card.
+def get_card(board, item_type, item_id, archived=False):
+    for lane in board.lanes:
+        for card in lane.worklist.items:
+            if (card.item_type == item_type and
+                card.item_id == item_id and
+                card.archived == archived):
+                return card
 
 
 def get_owners(board):
