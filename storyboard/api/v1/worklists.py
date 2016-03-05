@@ -323,10 +323,12 @@ class WorklistsController(rest.RestController):
     @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Worklist], wtypes.text, int, int,
-                         bool, int, bool, wtypes.text, wtypes.text, int)
+                         bool, int, int, int, bool, wtypes.text, wtypes.text,
+                         int)
     def get_all(self, title=None, creator_id=None, project_id=None,
-                archived=False, user_id=None, hide_lanes=True,
-                sort_field='id', sort_dir='asc', board_id=None):
+                archived=False, user_id=None, story_id=None, task_id=None,
+                hide_lanes=True, sort_field='id', sort_dir='asc',
+                board_id=None):
         """Retrieve definitions of all of the worklists.
 
         :param title: A string to filter the title by.
@@ -334,6 +336,8 @@ class WorklistsController(rest.RestController):
         :param project_id: Filter worklists by project ID.
         :param archived: Filter worklists by whether they are archived or not.
         :param user_id: Filter worklists by the users with permissions.
+        :param story_id: Filter worklists by whether they contain a story.
+        :param task_id: Filter worklists by whether they contain a task.
         :param hide_lanes: If true, don't return worklists which are lanes in
         a board.
         :param sort_field: The name of the field to sort on.
@@ -348,6 +352,8 @@ class WorklistsController(rest.RestController):
                                           archived=archived,
                                           board_id=board_id,
                                           user_id=user_id,
+                                          story_id=story_id,
+                                          task_id=task_id,
                                           sort_field=sort_field,
                                           sort_dir=sort_dir)
 

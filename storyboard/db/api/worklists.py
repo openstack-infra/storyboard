@@ -39,28 +39,60 @@ def get(worklist_id):
     return _worklist_get(worklist_id)
 
 
+def _build_worklist_query(title=None, creator_id=None, project_id=None,
+                          user_id=None, session=None):
+    query = api_base.model_query(models.Worklist, session=session)
+
+    query = api_base.apply_query_filters(query=query,
+                                         model=models.Worklist,
+                                         title=title,
+                                         creator_id=creator_id,
+                                         project_id=project_id)
+
+    if user_id:
+        query = query.join(models.worklist_permissions,
+                           models.Permission,
+                           models.user_permissions,
+                           models.User)
+        query = query.filter(models.User.id == user_id)
+
+    return query
+
+
 def get_all(title=None, creator_id=None, project_id=None, board_id=None,
-            user_id=None, sort_field=None, sort_dir=None, **kwargs):
-    if user_id is not None:
-        user = users_api.user_get(user_id)
-        worklists = []
-        for worklist in get_all():
-            if any(permission in worklist.permissions
-                   for permission in user.permissions):
-                worklists.append(worklist)
-        return worklists
+            user_id=None, story_id=None, task_id=None, sort_field=None,
+            sort_dir=None, session=None, **kwargs):
+    if sort_field is None:
+        sort_field = 'id'
+    if sort_dir is None:
+        sort_dir = 'asc'
 
     if board_id is not None:
         board = boards.get(board_id)
         return [lane.worklist for lane in board.lanes]
 
-    return api_base.entity_get_all(models.Worklist,
-                                   title=title,
-                                   creator_id=creator_id,
-                                   project_id=project_id,
-                                   sort_field=sort_field,
-                                   sort_dir=sort_dir,
-                                   **kwargs)
+    query = _build_worklist_query(title=title,
+                                  creator_id=creator_id,
+                                  project_id=project_id,
+                                  user_id=user_id,
+                                  session=session)
+
+    query.order_by(getattr(models.Worklist, sort_field), sort_dir)
+
+    if story_id:
+        worklists = query.all()
+        worklists = [worklist for worklist in worklists
+                     if has_item(worklist, 'story', story_id)]
+
+    if task_id:
+        if not story_id:
+            worklists = query.all()
+        worklists = [worklist for worklist in worklists
+                     if has_item(worklist, 'task', task_id)]
+
+    if story_id or task_id:
+        return worklists
+    return query.all()
 
 
 def get_count(**kwargs):
@@ -73,6 +105,13 @@ def create(values):
 
 def update(worklist_id, values):
     return api_base.entity_update(models.Worklist, worklist_id, values)
+
+
+def has_item(worklist, item_type, item_id):
+    for item in worklist.items:
+        if item.item_type == item_type and item.item_id == item_id:
+            return True
+    return False
 
 
 def add_item(worklist_id, item_id, item_type, list_position):
