@@ -1,4 +1,4 @@
-# Copyright (c) 2015 Codethink Limited
+# Copyright (c) 2015-2016 Codethink Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -76,39 +76,60 @@ def update(worklist_id, values):
 
 
 def add_item(worklist_id, item_id, item_type, list_position):
-    session = api_base.get_session()
+    worklist = _worklist_get(worklist_id)
+    if worklist is None:
+        raise exc.NotFound(_("Worklist %s not found") % worklist_id)
 
-    with session.begin(subtransactions=True):
-        worklist = _worklist_get(worklist_id, session)
-        if worklist is None:
-            raise exc.NotFound(_("Worklist %s not found") % worklist_id)
-
-        if item_type == 'story':
-            item = stories.story_get(item_id)
-        elif item_type == 'task':
-            item = tasks.task_get(item_id)
-        else:
-            raise ClientSideError(_("An item in a worklist must be either a "
-                                    "story or a task"))
-
-        if item is None:
-            raise exc.NotFound(_("%(type)s %(id)s not found") %
-                               {'type': item_type, 'id': item_id})
-
-        item_dict = {
-            'list_id': worklist_id,
-            'item_id': item_id,
-            'item_type': item_type,
+    # Check if this item has an archived card in this worklist to restore
+    archived = get_item_by_item_id(
+        worklist, item_type, item_id, archived=True)
+    if archived:
+        update = {
+            'archived': False,
             'list_position': list_position
         }
-        worklist_item = api_base.entity_create(models.WorklistItem, item_dict)
+        api_base.entity_update(models.WorklistItem, archived.id, update)
+        return worklist
 
-        if worklist.items is None:
-            worklist.items = [worklist_item]
-        else:
-            worklist.items.append(worklist_item)
-        session.add(worklist_item)
-        session.add(worklist)
+    # If this worklist is a lane, check if the item has an archived card
+    # somewhere in the board to restore
+    if is_lane(worklist):
+        board = boards.get_from_lane(worklist)
+        archived = boards.get_card(board, item_type, item_id, archived=True)
+        if archived:
+            update = {
+                'archived': False,
+                'list_id': worklist_id,
+                'list_position': list_position
+            }
+            api_base.entity_update(models.WorklistItem, archived.id, update)
+            return worklist
+
+    # Create a new card
+    if item_type == 'story':
+        item = stories.story_get(item_id)
+    elif item_type == 'task':
+        item = tasks.task_get(item_id)
+    else:
+        raise ClientSideError(_("An item in a worklist must be either a "
+                                "story or a task"))
+
+    if item is None:
+        raise exc.NotFound(_("%(type)s %(id)s not found") %
+                           {'type': item_type, 'id': item_id})
+
+    item_dict = {
+        'list_id': worklist_id,
+        'item_id': item_id,
+        'item_type': item_type,
+        'list_position': list_position
+    }
+    worklist_item = api_base.entity_create(models.WorklistItem, item_dict)
+
+    if worklist.items is None:
+        worklist.items = [worklist_item]
+    else:
+        worklist.items.append(worklist_item)
 
     return worklist
 
@@ -125,6 +146,15 @@ def get_item_at_position(worklist_id, list_position):
     session = api_base.get_session()
     query = session.query(models.WorklistItem).filter_by(
         list_id=worklist_id, list_position=list_position)
+
+    return query.first()
+
+
+def get_item_by_item_id(worklist, item_type, item_id, archived):
+    session = api_base.get_session()
+    query = session.query(models.WorklistItem).filter_by(
+        list_id=worklist.id, item_type=item_type,
+        item_id=item_id, archived=archived)
 
     return query.first()
 
@@ -176,34 +206,8 @@ def move_item(worklist_id, item_id, list_position, list_id=None):
                     list_item.list_position += 1
 
 
-def update_item(item_id, display_due_date):
-    if display_due_date == -1:
-        display_due_date = None
-    updated = {
-        'display_due_date': display_due_date
-    }
+def update_item(item_id, updated):
     return api_base.entity_update(models.WorklistItem, item_id, updated)
-
-
-def remove_item(worklist_id, item_id):
-    session = api_base.get_session()
-
-    with session.begin(subtransactions=True):
-        worklist = _worklist_get(worklist_id, session)
-        if worklist is None:
-            raise exc.NotFound(_("Worklist %s not found") % worklist_id)
-
-        item = get_item_by_id(item_id)
-        if item is None:
-            raise exc.NotFound(_("WorklistItem %s not found") % item_id)
-
-        item_entry = [i for i in worklist.items if i.id == item_id][0]
-        worklist.items.remove(item_entry)
-
-        session.add(worklist)
-        session.delete(item)
-
-    return worklist
 
 
 def is_lane(worklist):

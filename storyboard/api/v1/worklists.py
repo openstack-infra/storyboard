@@ -157,8 +157,14 @@ class ItemsSubcontroller(rest.RestController):
             raise exc.NotFound(_("Item %s seems to have been deleted, "
                                  "try refreshing your page.") % item_id)
         worklists_api.move_item(id, item_id, list_position, list_id)
+
         if display_due_date is not None:
-            worklists_api.update_item(item_id, display_due_date)
+            if display_due_date == -1:
+                display_due_date = None
+            update_dict = {
+                'display_due_date': display_due_date
+            }
+            worklists_api.update_item(item_id, update_dict)
 
         updated = worklists_api.get_item_by_id(item_id)
         result = wmodels.WorklistItem.from_db_model(updated)
@@ -179,10 +185,11 @@ class ItemsSubcontroller(rest.RestController):
         if not worklists_api.editable_contents(worklists_api.get(id),
                                                user_id):
             raise exc.NotFound(_("Worklist %s not found") % id)
-        if worklists_api.get_item_by_id(item_id) is None:
+        item = worklists_api.get_item_by_id(item_id)
+        if item is None:
             raise exc.NotFound(_("Item %s seems to have already been deleted,"
                                  " try refreshing your page.") % item_id)
-        worklists_api.remove_item(id, item_id)
+        worklists_api.update_item(item_id, {'archived': True})
 
 
 class WorklistsController(rest.RestController):

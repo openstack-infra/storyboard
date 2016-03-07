@@ -573,6 +573,9 @@ class WorklistItem(base.APIBase):
     list_position = int
     """The position of this item in the Worklist."""
 
+    archived = bool
+    """Whether or not this item is archived."""
+
     display_due_date = int
     """The ID of the due date displayed on this item."""
 
@@ -629,6 +632,8 @@ class Worklist(base.APIBase):
         self.items = []
         user_id = request.current_user_id
         for item in worklist.items:
+            if item.archived:
+                continue
             item_model = WorklistItem.from_db_model(item)
             if item.item_type == 'story':
                 story = stories_api.story_get(item.item_id)

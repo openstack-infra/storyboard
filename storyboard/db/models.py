@@ -532,6 +532,7 @@ class WorklistItem(ModelBuilder, Base):
     display_due_date = Column(Integer,
                               ForeignKey('due_dates.id'),
                               nullable=True)
+    archived = Column(Boolean, default=False)
 
     _public_fields = ["id", "list_id", "list_position", "item_type",
                       "item_id"]
