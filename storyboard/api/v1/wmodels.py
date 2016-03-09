@@ -42,6 +42,9 @@ class Comment(base.APIBase):
     is_active = bool
     """Is this an active comment, or has it been deleted?"""
 
+    in_reply_to = int
+    """The ID of the parent comment, if any."""
+
 
 class SystemInfo(base.APIBase):
     """Represents the system information for Storyboard

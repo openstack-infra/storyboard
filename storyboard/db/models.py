@@ -490,8 +490,11 @@ class TimeLineEvent(ModelBuilder, Base):
 class Comment(FullText, ModelBuilder, Base):
     __fulltext_columns__ = ['content']
 
+    id = Column(Integer, primary_key=True)
     content = Column(MYSQL_MEDIUM_TEXT)
     is_active = Column(Boolean, default=True)
+    in_reply_to = Column(Integer, ForeignKey('comments.id'))
+    parent = relationship('Comment', remote_side=[id], backref='children')
 
 
 # Subscription and notifications
