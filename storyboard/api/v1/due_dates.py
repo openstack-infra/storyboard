@@ -294,6 +294,7 @@ class DueDatesController(rest.RestController):
             for lane in board.lanes:
                 for card in lane.worklist.items:
                     if card.display_due_date == due_date.id:
-                        worklists_api.update_item(card.id, None)
+                        update = {'display_due_date': None}
+                        worklists_api.update_item(card.id, update)
 
     permissions = PermissionsController()
