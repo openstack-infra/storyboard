@@ -103,7 +103,7 @@ def _get_project(project, session):
         validator.validate(name)
     except Exception:
         # Skipping invalid project names
-        LOG.warn(_LW("Project %s was not loaded. Validation failed.")
+        LOG.warning(_LW("Project %s was not loaded. Validation failed.")
                  % [name, ])
         return None
 

@@ -139,7 +139,7 @@ def update_scheduler():
 def add_plugins(ext, loaded_plugins=list()):
     global SCHEDULER
     if not SCHEDULER:
-        LOG.warn('Scheduler does not exist')
+        LOG.warning('Scheduler does not exist')
         return
 
     # Extract the plugin instance
@@ -161,7 +161,7 @@ def add_plugins(ext, loaded_plugins=list()):
 
     # Assert that the trigger is of the correct type.
     if not isinstance(plugin_trigger, BaseTrigger):
-        LOG.warn("Plugin does not provide BaseTrigger: %s" % (plugin_name,))
+        LOG.warning("Plugin does not provide BaseTrigger: %s" % (plugin_name,))
         plugin_enabled = False
 
     # If the plugin should be disabled, disable it, then exist.

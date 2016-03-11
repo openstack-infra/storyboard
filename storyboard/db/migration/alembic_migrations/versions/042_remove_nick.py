@@ -37,7 +37,8 @@ def upgrade(active_plugins=None, options=None):
     # Handle the FT Index on the user table.
     version_info = op.get_bind().engine.dialect.server_version_info
     if version_info[0] < 5 or version_info[0] == 5 and version_info[1] < 6:
-        LOG.warn("MySQL version is lower than 5.6. Skipping full-text indexes")
+        LOG.warning(
+            "MySQL version is lower than 5.6. Skipping full-text indexes")
         return
 
     # Index for users
@@ -54,7 +55,8 @@ def downgrade(active_plugins=None, options=None):
 
     version_info = op.get_bind().engine.dialect.server_version_info
     if version_info[0] < 5 or version_info[0] == 5 and version_info[1] < 6:
-        LOG.warn("MySQL version is lower than 5.6. Skipping full-text indexes")
+        LOG.warning(
+            "MySQL version is lower than 5.6. Skipping full-text indexes")
         return
 
     # Index for users
