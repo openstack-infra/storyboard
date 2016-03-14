@@ -10,6 +10,7 @@ Project: {{resource.project.name}}
 Assignee: {{resource.assignee.full_name}}
 Status: {{resource.status}}
 Priority: {{resource.priority}}
+Notes: {{resource.link}}
 
 Type of Change: {{after}}
 (prior to change, {{before}} )
