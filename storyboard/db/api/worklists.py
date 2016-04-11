@@ -386,10 +386,10 @@ def filter_stories(worklist, filters):
         subquery = api_base.model_query(models.Story.id).distinct().subquery()
         query = api_base.model_query(models.StorySummary)
         query = query.join(subquery, models.StorySummary.id == subquery.c.id)
-        query = query.join(models.Task,
-                           models.Project,
-                           models.project_group_mapping,
-                           models.ProjectGroup)
+        query = query.outerjoin(models.Task,
+                                models.Project,
+                                models.project_group_mapping,
+                                models.ProjectGroup)
         for criterion in filter.criteria:
             attr = translate_criterion_to_field(criterion)
             if hasattr(models.StorySummary, attr):
@@ -436,9 +436,9 @@ def filter_tasks(worklist, filters):
     filter_queries = []
     for filter in filters:
         query = api_base.model_query(models.Task)
-        query = query.join(models.Project,
-                           models.project_group_mapping,
-                           models.ProjectGroup)
+        query = query.outerjoin(models.Project,
+                                models.project_group_mapping,
+                                models.ProjectGroup)
         for criterion in filter.criteria:
             attr = translate_criterion_to_field(criterion)
             if hasattr(models.Task, attr):
