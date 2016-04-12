@@ -736,6 +736,7 @@ class Lane(base.APIBase):
         """Resolve the worklist which represents the lane."""
         self.worklist = Worklist.from_db_model(lane.worklist)
         self.worklist.resolve_permissions(lane.worklist)
+        self.worklist.resolve_filters(lane.worklist)
         if resolve_items:
             self.worklist.resolve_items(lane.worklist)
         else:
