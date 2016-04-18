@@ -432,11 +432,11 @@ class WorklistsController(rest.RestController):
             raise exc.NotFound(_("Worklist %s not found") % id)
 
         # We don't use this endpoint to update the worklist's contents
-        if worklist.items:
+        if worklist.items != wtypes.Unset:
             del worklist.items
 
         # We don't use this endpoint to update the worklist's filters either
-        if worklist.filters:
+        if worklist.filters != wtypes.Unset:
             del worklist.filters
 
         worklist_dict = worklist.as_dict(omit_unset=True)
