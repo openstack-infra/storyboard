@@ -91,13 +91,14 @@ class SubscriptionEventsController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose([SubscriptionEvent], int, int, wtypes.text,
+    @wsme_pecan.wsexpose([SubscriptionEvent], int, int, int, wtypes.text,
                          int, wtypes.text, wtypes.text)
-    def get(self, marker=None, limit=None, event_type=None,
+    def get(self, marker=None, offset=None, limit=None, event_type=None,
             subscriber_id=None, sort_field='id', sort_dir='asc'):
         """Retrieve a list of subscriptions.
 
         :param marker: The resource id where the page should begin.
+        :param offset: The offset to begin the page at.
         :param limit: The number of subscriptions to retrieve.
         :param event_type: The type of resource to search by.
         :param subscriber_id: The unique ID of the subscriber to search by.
@@ -121,6 +122,7 @@ class SubscriptionEventsController(rest.RestController):
 
         subscriptions = subscription_events_api.subscription_events_get_all(
             marker=marker_sub,
+            offset=offset,
             limit=limit,
             subscriber_id=subscriber_id,
             event_type=event_type,
@@ -134,6 +136,8 @@ class SubscriptionEventsController(rest.RestController):
         # Apply the query response headers.
         if limit:
             response.headers['X-Limit'] = str(limit)
+        if offset is not None:
+            response.headers['X-Offset'] = str(offset)
         response.headers['X-Total'] = str(subscription_count)
         if marker_sub:
             response.headers['X-Marker'] = str(marker_sub.id)
