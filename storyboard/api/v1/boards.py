@@ -141,17 +141,19 @@ class BoardsController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.Board], wtypes.text, int, int,
-                         bool, int, wtypes.text, wtypes.text)
+    @wsme_pecan.wsexpose([wmodels.Board], wtypes.text, int, int, bool,
+                         int, int, int, wtypes.text, wtypes.text)
     def get_all(self, title=None, creator_id=None, project_id=None,
-                archived=False, user_id=None, sort_field='id',
-                sort_dir='asc'):
+                archived=False, user_id=None, story_id=None, task_id=None,
+                sort_field='id', sort_dir='asc'):
         """Retrieve definitions of all of the boards.
 
         :param title: A string to filter the title by.
         :param creator_id: Filter boards by their creator.
         :param project_id: Filter boards by project ID.
         :param archived: Filter boards by whether they are archived or not.
+        :param story_id: Filter boards by whether they contain a story.
+        :param task_id: Filter boards by whether they contain a task.
         :param sort_field: The name of the field to sort on.
         :param sort_dir: Sort direction for results (asc, desc).
 
@@ -160,6 +162,8 @@ class BoardsController(rest.RestController):
                                     creator_id=creator_id,
                                     user_id=user_id,
                                     project_id=project_id,
+                                    story_id=story_id,
+                                    task_id=task_id,
                                     sort_field=sort_field,
                                     sort_dir=sort_dir)
 

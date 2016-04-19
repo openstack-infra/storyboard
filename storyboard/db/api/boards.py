@@ -36,7 +36,8 @@ def get(id):
 
 
 def get_all(title=None, creator_id=None, user_id=None, project_id=None,
-            sort_field=None, sort_dir=None, **kwargs):
+            task_id=None, story_id=None, sort_field=None, sort_dir=None,
+            **kwargs):
     if user_id is not None:
         user = users_api.user_get(user_id)
         boards = []
@@ -46,13 +47,28 @@ def get_all(title=None, creator_id=None, user_id=None, project_id=None,
                 boards.append(board)
         return boards
 
-    return api_base.entity_get_all(models.Board,
-                                   title=title,
-                                   creator_id=creator_id,
-                                   project_id=project_id,
-                                   sort_field=sort_field,
-                                   sort_dir=sort_dir,
-                                   **kwargs)
+    boards = api_base.entity_get_all(models.Board,
+                                     title=title,
+                                     creator_id=creator_id,
+                                     project_id=project_id,
+                                     sort_field=sort_field,
+                                     sort_dir=sort_dir,
+                                     **kwargs)
+    if task_id:
+        matching = []
+        for board in boards:
+            if has_card(board, 'task', task_id):
+                matching.append(board)
+        boards = matching
+
+    if story_id:
+        matching = []
+        for board in boards:
+            if has_card(board, 'story', story_id):
+                matching.append(board)
+        boards = matching
+
+    return boards
 
 
 def create(values):
@@ -106,6 +122,14 @@ def get_card(board, item_type, item_id, archived=False):
                 card.item_id == item_id and
                 card.archived == archived):
                 return card
+
+
+def has_card(board, item_type, item_id):
+    for lane in board.lanes:
+        for item in lane.worklist.items:
+            if item.item_id == item_id and item.item_type == item_type:
+                return True
+    return False
 
 
 def get_owners(board):
