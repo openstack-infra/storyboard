@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from sqlalchemy.orm import subqueryload
+from sqlalchemy import and_, or_
+from sqlalchemy.orm import aliased, subqueryload
+from sqlalchemy.sql.expression import false, true
 from wsme.exc import ClientSideError
 
 from storyboard.db.api import base as api_base
@@ -35,40 +37,115 @@ def get(id):
     return _board_get(id)
 
 
-def get_all(title=None, creator_id=None, user_id=None, project_id=None,
-            task_id=None, story_id=None, sort_field=None, sort_dir=None,
-            **kwargs):
-    if user_id is not None:
-        user = users_api.user_get(user_id)
-        boards = []
-        for board in get_all():
-            if any(permission in board.permissions
-                   for permission in user.permissions):
-                boards.append(board)
-        return boards
+def _build_board_query(title=None, creator_id=None, user_id=None,
+                       project_id=None, archived=False, current_user=None,
+                       session=None):
+    query = api_base.model_query(models.Board, session=session).distinct()
 
-    boards = api_base.entity_get_all(models.Board,
-                                     title=title,
-                                     creator_id=creator_id,
-                                     project_id=project_id,
-                                     sort_field=sort_field,
-                                     sort_dir=sort_dir,
-                                     **kwargs)
+    query = api_base.apply_query_filters(query=query,
+                                         model=models.Worklist,
+                                         title=title,
+                                         creator_id=creator_id,
+                                         project_id=project_id)
+
+    # Filter out boards that the current user can't see
+    query = query.join(models.board_permissions,
+                       models.Permission,
+                       models.user_permissions,
+                       models.User)
+    if current_user:
+        query = query.filter(
+            or_(
+                and_(
+                    models.User.id == current_user,
+                    models.Board.private == true()
+                ),
+                models.Board.private == false()
+            )
+        )
+    else:
+        query = query.filter(models.Board.private == false())
+
+    # Filter by boards that a given user has permissions to use
+    if user_id:
+        board_permissions = aliased(models.board_permissions)
+        permissions = aliased(models.Permission)
+        user_permissions = aliased(models.user_permissions)
+        users = aliased(models.User)
+        query = query.join(
+            (board_permissions,
+             models.Board.id == board_permissions.c.board_id)
+        )
+        query = query.join(
+            (permissions,
+             board_permissions.c.permission_id == permissions.id)
+        )
+        query = query.join(
+            (user_permissions,
+             permissions.id == user_permissions.c.permission_id)
+        )
+        query = query.join((users, user_permissions.c.user_id == users.id))
+        query = query.filter(users.id == user_id)
+
+    # Filter by whether or not we want archived boards
+    query = query.filter(models.Board.archived == archived)
+
+    return query
+
+
+def get_all(title=None, creator_id=None, user_id=None, project_id=None,
+            task_id=None, story_id=None, archived=False, offset=None,
+            limit=None, sort_field=None, sort_dir=None, current_user=None,
+            **kwargs):
+    if sort_field is None:
+        sort_field = 'id'
+    if sort_dir is None:
+        sort_dir = 'asc'
+
+    boards = _build_board_query(title=title,
+                                creator_id=creator_id,
+                                project_id=project_id,
+                                user_id=user_id,
+                                archived=archived,
+                                current_user=current_user,
+                                **kwargs)
     if task_id:
+        boards = boards.all()
         matching = []
         for board in boards:
             if has_card(board, 'task', task_id):
                 matching.append(board)
-        boards = matching
+        return matching
 
     if story_id:
+        if not task_id:
+            boards.all()
         matching = []
         for board in boards:
             if has_card(board, 'story', story_id):
                 matching.append(board)
-        boards = matching
+        return matching
 
-    return boards
+    boards = api_base.paginate_query(query=boards,
+                                     model=models.Board,
+                                     limit=limit,
+                                     offset=offset,
+                                     sort_key=sort_field,
+                                     sort_dir=sort_dir)
+    return boards.all()
+
+
+def get_count(title=None, creator_id=None, user_id=None, project_id=None,
+              task_id=None, story_id=None, archived=False, current_user=None,
+              **kwargs):
+    query = _build_board_query(title=title,
+                               creator_id=creator_id,
+                               project_id=project_id,
+                               user_id=user_id,
+                               archived=archived,
+                               current_user=current_user,
+                               **kwargs)
+    return query.count()
 
 
 def create(values):

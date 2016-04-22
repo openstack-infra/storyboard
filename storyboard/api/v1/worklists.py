@@ -357,11 +357,11 @@ class WorklistsController(rest.RestController):
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Worklist], wtypes.text, int, int,
                          bool, int, int, int, bool, wtypes.text, wtypes.text,
-                         int)
+                         int, int, int)
     def get_all(self, title=None, creator_id=None, project_id=None,
                 archived=False, user_id=None, story_id=None, task_id=None,
                 hide_lanes=True, sort_field='id', sort_dir='asc',
-                board_id=None):
+                board_id=None, offset=None, limit=None):
         """Retrieve definitions of all of the worklists.
 
         :param title: A string to filter the title by.
@@ -377,8 +377,11 @@ class WorklistsController(rest.RestController):
         :param sort_dir: Sort direction for results (asc, desc).
         :param board_id: Get all worklists in the board with this id. Other
         filters are not applied.
+        :param offset: Offset at which to begin the results.
+        :param limit: Maximum number of results to return.
 
         """
+        current_user = request.current_user_id
         worklists = worklists_api.get_all(title=title,
                                           creator_id=creator_id,
                                           project_id=project_id,
@@ -388,25 +391,40 @@ class WorklistsController(rest.RestController):
                                           story_id=story_id,
                                           task_id=task_id,
                                           sort_field=sort_field,
-                                          sort_dir=sort_dir)
+                                          sort_dir=sort_dir,
+                                          offset=offset,
+                                          limit=limit,
+                                          current_user=current_user,
+                                          hide_lanes=hide_lanes)
+        count = worklists_api.get_count(title=title,
+                                        creator_id=creator_id,
+                                        project_id=project_id,
+                                        archived=archived,
+                                        board_id=board_id,
+                                        user_id=user_id,
+                                        story_id=story_id,
+                                        task_id=task_id,
+                                        current_user=current_user,
+                                        hide_lanes=hide_lanes)
 
-        user_id = request.current_user_id
         visible_worklists = []
         for worklist in worklists:
-            if (worklists_api.visible(worklist, user_id, hide_lanes) and
-                worklist.archived == archived):
-                worklist_model = wmodels.Worklist.from_db_model(worklist)
-                worklist_model.resolve_permissions(worklist)
-                visible_items = worklists_api.get_visible_items(
-                    worklist, request.current_user_id)
-                worklist_model.items = [
-                    wmodels.WorklistItem.from_db_model(item)
-                    for item in visible_items
-                ]
-                visible_worklists.append(worklist_model)
+            worklist_model = wmodels.Worklist.from_db_model(worklist)
+            worklist_model.resolve_permissions(worklist)
+            visible_items = worklists_api.get_visible_items(
+                worklist, request.current_user_id)
+            worklist_model.items = [
+                wmodels.WorklistItem.from_db_model(item)
+                for item in visible_items
+            ]
+            visible_worklists.append(worklist_model)
 
         # Apply the query response headers
-        response.headers['X-Total'] = str(len(visible_worklists))
+        response.headers['X-Total'] = str(count)
+        if limit is not None:
+            response.headers['X-Limit'] = str(limit)
+        if offset is not None:
+            response.headers['X-Offset'] = str(offset)
 
         return visible_worklists
 

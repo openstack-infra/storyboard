@@ -142,10 +142,10 @@ class BoardsController(rest.RestController):
     @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Board], wtypes.text, int, int, bool,
-                         int, int, int, wtypes.text, wtypes.text)
+                         int, int, int, int, int, wtypes.text, wtypes.text)
     def get_all(self, title=None, creator_id=None, project_id=None,
                 archived=False, user_id=None, story_id=None, task_id=None,
-                sort_field='id', sort_dir='asc'):
+                offset=None, limit=None, sort_field='id', sort_dir='asc'):
         """Retrieve definitions of all of the boards.
 
         :param title: A string to filter the title by.
@@ -154,31 +154,45 @@ class BoardsController(rest.RestController):
         :param archived: Filter boards by whether they are archived or not.
         :param story_id: Filter boards by whether they contain a story.
         :param task_id: Filter boards by whether they contain a task.
+        :param offset: Value to offset results by.
+        :param limit: Maximum number of results to return.
         :param sort_field: The name of the field to sort on.
         :param sort_dir: Sort direction for results (asc, desc).
 
         """
+        current_user = request.current_user_id
         boards = boards_api.get_all(title=title,
                                     creator_id=creator_id,
                                     user_id=user_id,
                                     project_id=project_id,
                                     story_id=story_id,
                                     task_id=task_id,
+                                    offset=offset,
+                                    limit=limit,
+                                    current_user=current_user,
                                     sort_field=sort_field,
                                     sort_dir=sort_dir)
+        count = boards_api.get_count(title=title,
+                                     creator_id=creator_id,
+                                     user_id=user_id,
+                                     project_id=project_id,
+                                     story_id=story_id,
+                                     task_id=task_id,
+                                     current_user=current_user,)
 
         visible_boards = []
-        user_id = request.current_user_id
         for board in boards:
-            if boards_api.visible(board, user_id) and\
-                    board.archived == archived:
-                board_model = wmodels.Board.from_db_model(board)
-                board_model.resolve_lanes(board, resolve_items=False)
-                board_model.resolve_permissions(board)
-                visible_boards.append(board_model)
+            board_model = wmodels.Board.from_db_model(board)
+            board_model.resolve_lanes(board, resolve_items=False)
+            board_model.resolve_permissions(board)
+            visible_boards.append(board_model)
 
         # Apply the query response headers
-        response.headers['X-Total'] = str(len(visible_boards))
+        response.headers['X-Total'] = str(count)
+        if limit is not None:
+            response.headers['X-Limit'] = str(limit)
+        if offset is not None:
+            response.headers['X-Offset'] = str(offset)
 
         return visible_boards
 
