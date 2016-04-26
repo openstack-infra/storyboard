@@ -142,10 +142,12 @@ class BoardsController(rest.RestController):
     @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Board], wtypes.text, int, int, bool,
-                         int, int, int, int, int, wtypes.text, wtypes.text)
+                         int, int, int, wtypes.text, int, int, wtypes.text,
+                         wtypes.text)
     def get_all(self, title=None, creator_id=None, project_id=None,
                 archived=False, user_id=None, story_id=None, task_id=None,
-                offset=None, limit=None, sort_field='id', sort_dir='asc'):
+                item_type=None, offset=None, limit=None, sort_field='id',
+                sort_dir='asc'):
         """Retrieve definitions of all of the boards.
 
         :param title: A string to filter the title by.
@@ -154,6 +156,11 @@ class BoardsController(rest.RestController):
         :param archived: Filter boards by whether they are archived or not.
         :param story_id: Filter boards by whether they contain a story.
         :param task_id: Filter boards by whether they contain a task.
+        :param item_type: Used when filtering by story_id. If item_type is
+        'story' then only return worklists that contain the story, if
+        item_type is 'task' then only return worklists that contain tasks from
+        the story, otherwise return worklists that contain the story or tasks
+        from the story.
         :param offset: Value to offset results by.
         :param limit: Maximum number of results to return.
         :param sort_field: The name of the field to sort on.
@@ -167,6 +174,7 @@ class BoardsController(rest.RestController):
                                     project_id=project_id,
                                     story_id=story_id,
                                     task_id=task_id,
+                                    item_type=item_type,
                                     offset=offset,
                                     limit=limit,
                                     current_user=current_user,
@@ -178,6 +186,7 @@ class BoardsController(rest.RestController):
                                      project_id=project_id,
                                      story_id=story_id,
                                      task_id=task_id,
+                                     item_type=item_type,
                                      current_user=current_user,)
 
         visible_boards = []
