@@ -357,11 +357,11 @@ class WorklistsController(rest.RestController):
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Worklist], wtypes.text, int, int,
                          bool, int, int, int, bool, wtypes.text, wtypes.text,
-                         int, int, int)
+                         wtypes.text, int, int, int)
     def get_all(self, title=None, creator_id=None, project_id=None,
                 archived=False, user_id=None, story_id=None, task_id=None,
                 hide_lanes=True, sort_field='id', sort_dir='asc',
-                board_id=None, offset=None, limit=None):
+                item_type=None, board_id=None, offset=None, limit=None):
         """Retrieve definitions of all of the worklists.
 
         :param title: A string to filter the title by.
@@ -375,6 +375,11 @@ class WorklistsController(rest.RestController):
         a board.
         :param sort_field: The name of the field to sort on.
         :param sort_dir: Sort direction for results (asc, desc).
+        :param item_type: Used when filtering by story_id. If item_type is
+        'story' then only return worklists that contain the story, if
+        item_type is 'task' then only return worklists that contain tasks from
+        the story, otherwise return worklists that contain the story or tasks
+        from the story.
         :param board_id: Get all worklists in the board with this id. Other
         filters are not applied.
         :param offset: Offset at which to begin the results.
@@ -382,6 +387,20 @@ class WorklistsController(rest.RestController):
 
         """
         current_user = request.current_user_id
+
+        # If a non existent story/task is requested, there is no point trying
+        # to find worklists which contain it
+        if story_id:
+            story = stories_api.story_get(story_id, current_user=current_user)
+            if story is None:
+                response.headers['X-Total'] = '0'
+                return []
+        if task_id:
+            task = tasks_api.task_get(task_id, current_user=current_user)
+            if task is None:
+                response.headers['X-Total'] = '0'
+                return []
+
         worklists = worklists_api.get_all(title=title,
                                           creator_id=creator_id,
                                           project_id=project_id,
@@ -395,7 +414,8 @@ class WorklistsController(rest.RestController):
                                           offset=offset,
                                           limit=limit,
                                           current_user=current_user,
-                                          hide_lanes=hide_lanes)
+                                          hide_lanes=hide_lanes,
+                                          item_type=item_type)
         count = worklists_api.get_count(title=title,
                                         creator_id=creator_id,
                                         project_id=project_id,
@@ -405,7 +425,8 @@ class WorklistsController(rest.RestController):
                                         story_id=story_id,
                                         task_id=task_id,
                                         current_user=current_user,
-                                        hide_lanes=hide_lanes)
+                                        hide_lanes=hide_lanes,
+                                        item_type=item_type)
 
         visible_worklists = []
         for worklist in worklists:
