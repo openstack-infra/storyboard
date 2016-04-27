@@ -88,6 +88,46 @@ User Tokens
 .. rest-controller:: storyboard.api.v1.user_tokens:UserTokensController
    :webprefix: /v1/users/<user_id>/tokens
 
+Worklists
+=========
+.. rest-controller:: storyboard.api.v1.worklists:WorklistsController
+   :webprefix: /v1/worklists
+
+Filters
+-------
+.. rest-controller:: storyboard.api.v1.worklists:FilterSubcontroller
+   :webprefix: /v1/worklists/<worklist_id>/filters
+
+Items
+-----
+.. rest-controller:: storyboard.api.v1.worklists:ItemsSubcontroller
+   :webprefix: /v1/worklists/<worklist_id>/items
+
+Permissions
+-----------
+.. rest-controller:: storyboard.api.v1.worklists:PermissionsController
+   :webprefix: /v1/worklists/<worklist_id>/permissions
+
+Boards
+======
+.. rest-controller:: storyboard.api.v1.boards:BoardsController
+   :webprefix: /v1/boards
+
+Permissions
+-----------
+.. rest-controller:: storyboard.api.v1.boards:PermissionsController
+   :webprefix: /v1/boards/<board_id>/permissions
+
+Due Dates
+=========
+.. rest-controller:: storyboard.api.v1.due_dates:DueDatesController
+   :webprefix: /v1/due_dates
+
+Permissions
+-----------
+.. rest-controller:: storyboard.api.v1.due_dates:PermissionsController
+   :webprefix: /v1/due_dates/<due_date_id>/permissions
+
 ############
 Object model
 ############
