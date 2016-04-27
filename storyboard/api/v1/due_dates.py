@@ -281,6 +281,14 @@ class DueDatesController(rest.RestController):
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(None, int, int)
     def delete(self, id, board_id):
+        """Stop associating a due date with a board.
+
+        Note: We don't allow actual deletion of due dates.
+
+        :param id: The ID of the due date.
+        :param board_id: The ID of the board.
+
+        """
         due_date = due_dates_api.get(id)
         if not due_dates_api.editable(due_date, request.current_user_id):
             raise exc.NotFound(_("Due date %s not found") % id)
