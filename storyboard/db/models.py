@@ -1,5 +1,6 @@
 # Copyright 2013 Hewlett-Packard Development Company, L.P.
 # Copyright 2013 Thierry Carrez <thierry@openstack.org>
+# Copyright 2015-2016 Codethink Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -310,9 +311,11 @@ class Story(FullText, ModelBuilder, Base):
     title = Column(Unicode(CommonLength.top_large_length))
     description = Column(UnicodeText())
     is_bug = Column(Boolean, default=True)
+    private = Column(Boolean, default=False)
     tasks = relationship('Task', backref='story')
     events = relationship('TimeLineEvent', backref='story')
     tags = relationship('StoryTag', secondary='story_storytags')
+    permissions = relationship('Permission', secondary='story_permissions')
 
     _public_fields = ["id", "creator_id", "title", "description", "is_bug",
                       "tasks", "events", "tags"]
@@ -344,6 +347,13 @@ class Task(FullText, ModelBuilder, Base):
     _public_fields = ["id", "creator_id", "title", "status", "story_id",
                       "project_id", "assignee_id", "priority", "branch_id",
                       "milestone_id"]
+
+
+story_permissions = Table(
+    'story_permissions', Base.metadata,
+    Column('story_id', Integer, ForeignKey('stories.id')),
+    Column('permission_id', Integer, ForeignKey('permissions.id')),
+)
 
 
 class Branch(ModelBuilder, Base):
@@ -528,7 +538,7 @@ class WorklistItem(ModelBuilder, Base):
 
     _ITEM_TYPES = ("story", "task")
 
-    list_id = Column(Integer, ForeignKey('worklists.id'), nullable=False)
+    list_id = Column(Integer, ForeignKey('worklists.id'), nullable=True)
     list_position = Column(Integer, nullable=False)
     item_type = Column(Enum(*_ITEM_TYPES), nullable=False)
     item_id = Column(Integer, nullable=False)
