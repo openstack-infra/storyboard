@@ -14,8 +14,11 @@
 # limitations under the License.
 
 from sqlalchemy import distinct
+from sqlalchemy.orm import subqueryload
 
 from storyboard.db.api import base as api_base
+from storyboard.db.api import stories as stories_api
+from storyboard.db.api import tasks as tasks_api
 from storyboard.db import models
 from storyboard.db.models import TimeLineEvent
 
@@ -42,9 +45,13 @@ def subscription_get_all_by_target(target_type, target_id):
                                    target_id=target_id)
 
 
-def subscription_get_resource(target_type, target_id):
+def subscription_get_resource(target_type, target_id, current_user=None):
     if target_type not in SUPPORTED_TYPES:
         return None
+    if target_type == 'story':
+        return stories_api.story_get(target_id, current_user=current_user)
+    elif target_type == 'task':
+        return tasks_api.task_get(target_id, current_user=current_user)
 
     return api_base.entity_get(SUPPORTED_TYPES[target_type], target_id)
 
@@ -109,9 +116,19 @@ def subscription_get_all_subscriber_ids(resource, resource_id, session=None):
     # Make sure the requested resource is going to be handled.
     affected[resource].add(resource_id)
 
+    users = None
+
     # Resolve either from story->task or from task->story, so the root
     # resource id remains pristine.
     if resource == 'story':
+        # If the story is private, make a whitelist of users to notify.
+        story = api_base.model_query(models.Story, session) \
+            .options(subqueryload(models.Story.permissions)) \
+            .filter_by(id=resource_id).first()
+
+        if story.private:
+            users = [user.id for user in story.permissions[0].users]
+
         # Get this story's tasks
         query = api_base.model_query(models.Task.id, session=session) \
             .filter(models.Task.story_id.in_(affected['story']))
@@ -124,6 +141,13 @@ def subscription_get_all_subscriber_ids(resource, resource_id, session=None):
             .filter(models.Task.id == resource_id)
 
         affected['story'].add(query.first().story_id)
+
+        story = api_base.model_query(models.Story, session) \
+            .options(subqueryload(models.Story.permissions)) \
+            .filter_by(id=query.first().story_id).first()
+
+        if story.private:
+            users = [user.id for user in story.permissions[0].users]
 
     # If there are tasks, there will also be projects.
     if affected['task']:
@@ -154,6 +178,9 @@ def subscription_get_all_subscriber_ids(resource, resource_id, session=None):
             models.Subscription.user_id), session=session) \
             .filter(models.Subscription.target_type == affected_type) \
             .filter(models.Subscription.target_id.in_(affected[affected_type]))
+
+        if users is not None:
+            query = query.filter(models.Subscription.user_id.in_(users))
 
         results = query.all()
         subscribers = subscribers.union(r for (r,) in results)

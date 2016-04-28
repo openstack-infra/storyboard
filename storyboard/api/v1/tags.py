@@ -63,7 +63,8 @@ class TagsController(rest.RestController):
 
             return [wmodels.Tag.from_db_model(t) for t in tags]
 
-        story = stories_api.story_get(story_id)
+        story = stories_api.story_get(
+            story_id, current_user=request.current_user_id)
         if not story:
             raise exc.NotFound("Story %s not found" % story_id)
 
@@ -78,16 +79,19 @@ class TagsController(rest.RestController):
         :param tags: A list of tags to be added.
         """
 
-        story = stories_api.story_get(story_id)
+        story = stories_api.story_get(
+            story_id, current_user=request.current_user_id)
         if not story:
             raise exc.NotFound("Story %s not found" % story_id)
 
         for tag in tags:
-            stories_api.story_add_tag(story_id, tag)
+            stories_api.story_add_tag(
+                story_id, tag, current_user=request.current_user_id)
         # For some reason the story gets cached and the tags do not appear.
         stories_api.api_base.get_session().expunge(story)
 
-        story = stories_api.story_get(story_id)
+        story = stories_api.story_get(
+            story_id, current_user=request.current_user_id)
         events_api.tags_added_event(story_id=story_id,
                                     author_id=request.current_user_id,
                                     story_title=story.title,
@@ -115,12 +119,14 @@ class TagsController(rest.RestController):
         :param tags: A list of tags to be removed.
         """
 
-        story = stories_api.story_get(story_id)
+        story = stories_api.story_get(
+            story_id, current_user=request.current_user_id)
         if not story:
             raise exc.NotFound("Story %s not found" % story_id)
 
         for tag in tags:
-            stories_api.story_remove_tag(story_id, tag)
+            stories_api.story_remove_tag(
+                story_id, tag, current_user=request.current_user_id)
 
         events_api.tags_deleted_event(story_id=story_id,
                                       author_id=request.current_user_id,

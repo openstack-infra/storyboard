@@ -90,7 +90,8 @@ def story_is_valid(task, branch):
     """Check that branch is restricted if story type is restricted.
     """
 
-    story = stories_api.story_get(task.story_id)
+    story = stories_api.story_get(
+        task.story_id, current_user=request.current_user_id)
 
     if not story:
         raise exc.NotFound("Story %s not found." % task.story_id)
@@ -260,7 +261,8 @@ class TasksPrimaryController(rest.RestController):
 
         :param task_id: An ID of the task.
         """
-        task = tasks_api.task_get(task_id)
+        task = tasks_api.task_get(
+            task_id, current_user=request.current_user_id)
 
         if task:
             return wmodels.Task.from_db_model(task)
@@ -314,7 +316,8 @@ class TasksPrimaryController(rest.RestController):
                           sort_field=sort_field,
                           sort_dir=sort_dir,
                           marker=marker_task,
-                          limit=limit)
+                          limit=limit,
+                          current_user=request.current_user_id)
         task_count = tasks_api \
             .task_get_count(title=title,
                             link=link,
@@ -325,7 +328,8 @@ class TasksPrimaryController(rest.RestController):
                             branch_id=branch_id,
                             milestone_id=milestone_id,
                             status=status,
-                            priority=priority)
+                            priority=priority,
+                            current_user=request.current_user_id)
 
         # Apply the query response headers.
         if limit:
@@ -374,7 +378,8 @@ class TasksPrimaryController(rest.RestController):
         :param task: A task within the request body.
         """
 
-        original_task = copy.deepcopy(tasks_api.task_get(task_id))
+        original_task = copy.deepcopy(
+            tasks_api.task_get(task_id, current_user=request.current_user_id))
 
         if not original_task:
             raise exc.NotFound(_("Task %s not found.") % task_id)
@@ -395,7 +400,8 @@ class TasksPrimaryController(rest.RestController):
 
         :param task_id: An ID of the task.
         """
-        original_task = copy.deepcopy(tasks_api.task_get(task_id))
+        original_task = copy.deepcopy(
+            tasks_api.task_get(task_id, current_user=request.current_user_id))
 
         if not original_task:
             raise exc.NotFound(_("Task %s not found.") % task_id)
@@ -419,10 +425,12 @@ class TasksPrimaryController(rest.RestController):
         :return: List of Tasks matching the query.
         """
 
+        user = request.current_user_id
         tasks = SEARCH_ENGINE.tasks_query(q=q,
                                           marker=marker,
                                           offset=offset,
-                                          limit=limit)
+                                          limit=limit,
+                                          current_user=user)
 
         return [wmodels.Task.from_db_model(task) for task in tasks]
 
@@ -442,7 +450,8 @@ class TasksNestedController(rest.RestController):
         :param story_id: An ID of the story.
         :param task_id: An ID of the task.
         """
-        task = tasks_api.task_get(task_id)
+        task = tasks_api.task_get(
+            task_id, current_user=request.current_user_id)
 
         if task:
             if task.story_id != story_id:
@@ -482,7 +491,8 @@ class TasksNestedController(rest.RestController):
             limit = max(0, limit)
 
         # Resolve the marker record.
-        marker_task = tasks_api.task_get(marker)
+        marker_task = tasks_api.task_get(
+            marker, current_user=request.current_user_id)
 
         tasks = tasks_api \
             .task_get_all(title=title,
@@ -498,7 +508,8 @@ class TasksNestedController(rest.RestController):
                           sort_field=sort_field,
                           sort_dir=sort_dir,
                           marker=marker_task,
-                          limit=limit)
+                          limit=limit,
+                          current_user=request.current_user_id)
         task_count = tasks_api \
             .task_get_count(title=title,
                             link=link,
@@ -509,7 +520,8 @@ class TasksNestedController(rest.RestController):
                             branch_id=branch_id,
                             milestone_id=milestone_id,
                             status=status,
-                            priority=priority)
+                            priority=priority,
+                            current_user=request.current_user_id)
 
         # Apply the query response headers.
         response.headers['X-Limit'] = str(limit)
@@ -565,7 +577,8 @@ class TasksNestedController(rest.RestController):
         :param task: a task within the request body.
         """
 
-        original_task = copy.deepcopy(tasks_api.task_get(task_id))
+        original_task = copy.deepcopy(
+            tasks_api.task_get(task_id, current_user=request.current_user_id))
 
         if not original_task:
             raise exc.NotFound(_("Task %s not found") % task_id)
@@ -591,7 +604,8 @@ class TasksNestedController(rest.RestController):
         :param task_id: An ID of the task.
         """
 
-        original_task = copy.deepcopy(tasks_api.task_get(task_id))
+        original_task = copy.deepcopy(
+            tasks_api.task_get(task_id, current_user=request.current_user_id))
 
         if not original_task:
             raise exc.NotFound(_("Task %s not found.") % task_id)

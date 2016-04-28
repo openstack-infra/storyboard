@@ -1,4 +1,5 @@
 # Copyright (c) 2013 Mirantis Inc.
+# Copyright (c) 2016 Codethink Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,6 +36,7 @@ from storyboard.common import decorators
 from storyboard.common import exception as exc
 from storyboard.db.api import stories as stories_api
 from storyboard.db.api import timeline_events as events_api
+from storyboard.db.api import users as users_api
 from storyboard.openstack.common.gettextutils import _  # noqa
 
 
@@ -46,6 +48,10 @@ SEARCH_ENGINE = search_engine.get_engine()
 def create_story_wmodel(story):
     story_model = wmodels.Story.from_db_model(story)
     story_model.summarize_task_statuses(story)
+    if story.permissions:
+        story_model.resolve_users(story)
+    else:
+        story_model.users = []
     return story_model
 
 
@@ -65,7 +71,8 @@ class StoriesController(rest.RestController):
 
         :param story_id: An ID of the story.
         """
-        story = stories_api.story_get(story_id)
+        story = stories_api.story_get(
+            story_id, current_user=request.current_user_id)
 
         if story:
             return create_story_wmodel(story)
@@ -108,7 +115,8 @@ class StoriesController(rest.RestController):
         # Resolve the marker record.
         marker_story = None
         if marker:
-            marker_story = stories_api.story_get(marker)
+            marker_story = stories_api.story_get(
+                marker, current_user=request.current_user_id)
 
         stories = stories_api \
             .story_get_all(title=title,
@@ -123,8 +131,10 @@ class StoriesController(rest.RestController):
                            marker=marker_story,
                            offset=offset,
                            tags_filter_type=tags_filter_type,
-                           limit=limit, sort_field=sort_field,
-                           sort_dir=sort_dir)
+                           limit=limit,
+                           sort_field=sort_field,
+                           sort_dir=sort_dir,
+                           current_user=request.current_user_id)
         story_count = stories_api \
             .story_get_count(title=title,
                              description=description,
@@ -135,7 +145,8 @@ class StoriesController(rest.RestController):
                              project_id=project_id,
                              subscriber_id=subscriber_id,
                              tags=tags,
-                             tags_filter_type=tags_filter_type)
+                             tags_filter_type=tags_filter_type,
+                             current_user=request.current_user_id)
 
         # Apply the query response headers.
         if limit:
@@ -181,8 +192,17 @@ class StoriesController(rest.RestController):
         if "due_dates" in story_dict:
             del story_dict['due_dates']
 
+        users = []
+        if "users" in story_dict:
+            users = story_dict.pop("users")
+        if users is None:
+            users = [wmodels.User.from_db_model(users_api.user_get(user_id))]
+
         created_story = stories_api.story_create(story_dict)
         events_api.story_created_event(created_story.id, user_id, story.title)
+
+        if story.private:
+            stories_api.create_permission(created_story, users)
 
         return wmodels.Story.from_db_model(created_story)
 
@@ -202,7 +222,8 @@ class StoriesController(rest.RestController):
             abort(400, _("Now you can't change story type to %s.") %
                   story.story_type_id)
 
-        original_story = stories_api.story_get_simple(story_id)
+        original_story = stories_api.story_get_simple(
+            story_id, current_user=request.current_user_id)
 
         if not original_story:
             raise exc.NotFound(_("Story %s not found") % story_id)
@@ -224,9 +245,26 @@ class StoriesController(rest.RestController):
         if 'tags' in story_dict:
             story_dict.pop('tags')
 
+        users = story_dict.get("users", [])
+        ids = [user.id for user in users]
+        if story.private:
+            if request.current_user_id not in ids \
+                    and not original_story.permissions:
+                users.append(wmodels.User.from_db_model(
+                    users_api.user_get(request.current_user_id)))
+            if not original_story.permissions:
+                stories_api.create_permission(original_story, users)
+
         updated_story = stories_api.story_update(
             story_id,
-            story_dict)
+            story_dict,
+            current_user=request.current_user_id)
+
+        if users == [] and updated_story.private:
+            abort(400, _("Can't make a private story with no users"))
+
+        if story.private:
+            stories_api.update_permission(updated_story, users)
 
         user_id = request.current_user_id
         events_api.story_details_changed_event(story_id, user_id,
@@ -242,7 +280,8 @@ class StoriesController(rest.RestController):
 
         :param story_id: An ID of the story.
         """
-        stories_api.story_delete(story_id)
+        stories_api.story_delete(
+            story_id, current_user=request.current_user_id)
 
     comments = CommentsController()
     events = TimeLineEventsController()
@@ -260,10 +299,12 @@ class StoriesController(rest.RestController):
         :return: List of Stories matching the query.
         """
 
+        user = request.current_user_id
         stories = SEARCH_ENGINE.stories_query(q=q,
                                               marker=marker,
                                               offset=offset,
-                                              limit=limit)
+                                              limit=limit,
+                                              current_user=user)
 
         return [create_story_wmodel(story) for story in stories]
 

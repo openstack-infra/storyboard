@@ -13,36 +13,76 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import subqueryload
+from sqlalchemy.sql.expression import false, true
 
 from storyboard.common import exception as exc
 from storyboard.db.api import base as api_base
 from storyboard.db.api import story_tags
 from storyboard.db.api import story_types
+from storyboard.db.api import users as users_api
 from storyboard.db import models
 from storyboard.openstack.common.gettextutils import _  # noqa
 
 
-def story_get_simple(story_id, session=None):
-    return api_base.model_query(models.Story, session) \
+def story_get_simple(story_id, session=None, current_user=None):
+    query = api_base.model_query(models.Story, session) \
         .options(subqueryload(models.Story.tags)) \
-        .filter_by(id=story_id).first()
+        .filter_by(id=story_id)
+
+    # Filter out stories that the current user can't see
+    query = query.outerjoin(models.story_permissions,
+                            models.Permission,
+                            models.user_permissions,
+                            models.User)
+    if current_user is not None:
+        query = query.filter(
+            or_(
+                and_(
+                    models.User.id == current_user,
+                    models.Story.private == true()
+                ),
+                models.Story.private == false()
+            )
+        )
+    else:
+        query = query.filter(models.Story.private == false())
+
+    return query.first()
 
 
-def story_get(story_id, session=None):
-    story_query = api_base.model_query(models.StorySummary, session)
-    story_summary = story_query\
-        .options(subqueryload(models.StorySummary.tags))\
-        .filter_by(id=story_id).first()
+def story_get(story_id, session=None, current_user=None):
+    query = api_base.model_query(models.StorySummary, session)
+    query = query.options(subqueryload(models.StorySummary.tags))\
+        .filter_by(id=story_id)
 
-    return story_summary
+    # Filter out stories that the current user can't see
+    query = query.outerjoin(models.story_permissions,
+                            models.Permission,
+                            models.user_permissions,
+                            models.User)
+    if current_user is not None:
+        query = query.filter(
+            or_(
+                and_(
+                    models.User.id == current_user,
+                    models.StorySummary.private == true()
+                ),
+                models.StorySummary.private == false()
+            )
+        )
+    else:
+        query = query.filter(models.StorySummary.private == false())
+
+    return query.first()
 
 
 def story_get_all(title=None, description=None, status=None, assignee_id=None,
                   creator_id=None, project_group_id=None, project_id=None,
                   subscriber_id=None, tags=None, marker=None, offset=None,
                   limit=None, tags_filter_type="all", sort_field='id',
-                  sort_dir='asc'):
+                  sort_dir='asc', current_user=None):
     # Sanity checks, in case someone accidentally explicitly passes in 'None'
     if not sort_field:
         sort_field = 'id'
@@ -60,7 +100,8 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
                                   project_group_id=project_group_id,
                                   project_id=project_id,
                                   tags=tags,
-                                  tags_filter_type=tags_filter_type)
+                                  tags_filter_type=tags_filter_type,
+                                  current_user=current_user)
 
     # Filter by subscriber ID
     if subscriber_id is not None:
@@ -100,7 +141,7 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
 def story_get_count(title=None, description=None, status=None,
                     assignee_id=None, creator_id=None, project_group_id=None,
                     project_id=None, subscriber_id=None, tags=None,
-                    tags_filter_type="all"):
+                    tags_filter_type="all", current_user=None):
     query = _story_build_query(title=title,
                                description=description,
                                assignee_id=assignee_id,
@@ -108,7 +149,8 @@ def story_get_count(title=None, description=None, status=None,
                                project_group_id=project_group_id,
                                project_id=project_id,
                                tags=tags,
-                               tags_filter_type=tags_filter_type)
+                               tags_filter_type=tags_filter_type,
+                               current_user=current_user)
 
     # Filter by subscriber ID
     if subscriber_id is not None:
@@ -134,7 +176,7 @@ def story_get_count(title=None, description=None, status=None,
 
 def _story_build_query(title=None, description=None, assignee_id=None,
                        creator_id=None, project_group_id=None, project_id=None,
-                       tags=None, tags_filter_type='all'):
+                       tags=None, tags_filter_type='all', current_user=None):
     # First build a standard story query.
     query = api_base.model_query(models.Story.id).distinct()
 
@@ -144,6 +186,24 @@ def _story_build_query(title=None, description=None, assignee_id=None,
                                          title=title,
                                          description=description,
                                          creator_id=creator_id)
+
+    # Filter out stories that the current user can't see
+    query = query.outerjoin(models.story_permissions,
+                            models.Permission,
+                            models.user_permissions,
+                            models.User)
+    if current_user:
+        query = query.filter(
+            or_(
+                and_(
+                    models.User.id == current_user,
+                    models.Story.private == true()
+                ),
+                models.Story.private == false()
+            )
+        )
+    else:
+        query = query.filter(models.Story.private == false())
 
     # Filtering by tags
     if tags:
@@ -158,8 +218,9 @@ def _story_build_query(title=None, description=None, assignee_id=None,
 
     # Are we filtering by project group?
     if project_group_id:
-        query = query.join(models.Task,
-                           models.Project,
+        query = query.join(
+            (models.Task, models.Task.story_id == models.Story.id))
+        query = query.join(models.Project,
                            models.project_group_mapping,
                            models.ProjectGroup)
         query = query.filter(models.ProjectGroup.id == project_group_id)
@@ -167,7 +228,8 @@ def _story_build_query(title=None, description=None, assignee_id=None,
     # Are we filtering by task?
     if assignee_id or project_id:
         if not project_group_id:  # We may already have joined this table
-            query = query.join(models.Task)
+            query = query.join(
+                (models.Task, models.Task.story_id == models.Story.id))
         if assignee_id:
             query = query.filter(models.Task.assignee_id == assignee_id)
         if project_id:
@@ -180,12 +242,12 @@ def story_create(values):
     return api_base.entity_create(models.Story, values)
 
 
-def story_update(story_id, values):
+def story_update(story_id, values, current_user=None):
     api_base.entity_update(models.Story, story_id, values)
-    return story_get(story_id)
+    return story_get(story_id, current_user=current_user)
 
 
-def story_add_tag(story_id, tag_name):
+def story_add_tag(story_id, tag_name, current_user=None):
     session = api_base.get_session()
 
     with session.begin(subtransactions=True):
@@ -195,7 +257,8 @@ def story_add_tag(story_id, tag_name):
         if not tag:
             tag = story_tags.tag_create({"name": tag_name})
 
-        story = story_get_simple(story_id, session=session)
+        story = story_get_simple(
+            story_id, session=session, current_user=current_user)
         if not story:
             raise exc.NotFound(_("%(name)s %(id)s not found") %
                                {'name': "Story", 'id': story_id})
@@ -210,12 +273,13 @@ def story_add_tag(story_id, tag_name):
     session.expunge(story)
 
 
-def story_remove_tag(story_id, tag_name):
+def story_remove_tag(story_id, tag_name, current_user=None):
     session = api_base.get_session()
 
     with session.begin(subtransactions=True):
 
-        story = story_get_simple(story_id, session=session)
+        story = story_get_simple(
+            story_id, session=session, current_user=current_user)
         if not story:
             raise exc.NotFound(_("%(name)s %(id)s not found") %
                                {'name': "Story", 'id': story_id})
@@ -231,8 +295,8 @@ def story_remove_tag(story_id, tag_name):
     session.expunge(story)
 
 
-def story_delete(story_id):
-    story = story_get(story_id)
+def story_delete(story_id, current_user=None):
+    story = story_get(story_id, current_user=current_user)
 
     if story:
         api_base.entity_hard_delete(models.Story, story_id)
@@ -302,3 +366,38 @@ def story_can_mutate(story, new_story_type_id):
         return True
 
     return False
+
+
+def create_permission(story, users, session=None):
+    story = api_base.model_query(models.Story, session) \
+        .options(subqueryload(models.Story.tags)) \
+        .filter_by(id=story.id).first()
+    permission_dict = {
+        'name': 'view_story_%d' % story.id,
+        'codename': 'view_story'
+    }
+    permission = api_base.entity_create(models.Permission, permission_dict)
+    story.permissions.append(permission)
+    for user in users:
+        user = users_api.user_get(user.id)
+        user.permissions.append(permission)
+    return permission
+
+
+def update_permission(story, users, session=None):
+    story = api_base.model_query(models.Story, session) \
+        .options(subqueryload(models.Story.tags)) \
+        .filter_by(id=story.id).first()
+    if not story.permissions:
+        raise exc.NotFound(_("Permissions for story %d not found.")
+                           % story.id)
+    permission = story.permissions[0]
+    permission_dict = {
+        'name': permission.name,
+        'codename': permission.codename,
+        'users': [users_api.user_get(user.id) for user in users]
+    }
+
+    return api_base.entity_update(models.Permission,
+                                  permission.id,
+                                  permission_dict)
