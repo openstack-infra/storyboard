@@ -60,7 +60,7 @@ def run_daemon():
     MANAGER.start()
 
 
-def terminate(signal, frame):
+def terminate(sig, frame):
     # This assumes that all the child processes will terminate gracefully
     # on a SIGINT
     global MANAGER
