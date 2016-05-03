@@ -153,7 +153,8 @@ class PerpetualTimer():
         self.thread.start()
 
     def cancel(self):
-        self.thread.cancel()
+        if self.thread.is_alive():
+            self.thread.cancel()
 
 
 class WorkerTaskBase(PluginBase):
