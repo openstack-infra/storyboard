@@ -13,14 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from sqlalchemy.orm import subqueryload
+from sqlalchemy import and_, or_
+from sqlalchemy.sql.expression import false, true
 from wsme.exc import ClientSideError
 
 from storyboard.common import exception as exc
 from storyboard.db.api import base as api_base
 from storyboard.db.api import boards
-from storyboard.db.api import stories
-from storyboard.db.api import tasks
+from storyboard.db.api import stories as stories_api
+from storyboard.db.api import tasks as tasks_api
 from storyboard.db.api import users as users_api
 from storyboard.db import models
 from storyboard.openstack.common.gettextutils import _  # noqa
@@ -29,9 +30,7 @@ from storyboard.openstack.common.gettextutils import _  # noqa
 def _worklist_get(id, session=None):
     if not session:
         session = api_base.get_session()
-    query = session.query(models.Worklist).options(
-        subqueryload(models.Worklist.items)).filter_by(id=id)
-
+    query = session.query(models.Worklist).filter_by(id=id)
     return query.first()
 
 
@@ -99,6 +98,51 @@ def get_count(**kwargs):
     return api_base.entity_get_count(models.Worklist, **kwargs)
 
 
+def get_visible_items(worklist, current_user=None):
+    stories = worklist.items.filter(models.WorklistItem.item_type == 'story')
+    stories = stories.join(
+        (models.Story, models.Story.id == models.WorklistItem.item_id))
+    stories = stories.outerjoin(models.story_permissions,
+                                models.Permission,
+                                models.user_permissions,
+                                models.User)
+    if current_user is not None:
+        stories = stories.filter(
+            or_(
+                and_(
+                    models.User.id == current_user,
+                    models.Story.private == true()
+                ),
+                models.Story.private == false()
+            )
+        )
+    else:
+        stories = stories.filter(models.Story.private == false())
+
+    tasks = worklist.items.filter(models.WorklistItem.item_type == 'task')
+    tasks = tasks.join(
+        (models.Task, models.Task.id == models.WorklistItem.item_id))
+    tasks = tasks.outerjoin(models.Story,
+                            models.story_permissions,
+                            models.Permission,
+                            models.user_permissions,
+                            models.User)
+    if current_user is not None:
+        tasks = tasks.filter(
+            or_(
+                and_(
+                    models.User.id == current_user,
+                    models.Story.private == true()
+                ),
+                models.Story.private == false()
+            )
+        )
+    else:
+        tasks = tasks.filter(models.Story.private == false())
+
+    return stories.union(tasks)
+
+
 def create(values):
     return api_base.entity_create(models.Worklist, values)
 
@@ -114,7 +158,8 @@ def has_item(worklist, item_type, item_id):
     return False
 
 
-def add_item(worklist_id, item_id, item_type, list_position):
+def add_item(worklist_id, item_id, item_type, list_position,
+             current_user=None):
     worklist = _worklist_get(worklist_id)
     if worklist is None:
         raise exc.NotFound(_("Worklist %s not found") % worklist_id)
@@ -146,9 +191,9 @@ def add_item(worklist_id, item_id, item_type, list_position):
 
     # Create a new card
     if item_type == 'story':
-        item = stories.story_get(item_id)
+        item = stories_api.story_get(item_id, current_user=current_user)
     elif item_type == 'task':
-        item = tasks.task_get(item_id)
+        item = tasks_api.task_get(item_id, current_user=current_user)
     else:
         raise ClientSideError(_("An item in a worklist must be either a "
                                 "story or a task"))
@@ -216,12 +261,14 @@ def move_item(worklist_id, item_id, list_position, list_id=None):
             # Move the item and clean up the positions.
             new_list = _worklist_get(list_id)
             old_list.items.remove(item)
-            old_list.items.sort(key=lambda x: x.list_position)
+            old_list.items = old_list.items.order_by(
+                models.WorklistItem.list_position)
             modified = old_list.items[old_pos:]
             for list_item in modified:
                 list_item.list_position -= 1
 
-            new_list.items.sort(key=lambda x: x.list_position)
+            new_list.items = new_list.items.order_by(
+                models.WorklistItem.list_position)
             modified = new_list.items[list_position:]
             for list_item in modified:
                 list_item.list_position += 1
@@ -230,7 +277,8 @@ def move_item(worklist_id, item_id, list_position, list_id=None):
             # Item has changed position in the list.
             # Update the position of every item between the original
             # position and the final position.
-            old_list.items.sort(key=lambda x: x.list_position)
+            old_list.items = old_list.items.order_by(
+                models.WorklistItem.list_position)
             if old_pos > list_position:
                 direction = 'down'
                 modified = old_list.items[list_position:old_pos + 1]

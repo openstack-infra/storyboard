@@ -158,7 +158,8 @@ class SubscriptionsController(rest.RestController):
         # Data sanity check: The resource must exist.
         resource = subscription_api.subscription_get_resource(
             target_type=subscription.target_type,
-            target_id=subscription.target_id)
+            target_id=subscription.target_id,
+            current_user=request.current_user_id)
         if not resource:
             abort(400, _('You cannot subscribe to a nonexistent resource.'))
 

@@ -1,4 +1,5 @@
 # Copyright (c) 2014 Mirantis Inc.
+# Copyright (c) 2016 Codethink Ltd
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -125,6 +126,39 @@ class TaskStatusCount(base.APIBase):
     count = int
 
 
+class User(base.APIBase):
+    """Represents a user."""
+
+    full_name = wtypes.text
+    """Full (Display) name."""
+
+    openid = wtypes.text
+    """The unique identifier, returned by an OpneId provider"""
+
+    email = wtypes.text
+    """Email Address."""
+
+    # Todo(nkonovalov): use teams to define superusers
+    is_superuser = bool
+
+    last_login = datetime
+    """Date of the last login."""
+
+    enable_login = bool
+    """Whether this user is permitted to log in."""
+
+    @classmethod
+    def sample(cls):
+        return cls(
+            full_name="Bart Simpson",
+            openid="https://login.launchpad.net/+id/Abacaba",
+            email="skinnerstinks@springfield.net",
+            is_staff=False,
+            is_active=True,
+            is_superuser=True,
+            last_login=datetime(2014, 1, 1, 16, 42))
+
+
 class Story(base.APIBase):
     """The Story is the main element of StoryBoard. It represents a user story
     (generally a bugfix or a feature) that needs to be implemented. It will be
@@ -158,6 +192,10 @@ class Story(base.APIBase):
 
     due_dates = wtypes.ArrayType(int)
 
+    private = bool
+
+    users = wtypes.ArrayType(User)
+
     @classmethod
     def sample(cls):
         return cls(
@@ -177,6 +215,11 @@ class Story(base.APIBase):
             task_count = TaskStatusCount(
                 key=task_status, count=getattr(story_summary, task_status))
             self.task_statuses.append(task_count)
+
+    def resolve_users(self, story):
+        """Resolve the people who can see the story."""
+        self.users = [User.from_db_model(user)
+                      for user in story.permissions[0].users]
 
 
 class Tag(base.APIBase):
@@ -390,39 +433,6 @@ class TimeLineEvent(base.APIBase):
             return event_resolvers.tags_deleted(event)
 
 
-class User(base.APIBase):
-    """Represents a user."""
-
-    full_name = wtypes.text
-    """Full (Display) name."""
-
-    openid = wtypes.text
-    """The unique identifier, returned by an OpneId provider"""
-
-    email = wtypes.text
-    """Email Address."""
-
-    # Todo(nkonovalov): use teams to define superusers
-    is_superuser = bool
-
-    last_login = datetime
-    """Date of the last login."""
-
-    enable_login = bool
-    """Whether this user is permitted to log in."""
-
-    @classmethod
-    def sample(cls):
-        return cls(
-            full_name="Bart Simpson",
-            openid="https://login.launchpad.net/+id/Abacaba",
-            email="skinnerstinks@springfield.net",
-            is_staff=False,
-            is_active=True,
-            is_superuser=True,
-            last_login=datetime(2014, 1, 1, 16, 42))
-
-
 class RefreshToken(base.APIBase):
     """Represents a user refresh token."""
 
@@ -560,15 +570,18 @@ class DueDate(base.APIBase):
     def resolve_count_in_board(self, due_date, board):
         self.count = 0
         for lane in board.lanes:
-            for card in lane.worklist.items:
+            for card in worklists_api.get_visible_items(
+                lane.worklist, current_user=request.current_user_id):
                 if card.display_due_date == due_date.id:
                     self.count += 1
 
     def resolve_items(self, due_date):
         """Resolve the various lists for the due date."""
-        self.tasks = [Task.from_db_model(task) for task in due_date.tasks]
+        stories, tasks = due_dates_api.get_visible_items(
+            due_date, current_user=request.current_user_id)
+        self.tasks = [Task.from_db_model(task) for task in tasks]
         self.stories = [Story.from_db_model(story)
-                        for story in due_date.stories]
+                        for story in stories]
         self.count = len(self.tasks) + len(self.stories)
 
     def resolve_permissions(self, due_date, user=None):
@@ -619,7 +632,8 @@ class WorklistItem(base.APIBase):
     def resolve_item(self, item):
         user_id = request.current_user_id
         if item.item_type == 'story':
-            story = stories_api.story_get(item.item_id)
+            story = stories_api.story_get(
+                item.item_id, current_user=request.current_user_id)
             if story is None:
                 return False
             self.story = Story.from_db_model(story)
@@ -627,7 +641,8 @@ class WorklistItem(base.APIBase):
                          if due_dates_api.visible(date, user_id)]
             self.story.due_dates = due_dates
         elif item.item_type == 'task':
-            task = tasks_api.task_get(item.item_id)
+            task = tasks_api.task_get(
+                item.item_id, current_user=request.current_user_id)
             if task is None or task.story is None:
                 return False
             self.task = Task.from_db_model(task)
@@ -740,8 +755,10 @@ class Lane(base.APIBase):
         if resolve_items:
             self.worklist.resolve_items(lane.worklist)
         else:
+            items = worklists_api.get_visible_items(
+                lane.worklist, current_user=request.current_user_id)
             self.worklist.items = [WorklistItem.from_db_model(item)
-                                   for item in lane.worklist.items]
+                                   for item in items]
 
 
 class Board(base.APIBase):

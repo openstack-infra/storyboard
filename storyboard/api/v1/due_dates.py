@@ -242,14 +242,16 @@ class DueDatesController(rest.RestController):
             tasks = due_date_dict.pop('tasks')
             db_tasks = []
             for task in tasks:
-                db_tasks.append(tasks_api.task_get(task.id))
+                db_tasks.append(tasks_api.task_get(
+                    task.id, current_user=request.current_user_id))
             due_date_dict['tasks'] = db_tasks
 
         if 'stories' in due_date_dict:
             stories = due_date_dict.pop('stories')
             db_stories = []
             for story in stories:
-                db_stories.append(stories_api.story_get_simple(story.id))
+                db_stories.append(stories_api.story_get_simple(
+                    story.id, current_user=request.current_user_id))
             due_date_dict['stories'] = db_stories
 
         board = None

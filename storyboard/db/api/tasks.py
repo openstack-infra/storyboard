@@ -13,16 +13,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from sqlalchemy import and_, or_
+from sqlalchemy.sql.expression import false, true
+
 from storyboard.db.api import base as api_base
 from storyboard.db import models
 
 
-def task_get(task_id):
-    return api_base.entity_get(models.Task, task_id)
+def task_get(task_id, session=None, current_user=None):
+    query = api_base.model_query(models.Task, session)
+    query = query.filter(models.Task.id == task_id)
+
+    # Filter out tasks or stories that the current user can't see
+    query = query.outerjoin(models.Story,
+                            models.story_permissions,
+                            models.Permission,
+                            models.user_permissions,
+                            models.User)
+    if current_user is not None:
+        query = query.filter(
+            or_(
+                and_(
+                    models.User.id == current_user,
+                    models.Story.private == true()
+                ),
+                models.Story.private == false()
+            )
+        )
+    else:
+        query = query.filter(models.Story.private == false())
+
+    return query.first()
 
 
 def task_get_all(marker=None, limit=None, sort_field=None, sort_dir=None,
-                 project_group_id=None, **kwargs):
+                 project_group_id=None, current_user=None, **kwargs):
     # Sanity checks, in case someone accidentally explicitly passes in 'None'
     if not sort_field:
         sort_field = 'id'
@@ -30,7 +55,8 @@ def task_get_all(marker=None, limit=None, sort_field=None, sort_dir=None,
         sort_dir = 'asc'
 
     # Construct the query
-    query = task_build_query(project_group_id, **kwargs)
+    query = task_build_query(
+        project_group_id, current_user=current_user, **kwargs)
 
     query = api_base.paginate_query(query=query,
                                     model=models.Task,
@@ -43,8 +69,9 @@ def task_get_all(marker=None, limit=None, sort_field=None, sort_dir=None,
     return query.all()
 
 
-def task_get_count(project_group_id=None, **kwargs):
-    query = task_build_query(project_group_id, **kwargs)
+def task_get_count(project_group_id=None, current_user=None, **kwargs):
+    query = task_build_query(
+        project_group_id, current_user=current_user, **kwargs)
     return query.count()
 
 
@@ -63,7 +90,7 @@ def task_delete(task_id):
         api_base.entity_hard_delete(models.Task, task_id)
 
 
-def task_build_query(project_group_id, **kwargs):
+def task_build_query(project_group_id, current_user=None, **kwargs):
     # Construct the query
     query = api_base.model_query(models.Task)
 
@@ -77,6 +104,25 @@ def task_build_query(project_group_id, **kwargs):
     query = api_base.apply_query_filters(query=query,
                                          model=models.Task,
                                          **kwargs)
+
+    # Filter out tasks or stories that the current user can't see
+    query = query.outerjoin(models.Story,
+                            models.story_permissions,
+                            models.Permission,
+                            models.user_permissions,
+                            models.User)
+    if current_user is not None:
+        query = query.filter(
+            or_(
+                and_(
+                    models.User.id == current_user,
+                    models.Story.private == true()
+                ),
+                models.Story.private == false()
+            )
+        )
+    else:
+        query = query.filter(models.Story.private == false())
 
     return query
 

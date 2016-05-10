@@ -1,4 +1,4 @@
-# Copyright (c) 2015 Codethink Limited
+# Copyright (c) 2015-2016 Codethink Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import wmodels
 from storyboard.common import decorators
 from storyboard.common import exception as exc
+from storyboard.db.api import stories as stories_api
+from storyboard.db.api import tasks as tasks_api
 from storyboard.db.api import worklists as worklists_api
 from storyboard.openstack.common.gettextutils import _  # noqa
 
@@ -214,8 +216,12 @@ class ItemsSubcontroller(rest.RestController):
 
         worklist.items.sort(key=lambda i: i.list_position)
 
-        return [wmodels.WorklistItem.from_db_model(item)
-                for item in worklist.items]
+        visible_items = worklists_api.get_visible_items(
+            worklist, current_user=request.current_user_id)
+        return [
+            wmodels.WorklistItem.from_db_model(item)
+            for item in visible_items
+        ]
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
@@ -233,7 +239,20 @@ class ItemsSubcontroller(rest.RestController):
         if not worklists_api.editable_contents(worklists_api.get(id),
                                                user_id):
             raise exc.NotFound(_("Worklist %s not found") % id)
-        worklists_api.add_item(id, item_id, item_type, list_position)
+        item = None
+        if item_type == 'story':
+            item = stories_api.story_get(
+                item_id, current_user=request.current_user_id)
+        elif item_type == 'task':
+            item = tasks_api.task_get(
+                item_id, current_user=request.current_user_id)
+        if item is None:
+            raise exc.NotFound(_("Item %s refers to a non-existent task or "
+                                 "story.") % item_id)
+
+        worklists_api.add_item(
+            id, item_id, item_type, list_position,
+            current_user=request.current_user_id)
 
         return wmodels.WorklistItem.from_db_model(
             worklists_api.get_item_at_position(id, list_position))
@@ -257,9 +276,23 @@ class ItemsSubcontroller(rest.RestController):
         if not worklists_api.editable_contents(worklists_api.get(id),
                                                user_id):
             raise exc.NotFound(_("Worklist %s not found") % id)
-        if worklists_api.get_item_by_id(item_id) is None:
+        card = worklists_api.get_item_by_id(item_id)
+        if card is None:
             raise exc.NotFound(_("Item %s seems to have been deleted, "
                                  "try refreshing your page.") % item_id)
+
+        item = None
+        if card.item_type == 'story':
+            item = stories_api.story_get(
+                card.item_id, current_user=request.current_user_id)
+        elif card.item_type == 'task':
+            item = tasks_api.task_get(
+                card.item_id, current_user=request.current_user_id)
+
+        if item is None:
+            raise exc.NotFound(_("Item %s refers to a non-existent task or "
+                                 "story.") % item_id)
+
         worklists_api.move_item(id, item_id, list_position, list_id)
 
         if display_due_date is not None:
@@ -364,9 +397,11 @@ class WorklistsController(rest.RestController):
                 worklist.archived == archived):
                 worklist_model = wmodels.Worklist.from_db_model(worklist)
                 worklist_model.resolve_permissions(worklist)
+                visible_items = worklists_api.get_visible_items(
+                    worklist, request.current_user_id)
                 worklist_model.items = [
                     wmodels.WorklistItem.from_db_model(item)
-                    for item in worklist.items
+                    for item in visible_items
                 ]
                 visible_worklists.append(worklist_model)
 

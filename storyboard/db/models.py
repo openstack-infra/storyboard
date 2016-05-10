@@ -33,7 +33,7 @@ from sqlalchemy.ext import declarative
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 from sqlalchemy.orm.collections import attribute_mapped_collection
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import backref, relationship
 from sqlalchemy import schema
 from sqlalchemy import select
 import sqlalchemy.sql.expression as expr
@@ -468,6 +468,7 @@ class StorySummary(Base):
     __table__ = _story_build_summary_query()
     tags = relationship('StoryTag', secondary='story_storytags')
     due_dates = relationship('DueDate', secondary='story_due_dates')
+    permissions = relationship('Permission', secondary='story_permissions')
 
     def as_dict(self):
         d = super(StorySummary, self).as_dict()
@@ -546,6 +547,7 @@ class WorklistItem(ModelBuilder, Base):
                               ForeignKey('due_dates.id'),
                               nullable=True)
     archived = Column(Boolean, default=False)
+    list = relationship('Worklist', backref=backref('items', lazy="dynamic"))
 
     _public_fields = ["id", "list_id", "list_position", "item_type",
                       "item_id"]
@@ -586,7 +588,6 @@ class Worklist(FullText, ModelBuilder, Base):
     private = Column(Boolean, default=False)
     archived = Column(Boolean, default=False)
     automatic = Column(Boolean, default=False)
-    items = relationship(WorklistItem)
     filters = relationship(WorklistFilter)
     permissions = relationship("Permission", secondary="worklist_permissions")
 
@@ -645,10 +646,12 @@ class DueDate(FullText, ModelBuilder, Base):
     permissions = relationship('Permission', secondary='due_date_permissions')
     tasks = relationship('Task',
                          secondary='task_due_dates',
-                         backref='due_dates')
+                         backref='due_dates',
+                         lazy="dynamic")
     stories = relationship('Story',
                            secondary='story_due_dates',
-                           backref='due_dates')
+                           backref='due_dates',
+                           lazy="dynamic")
     boards = relationship('Board',
                           secondary='board_due_dates',
                           backref='due_dates')

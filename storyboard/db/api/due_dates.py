@@ -13,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from sqlalchemy import func
+from sqlalchemy import and_, func, or_
+from sqlalchemy.sql.expression import false, true
 from wsme.exc import ClientSideError
 
 from storyboard.db.api import base as api_base
@@ -107,6 +108,46 @@ def create(values):
 
 def update(id, values):
     return api_base.entity_update(models.DueDate, id, values)
+
+
+def get_visible_items(due_date, current_user=None):
+    stories = due_date.stories.outerjoin(models.story_permissions,
+                                         models.Permission,
+                                         models.user_permissions,
+                                         models.User)
+    if current_user is not None:
+        due_date.stories = due_date.stories.filter(
+            or_(
+                and_(
+                    models.User.id == current_user,
+                    models.Story.private == true()
+                ),
+                models.Story.private == false()
+            )
+        )
+    else:
+        due_date.stories = due_date.stories.filter(
+            models.Story.private == false())
+
+    tasks = due_date.tasks.outerjoin(models.Story,
+                                     models.story_permissions,
+                                     models.Permission,
+                                     models.user_permissions,
+                                     models.User)
+    if current_user is not None:
+        tasks = tasks.filter(
+            or_(
+                and_(
+                    models.User.id == current_user,
+                    models.Story.private == true()
+                ),
+                models.Story.private == false()
+            )
+        )
+    else:
+        tasks = tasks.filter(models.Story.private == false())
+
+    return stories, tasks
 
 
 def get_owners(due_date):
