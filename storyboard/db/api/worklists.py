@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from sqlalchemy import and_, or_
+from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import false, true
 from wsme.exc import ClientSideError
 
@@ -39,8 +40,9 @@ def get(worklist_id):
 
 
 def _build_worklist_query(title=None, creator_id=None, project_id=None,
-                          user_id=None, session=None):
-    query = api_base.model_query(models.Worklist, session=session)
+                          archived=False, user_id=None, session=None,
+                          current_user=None, hide_lanes=True):
+    query = api_base.model_query(models.Worklist, session=session).distinct()
 
     query = api_base.apply_query_filters(query=query,
                                          model=models.Worklist,
@@ -48,19 +50,85 @@ def _build_worklist_query(title=None, creator_id=None, project_id=None,
                                          creator_id=creator_id,
                                          project_id=project_id)
 
+    # Filter out lists that the current user can't see.
+    # This gets complicated because worklists permissions must be
+    # inherited from the board which contains the list (if any). To
+    # handle this we split the query into the  lists which are in
+    # boards (`lanes`) and those which aren't (`lists`). We then
+    # either hide the lanes entirely or unify the two queries.
+    lanes = query.join(models.BoardWorklist,
+                       models.Board,
+                       models.board_permissions)
+    lanes = lanes.join(models.Permission,
+                       models.user_permissions,
+                       models.User)
+    lists = query.outerjoin(models.BoardWorklist)
+    lists = lists.filter(models.BoardWorklist.board_id.is_(None))
+    lists = lists.join(models.worklist_permissions,
+                       models.Permission,
+                       models.user_permissions,
+                       models.User)
+    if current_user:
+        if not hide_lanes:
+            lanes = lanes.filter(
+                or_(
+                    and_(
+                        models.User.id == current_user,
+                        models.Board.private == true()
+                    ),
+                    models.Board.private == false()
+                )
+            )
+        lists = lists.filter(
+            or_(
+                and_(
+                    models.User.id == current_user,
+                    models.Worklist.private == true()
+                ),
+                models.Worklist.private == false()
+            )
+        )
+    else:
+        if not hide_lanes:
+            lanes = lanes.filter(models.Board.private == false())
+        lists = lists.filter(models.Worklist.private == false())
+
+    if hide_lanes:
+        query = lists
+    else:
+        query = lists.union(lists)
+
+    # Filter by lists that a given user has permissions to use
     if user_id:
-        query = query.join(models.worklist_permissions,
-                           models.Permission,
-                           models.user_permissions,
-                           models.User)
-        query = query.filter(models.User.id == user_id)
+        worklist_permissions = aliased(models.worklist_permissions)
+        permissions = aliased(models.Permission)
+        user_permissions = aliased(models.user_permissions)
+        users = aliased(models.User)
+        query = query.join(
+            (worklist_permissions,
+             models.Worklist.id == worklist_permissions.c.worklist_id)
+        )
+        query = query.join(
+            (permissions,
+             worklist_permissions.c.permission_id == permissions.id)
+        )
+        query = query.join(
+            (user_permissions,
+             permissions.id == user_permissions.c.permission_id)
+        )
+        query = query.join((users, user_permissions.c.user_id == users.id))
+        query = query.filter(users.id == user_id)
+
+    # Filter by whether or not we want archived lists
+    query = query.filter(models.Worklist.archived == archived)
 
     return query
 
 
 def get_all(title=None, creator_id=None, project_id=None, board_id=None,
             user_id=None, story_id=None, task_id=None, sort_field=None,
-            sort_dir=None, session=None, **kwargs):
+            sort_dir=None, session=None, offset=None, limit=None,
+            archived=False, current_user=None, hide_lanes=True, **kwargs):
     if sort_field is None:
         sort_field = 'id'
     if sort_dir is None:
@@ -68,13 +136,19 @@ def get_all(title=None, creator_id=None, project_id=None, board_id=None,
 
     if board_id is not None:
         board = boards.get(board_id)
-        return [lane.worklist for lane in board.lanes]
+        if board is None:
+            return []
+        return [lane.worklist for lane in board.lanes
+                if visible(lane.worklist, current_user)]
 
     query = _build_worklist_query(title=title,
                                   creator_id=creator_id,
                                   project_id=project_id,
                                   user_id=user_id,
-                                  session=session)
+                                  archived=archived,
+                                  session=session,
+                                  current_user=current_user,
+                                  hide_lanes=hide_lanes)
 
     query.order_by(getattr(models.Worklist, sort_field), sort_dir)
 
@@ -90,12 +164,41 @@ def get_all(title=None, creator_id=None, project_id=None, board_id=None,
                      if has_item(worklist, 'task', task_id)]
 
     if story_id or task_id:
+        if offset is not None and limit is not None:
+            return worklists[offset:offset + limit]
+        elif offset is not None:
+            return worklists[offset:]
         return worklists
+
+    query = api_base.paginate_query(query=query,
+                                    model=models.Worklist,
+                                    limit=limit,
+                                    offset=offset,
+                                    sort_key=sort_field,
+                                    sort_dir=sort_dir)
     return query.all()
 
 
-def get_count(**kwargs):
-    return api_base.entity_get_count(models.Worklist, **kwargs)
+def get_count(title=None, creator_id=None, project_id=None, board_id=None,
+              user_id=None, story_id=None, task_id=None, session=None,
+              archived=False, current_user=None, hide_lanes=True, **kwargs):
+    if board_id is not None:
+        board = boards.get(board_id)
+        if board is None:
+            return 0
+        lists = [lane.worklist for lane in board.lanes
+                 if visible(lane.worklist, current_user)]
+        return len(lists)
+
+    query = _build_worklist_query(title=title,
+                                  creator_id=creator_id,
+                                  project_id=project_id,
+                                  user_id=user_id,
+                                  archived=archived,
+                                  session=session,
+                                  current_user=current_user,
+                                  hide_lanes=hide_lanes)
+    return query.count()
 
 
 def get_visible_items(worklist, current_user=None):
