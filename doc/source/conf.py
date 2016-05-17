@@ -79,3 +79,17 @@ latex_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'http://docs.python.org/': None}
+
+
+def skip_methods(app, what, name, obj, skip, options):
+    # We have a blacklist because wsme's autodoc extension doesn't like
+    # inherited attributes.
+    blacklist = ('id', 'created_at', 'updated_at')
+    if hasattr(obj, 'nodoc') or not hasattr(obj, 'datatype')\
+            or name in blacklist:
+        return True
+    return False
+
+
+def setup(app):
+    app.connect('autodoc-skip-member', skip_methods)

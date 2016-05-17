@@ -132,42 +132,85 @@ Permissions
 Object model
 ############
 
-Project
-=======
-.. autotype:: storyboard.api.v1.projects.Project
-   :members:
-
-
 Story
 =====
-.. autotype:: storyboard.api.v1.stories.Story
-   :members:
-
-
-Comment
-=======
-.. autotype:: storyboard.api.v1.timeline.Comment
-   :members:
-
-
-Timeline event
-==============
-.. autotype:: storyboard.api.v1.timeline.TimeLineEvent
+.. autotype:: storyboard.api.v1.wmodels.Story
    :members:
 
 
 Task
 ====
-.. autotype:: storyboard.api.v1.tasks.Task
+.. autotype:: storyboard.api.v1.wmodels.Task
    :members:
+
+
+Project
+=======
+.. autotype:: storyboard.api.v1.wmodels.Project
+   :members:
+
+
+ProjectGroup
+============
+.. autotype:: storyboard.api.v1.wmodels.ProjectGroup
+   :members:
+
+
+Comment
+=======
+.. autotype:: storyboard.api.v1.wmodels.Comment
+   :members:
+
+
+Timeline event
+==============
+.. autotype:: storyboard.api.v1.wmodels.TimeLineEvent
+   :members:
+
+
+Due Date
+========
+.. autotype:: storyboard.api.v1.wmodels.DueDate
+   :members:
+
+
+Board
+=====
+.. autotype:: storyboard.api.v1.wmodels.Board
+    :members:
+
+
+Worklist
+========
+.. autotype:: storyboard.api.v1.wmodels.Worklist
+    :members:
+
+
+WorklistItem
+============
+.. autotype:: storyboard.api.v1.wmodels.WorklistItem
+    :members:
+
+
+WorklistFilter
+==============
+.. autotype:: storyboard.api.v1.wmodels.WorklistFilter
+    :members:
+
+
+FilterCriterion
+===============
+.. autotype:: storyboard.api.v1.wmodels.FilterCriterion
+    :members:
 
 
 User
 ====
-.. autotype:: storyboard.api.v1.users.User
+.. autotype:: storyboard.api.v1.wmodels.User
    :members:
+
 
 SystemInfo
 ==========
-.. autotype:: storyboard.api.v1.system_info.SystemInfo
+.. autotype:: storyboard.api.v1.wmodels.SystemInfo
    :members:

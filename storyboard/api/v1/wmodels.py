@@ -32,10 +32,14 @@ from storyboard.db.api import worklists as worklists_api
 from storyboard.db import models
 
 
+def nodoc(obj):
+    """Add a flag which autodoc can use to decide whether to skip a member."""
+    obj.nodoc = True
+    return obj
+
+
 class Comment(base.APIBase):
-    """Any user may leave comments for stories. Also comments api is used by
-    gerrit to leave service comments.
-    """
+    """Any user may leave comments on stories."""
 
     content = wtypes.text
     """The content of the comment."""
@@ -45,6 +49,15 @@ class Comment(base.APIBase):
 
     in_reply_to = int
     """The ID of the parent comment, if any."""
+
+    @classmethod
+    def sample(cls):
+        return cls(
+            id=5,
+            created_at=datetime.fromtimestamp(1321009871),
+            content="A sample comment body.",
+            is_active=True,
+            in_reply_to=2)
 
 
 class SystemInfo(base.APIBase):
@@ -93,6 +106,8 @@ class Project(base.APIBase):
     @classmethod
     def sample(cls):
         return cls(
+            id=3,
+            created_at=datetime.fromtimestamp(1321009871),
             name="StoryBoard",
             description="This is an awesome project.",
             is_active=True,
@@ -116,6 +131,8 @@ class ProjectGroup(base.APIBase):
     @classmethod
     def sample(cls):
         return cls(
+            id=1,
+            created_at=datetime.fromtimestamp(1321009871),
             name="Infra",
             title="Awesome projects")
 
@@ -125,6 +142,10 @@ class TaskStatusCount(base.APIBase):
     key = wtypes.text
     count = int
 
+    @classmethod
+    def sample(cls):
+        return cls(key='todo', count=2)
+
 
 class User(base.APIBase):
     """Represents a user."""
@@ -133,13 +154,14 @@ class User(base.APIBase):
     """Full (Display) name."""
 
     openid = wtypes.text
-    """The unique identifier, returned by an OpneId provider"""
+    """The unique identifier, returned by an OpenId provider"""
 
     email = wtypes.text
     """Email Address."""
 
     # Todo(nkonovalov): use teams to define superusers
     is_superuser = bool
+    """Whether or not the user has superuser permissions."""
 
     last_login = datetime
     """Date of the last login."""
@@ -150,6 +172,7 @@ class User(base.APIBase):
     @classmethod
     def sample(cls):
         return cls(
+            id=3,
             full_name="Bart Simpson",
             openid="https://login.launchpad.net/+id/Abacaba",
             email="skinnerstinks@springfield.net",
@@ -191,23 +214,29 @@ class Story(base.APIBase):
     """Tag list assigned to this story."""
 
     due_dates = wtypes.ArrayType(int)
+    """List of IDs of Due Dates which are related to this story."""
 
     private = bool
+    """Whether or not this story is private."""
 
     users = wtypes.ArrayType(User)
+    """The set of users with permission to see this story if it is private."""
 
     @classmethod
     def sample(cls):
         return cls(
+            id=425,
+            created_at=datetime.fromtimestamp(1321009871),
             title="Use Storyboard to manage Storyboard",
             description="We should use Storyboard to manage Storyboard.",
             is_bug=False,
             creator_id=1,
-            task_statuses=[TaskStatusCount],
+            task_statuses=[TaskStatusCount(key='todo', count=2)],
             story_type_id=1,
             status="active",
             tags=["t1", "t2"])
 
+    @nodoc
     def summarize_task_statuses(self, story_summary):
         """Populate the task_statuses array."""
         self.task_statuses = []
@@ -216,6 +245,7 @@ class Story(base.APIBase):
                 key=task_status, count=getattr(story_summary, task_status))
             self.task_statuses.append(task_count)
 
+    @nodoc
     def resolve_users(self, story):
         """Resolve the people who can see the story."""
         self.users = [User.from_db_model(user)
@@ -274,6 +304,22 @@ class Task(base.APIBase):
     """The ID of corresponding Milestone"""
 
     due_dates = wtypes.ArrayType(int)
+    """The IDs of due dates related to this task."""
+
+    @classmethod
+    def sample(cls):
+        return cls(
+            title="My really important task.",
+            status="todo",
+            creator_id=1,
+            story_id=3456,
+            link="Some notes about the task, this name is bad.",
+            project_id=1,
+            assignee_id=1,
+            priority="medium",
+            branch_id=1,
+            milestone_id=1,
+            due_dates=[1, 2, 3])
 
 
 class Branch(base.APIBase):
@@ -343,18 +389,15 @@ class Milestone(base.APIBase):
 
 
 class Team(base.APIBase):
-    """The Team is a group od Users with a fixed set of permissions.
-    """
+    """The Team is a group of Users with a fixed set of permissions."""
 
     name = NameType()
     """The Team unique name. This name will be displayed in the URL.
     At least 3 alphanumeric symbols. Minus and dot symbols are allowed as
-    separators.
-    """
+    separators."""
 
     description = wtypes.text
-    """Details about the team.
-    """
+    """Details about the team."""
 
     @classmethod
     def sample(cls):
@@ -386,6 +429,14 @@ class TimeLineEvent(base.APIBase):
 
     comment = Comment
     """The resolved comment."""
+
+    @classmethod
+    def sample(cls):
+        return cls(
+            id=45543,
+            event_type="story_created",
+            event_info='{"story_id": 100, "story_title": "A story"}',
+            story_id=100)
 
     @staticmethod
     def resolve_event_values(event):
@@ -503,6 +554,15 @@ class FilterCriterion(base.APIBase):
     field = wtypes.text
     """The field to filter by."""
 
+    @classmethod
+    def sample(cls):
+        return cls(
+            title='TaskStatus',
+            filter_id=1,
+            negative=True,
+            value='merged',
+            field='status')
+
 
 class WorklistFilter(base.APIBase):
     """Represents a set of criteria to filter items using AND."""
@@ -516,9 +576,24 @@ class WorklistFilter(base.APIBase):
     filter_criteria = wtypes.ArrayType(FilterCriterion)
     """The list of criteria to apply."""
 
+    @nodoc
     def resolve_criteria(self, filter):
         self.filter_criteria = [FilterCriterion.from_db_model(criterion)
                                 for criterion in filter.criteria]
+
+    @classmethod
+    def sample(cls):
+        return cls(
+            type='Task',
+            list_id=1,
+            filter_criteria=[FilterCriterion(
+                type='Task',
+                title='TaskStatus',
+                filter_id=1,
+                negative=True,
+                value='merged',
+                field='status')
+            ])
 
 
 class DueDate(base.APIBase):
@@ -567,6 +642,23 @@ class DueDate(base.APIBase):
     assignable = bool
     """Whether or not the due date is assignable by the request sender."""
 
+    @classmethod
+    def sample(cls):
+        return cls(
+            id=1,
+            name='A really great deadline',
+            date=datetime(2016, 5, 30, 10, 10),
+            private=False,
+            creator_id=3,
+            owners=[3],
+            users=[],
+            tasks=[],
+            stories=[],
+            count=0,
+            editable=True,
+            assignable=True)
+
+    @nodoc
     def resolve_count_in_board(self, due_date, board):
         self.count = 0
         for lane in board.lanes:
@@ -575,6 +667,7 @@ class DueDate(base.APIBase):
                 if card.display_due_date == due_date.id:
                     self.count += 1
 
+    @nodoc
     def resolve_items(self, due_date):
         """Resolve the various lists for the due date."""
         stories, tasks = due_dates_api.get_visible_items(
@@ -584,6 +677,7 @@ class DueDate(base.APIBase):
                         for story in stories]
         self.count = len(self.tasks) + len(self.stories)
 
+    @nodoc
     def resolve_permissions(self, due_date, user=None):
         """Resolve the permissions groups of the due date."""
         self.owners = due_dates_api.get_owners(due_date)
@@ -617,11 +711,26 @@ class WorklistItem(base.APIBase):
     """The ID of the due date displayed on this item."""
 
     resolved_due_date = DueDate
-    """The due date displayed on this item."""
+    """The Due Date displayed on this item."""
 
     task = Task
-    story = Story
+    """The Task referred to by this list item."""
 
+    story = Story
+    """The Story referred to by this list item."""
+
+    @classmethod
+    def sample(cls):
+        return cls(
+            id=1,
+            list_id=1,
+            item_id=1,
+            item_type="story",
+            list_position=0,
+            archived=False,
+            display_due_date=None)
+
+    @nodoc
     def resolve_due_date(self, worklist_item):
         due_date = due_dates_api.get(worklist_item.display_due_date)
         resolved = None
@@ -629,6 +738,7 @@ class WorklistItem(base.APIBase):
             resolved = DueDate.from_db_model(due_date)
         self.resolved_due_date = resolved
 
+    @nodoc
     def resolve_item(self, item):
         user_id = request.current_user_id
         if item.item_type == 'story':
@@ -689,6 +799,21 @@ class Worklist(base.APIBase):
     items = wtypes.ArrayType(WorklistItem)
     """The items in the worklist."""
 
+    @classmethod
+    def sample(cls):
+        return cls(
+            id=1,
+            title="My great worklist",
+            creator_id=1,
+            private=False,
+            archived=False,
+            automatic=False,
+            filters=[],
+            owners=[1],
+            users=[2],
+            items=[])
+
+    @nodoc
     def resolve_items(self, worklist):
         """Resolve the contents of this worklist."""
         self.items = []
@@ -698,6 +823,7 @@ class Worklist(base.APIBase):
         else:
             self._resolve_set_items(worklist, user_id)
 
+    @nodoc
     def _resolve_automatic_items(self, worklist, user_id):
         for item in worklists_api.filter_items(worklist):
             item_model = WorklistItem(**item)
@@ -708,6 +834,7 @@ class Worklist(base.APIBase):
             self.items.append(item_model)
         self.items.sort(key=lambda x: x.list_position)
 
+    @nodoc
     def _resolve_set_items(self, worklist, user_id):
         for item in worklist.items:
             if item.archived:
@@ -720,10 +847,12 @@ class Worklist(base.APIBase):
             self.items.append(item_model)
         self.items.sort(key=lambda x: x.list_position)
 
+    @nodoc
     def resolve_permissions(self, worklist):
         self.owners = worklists_api.get_owners(worklist)
         self.users = worklists_api.get_users(worklist)
 
+    @nodoc
     def resolve_filters(self, worklist):
         self.filters = []
         for filter in worklist.filters:
@@ -747,6 +876,26 @@ class Lane(base.APIBase):
     position = int
     """The position of the lane in the board."""
 
+    @classmethod
+    def sample(cls):
+        return cls(
+            id=1,
+            board_id=23,
+            list_id=10,
+            position=1,
+            worklist=Worklist(
+                id=1,
+                title="My great worklist",
+                creator_id=1,
+                private=False,
+                archived=False,
+                automatic=False,
+                filters=[],
+                owners=[1],
+                users=[2],
+                items=[]))
+
+    @nodoc
     def resolve_list(self, lane, resolve_items=True):
         """Resolve the worklist which represents the lane."""
         self.worklist = Worklist.from_db_model(lane.worklist)
@@ -797,6 +946,36 @@ class Board(base.APIBase):
     users = wtypes.ArrayType(int)
     """A list of the IDs of the users who can move cards in the board."""
 
+    @classmethod
+    def sample(cls):
+        return cls(
+            id=1,
+            title="StoryBoard development",
+            description="Board for tracking StoryBoard development.",
+            creator_id=1,
+            private=False,
+            archived=False,
+            lanes=[Lane(
+                id=1,
+                board_id=23,
+                list_id=10,
+                position=1,
+                worklist=Worklist(
+                    id=1,
+                    title="My great worklist",
+                    creator_id=1,
+                    private=False,
+                    archived=False,
+                    automatic=False,
+                    filters=[],
+                    owners=[1],
+                    users=[2],
+                    items=[]))],
+            due_dates=[],
+            owners=[1],
+            users=[])
+
+    @nodoc
     def resolve_lanes(self, board, resolve_items=True):
         """Resolve the lanes of the board."""
         self.lanes = []
@@ -806,6 +985,7 @@ class Board(base.APIBase):
             self.lanes.append(lane_model)
         self.lanes.sort(key=lambda x: x.position)
 
+    @nodoc
     def resolve_due_dates(self, board):
         self.due_dates = []
         for due_date in board.due_dates:
@@ -817,6 +997,7 @@ class Board(base.APIBase):
                 due_date_model.resolve_count_in_board(due_date, board)
                 self.due_dates.append(due_date_model)
 
+    @nodoc
     def resolve_permissions(self, board):
         """Resolve the permissions groups of the board."""
         self.owners = boards_api.get_owners(board)
