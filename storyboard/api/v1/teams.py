@@ -120,12 +120,13 @@ class TeamsController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.Team], int, int, wtypes.text, wtypes.text,
-                         wtypes.text, wtypes.text)
-    def get(self, marker=None, limit=None, name=None, description=None,
-            sort_field='id', sort_dir='asc'):
+    @wsme_pecan.wsexpose([wmodels.Team], int, int, int, wtypes.text,
+                         wtypes.text, wtypes.text, wtypes.text)
+    def get(self, marker=None, offset=None, limit=None, name=None,
+            description=None, sort_field='id', sort_dir='asc'):
         """Retrieve a list of teams.
 
+        :param offset: The offset at which to start the page.
         :param marker: The resource id where the page should begin.
         :param limit: The number of teams to retrieve.
         :param name: A string to filter the name by.
@@ -141,6 +142,7 @@ class TeamsController(rest.RestController):
         marker_team = teams_api.team_get(marker)
 
         teams = teams_api.team_get_all(marker=marker_team,
+                                       offset=offset,
                                        limit=limit,
                                        name=name,
                                        description=description,
@@ -156,6 +158,8 @@ class TeamsController(rest.RestController):
         response.headers['X-Total'] = str(team_count)
         if marker_team:
             response.headers['X-Marker'] = str(marker_team.id)
+        if offset is not None:
+            response.headers['X-Offset'] = str(offset)
 
         return [wmodels.Team.from_db_model(t) for t in teams]
 

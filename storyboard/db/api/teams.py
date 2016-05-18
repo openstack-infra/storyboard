@@ -37,9 +37,10 @@ def team_get(team_id):
     return _entity_get(team_id)
 
 
-def team_get_all(marker=None, limit=None, sort_field=None,
+def team_get_all(marker=None, offset=None, limit=None, sort_field=None,
                  sort_dir=None, **kwargs):
     return api_base.entity_get_all(models.Team,
+                                   offset=offset,
                                    marker=marker,
                                    limit=limit,
                                    sort_field=sort_field,
