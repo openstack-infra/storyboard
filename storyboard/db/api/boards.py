@@ -39,7 +39,8 @@ def get(id):
 
 def _build_board_query(title=None, creator_id=None, user_id=None,
                        project_id=None, archived=False, current_user=None,
-                       session=None):
+                       session=None, item_type=None, story_id=None,
+                       task_id=None):
     query = api_base.model_query(models.Board, session=session).distinct()
 
     query = api_base.apply_query_filters(query=query,
@@ -90,13 +91,42 @@ def _build_board_query(title=None, creator_id=None, user_id=None,
     # Filter by whether or not we want archived boards
     query = query.filter(models.Board.archived == archived)
 
+    if story_id or task_id:
+        query = query.join(models.BoardWorklist,
+                           models.Worklist)
+
+    # Filter by story id
+    if story_id:
+        query = query.join(models.WorklistItem)
+        stories = query.filter(models.WorklistItem.item_type == 'story')
+        tasks = query.filter(models.WorklistItem.item_type == 'task')
+        if item_type == 'story':
+            query = stories.filter(models.WorklistItem.item_id == story_id)
+        elif item_type == 'task':
+            tasks = tasks.join(
+                (models.Task, models.WorklistItem.item_id == models.Task.id))
+            query = tasks.filter(models.Task.story_id == story_id)
+        else:
+            stories = stories.filter(models.WorklistItem.item_id == story_id)
+            tasks = tasks.join(
+                (models.Task, models.WorklistItem.item_id == models.Task.id))
+            tasks = tasks.filter(models.Task.story_id == story_id)
+            query = stories.union(tasks)
+
+    # Filter by task id
+    if task_id:
+        items = aliased(models.WorklistItem)
+        query = query.join((items, models.Worklist.id == items.list_id))
+        query = query.filter(items.item_type == 'task')
+        query = query.filter(items.item_id == task_id)
+
     return query
 
 
 def get_all(title=None, creator_id=None, user_id=None, project_id=None,
             task_id=None, story_id=None, archived=False, offset=None,
             limit=None, sort_field=None, sort_dir=None, current_user=None,
-            **kwargs):
+            item_type=None, **kwargs):
     if sort_field is None:
         sort_field = 'id'
     if sort_dir is None:
@@ -108,23 +138,10 @@ def get_all(title=None, creator_id=None, user_id=None, project_id=None,
                                 user_id=user_id,
                                 archived=archived,
                                 current_user=current_user,
+                                item_type=item_type,
+                                story_id=story_id,
+                                task_id=task_id,
                                 **kwargs)
-    if task_id:
-        boards = boards.all()
-        matching = []
-        for board in boards:
-            if has_card(board, 'task', task_id):
-                matching.append(board)
-        return matching
-
-    if story_id:
-        if not task_id:
-            boards.all()
-        matching = []
-        for board in boards:
-            if has_card(board, 'story', story_id):
-                matching.append(board)
-        return matching
 
     boards = api_base.paginate_query(query=boards,
                                      model=models.Board,
@@ -136,14 +153,17 @@ def get_all(title=None, creator_id=None, user_id=None, project_id=None,
 
 
 def get_count(title=None, creator_id=None, user_id=None, project_id=None,
-              task_id=None, story_id=None, archived=False, current_user=None,
-              **kwargs):
+              task_id=None, story_id=None, item_type=None, archived=False,
+              current_user=None, **kwargs):
     query = _build_board_query(title=title,
                                creator_id=creator_id,
                                project_id=project_id,
                                user_id=user_id,
                                archived=archived,
                                current_user=current_user,
+                               story_id=story_id,
+                               task_id=task_id,
+                               item_type=item_type,
                                **kwargs)
     return query.count()
 
