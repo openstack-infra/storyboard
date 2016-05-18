@@ -41,7 +41,8 @@ def get(worklist_id):
 
 def _build_worklist_query(title=None, creator_id=None, project_id=None,
                           archived=False, user_id=None, session=None,
-                          current_user=None, hide_lanes=True):
+                          current_user=None, hide_lanes=True, item_type=None,
+                          story_id=None, task_id=None):
     query = api_base.model_query(models.Worklist, session=session).distinct()
 
     query = api_base.apply_query_filters(query=query,
@@ -122,13 +123,39 @@ def _build_worklist_query(title=None, creator_id=None, project_id=None,
     # Filter by whether or not we want archived lists
     query = query.filter(models.Worklist.archived == archived)
 
+    # Filter by story id
+    if story_id:
+        query = query.join(models.WorklistItem)
+        stories = query.filter(models.WorklistItem.item_type == 'story')
+        tasks = query.filter(models.WorklistItem.item_type == 'task')
+        if item_type == 'story':
+            query = stories.filter(models.WorklistItem.item_id == story_id)
+        elif item_type == 'task':
+            tasks = tasks.join(
+                (models.Task, models.WorklistItem.item_id == models.Task.id))
+            query = tasks.filter(models.Task.story_id == story_id)
+        else:
+            stories = stories.filter(models.WorklistItem.item_id == story_id)
+            tasks = tasks.join(
+                (models.Task, models.WorklistItem.item_id == models.Task.id))
+            tasks = tasks.filter(models.Task.story_id == story_id)
+            query = stories.union(tasks)
+
+    # Filter by task id
+    if task_id:
+        items = aliased(models.WorklistItem)
+        query = query.join((items, models.Worklist.id == items.list_id))
+        query = query.filter(items.item_type == 'task')
+        query = query.filter(items.item_id == task_id)
+
     return query
 
 
 def get_all(title=None, creator_id=None, project_id=None, board_id=None,
             user_id=None, story_id=None, task_id=None, sort_field=None,
             sort_dir=None, session=None, offset=None, limit=None,
-            archived=False, current_user=None, hide_lanes=True, **kwargs):
+            archived=False, current_user=None, hide_lanes=True,
+            item_type=None, **kwargs):
     if sort_field is None:
         sort_field = 'id'
     if sort_dir is None:
@@ -148,27 +175,10 @@ def get_all(title=None, creator_id=None, project_id=None, board_id=None,
                                   archived=archived,
                                   session=session,
                                   current_user=current_user,
-                                  hide_lanes=hide_lanes)
-
-    query.order_by(getattr(models.Worklist, sort_field), sort_dir)
-
-    if story_id:
-        worklists = query.all()
-        worklists = [worklist for worklist in worklists
-                     if has_item(worklist, 'story', story_id)]
-
-    if task_id:
-        if not story_id:
-            worklists = query.all()
-        worklists = [worklist for worklist in worklists
-                     if has_item(worklist, 'task', task_id)]
-
-    if story_id or task_id:
-        if offset is not None and limit is not None:
-            return worklists[offset:offset + limit]
-        elif offset is not None:
-            return worklists[offset:]
-        return worklists
+                                  hide_lanes=hide_lanes,
+                                  item_type=item_type,
+                                  story_id=story_id,
+                                  task_id=task_id)
 
     query = api_base.paginate_query(query=query,
                                     model=models.Worklist,
@@ -181,7 +191,8 @@ def get_all(title=None, creator_id=None, project_id=None, board_id=None,
 
 def get_count(title=None, creator_id=None, project_id=None, board_id=None,
               user_id=None, story_id=None, task_id=None, session=None,
-              archived=False, current_user=None, hide_lanes=True, **kwargs):
+              archived=False, current_user=None, hide_lanes=True,
+              item_type=None, **kwargs):
     if board_id is not None:
         board = boards.get(board_id)
         if board is None:
@@ -197,7 +208,10 @@ def get_count(title=None, creator_id=None, project_id=None, board_id=None,
                                   archived=archived,
                                   session=session,
                                   current_user=current_user,
-                                  hide_lanes=hide_lanes)
+                                  hide_lanes=hide_lanes,
+                                  story_id=story_id,
+                                  task_id=task_id,
+                                  item_type=item_type)
     return query.count()
 
 
