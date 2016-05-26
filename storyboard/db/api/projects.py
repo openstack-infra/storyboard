@@ -46,8 +46,9 @@ def project_get_all(marker=None, offset=None, limit=None, sort_field=None,
         subs = api_base.model_query(models.Subscription)
         subs = api_base.apply_query_filters(query=subs,
                                             model=models.Subscription,
-                                            target_type='project',
                                             user_id=subscriber_id)
+        # Filter by exact match, to avoid matching "project_group"
+        subs = subs.filter(models.Subscription.target_type == 'project')
         subs = subs.subquery()
         query = query.join(subs, subs.c.target_id == models.Project.id)
 
