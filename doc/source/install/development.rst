@@ -16,7 +16,7 @@ Installing and Upgrading the API server
    * libmysqlclient-dev
    * python-dev
 
-  NOTE: MySQL must be >= 5.6
+  NOTE: MySQL must be >= 5.6::
 
     sudo apt-get update
     sudo apt-get install libpq-dev libmysqlclient-dev python-dev
