@@ -511,7 +511,8 @@ class Comment(FullText, ModelBuilder, Base):
 # Subscription and notifications
 
 class Subscription(ModelBuilder, Base):
-    _SUBSCRIPTION_TARGETS = ('task', 'story', 'project', 'project_group')
+    _SUBSCRIPTION_TARGETS = ('task', 'story', 'project', 'project_group',
+                             'worklist')
 
     user_id = Column(Integer, ForeignKey('users.id'))
     target_type = Column(Enum(*_SUBSCRIPTION_TARGETS))

@@ -26,7 +26,8 @@ SUPPORTED_TYPES = {
     'project': models.Project,
     'project_group': models.ProjectGroup,
     'story': models.Story,
-    'task': models.Task
+    'task': models.Task,
+    'worklist': models.Worklist
 }
 
 
