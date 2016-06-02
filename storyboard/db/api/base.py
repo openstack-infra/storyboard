@@ -304,7 +304,8 @@ def entity_create(kls, values, session=None):
     return entity
 
 
-def entity_update(kls, entity_id, values, session=None):
+def entity_update(kls, entity_id, values, session=None,
+                  filter_non_public=False):
     if not session:
         session = get_session()
 
@@ -338,6 +339,9 @@ def entity_update(kls, entity_id, values, session=None):
 
     session = get_session()
     entity = __entity_get(kls, entity_id, session)
+
+    if filter_non_public:
+        entity = _filter_non_public_fields(entity, entity._public_fields)
 
     return entity
 
