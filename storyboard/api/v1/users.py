@@ -173,7 +173,8 @@ class UsersController(rest.RestController):
 
         users = SEARCH_ENGINE.users_query(q=q, marker=marker,
                                           offset=offset,
-                                          limit=limit)
+                                          limit=limit,
+                                          filter_non_public=True)
 
         return [wmodels.User.from_db_model(u) for u in users]
 

@@ -133,11 +133,19 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
 
         return query.all()
 
-    def users_query(self, q, marker=None, offset=None, limit=None, **kwargs):
+    def users_query(self, q, marker=None, offset=None, limit=None,
+                    filter_non_public=False, **kwargs):
         session = api_base.get_session()
         query = api_base.model_query(models.User, session)
         query = self._build_fulltext_search(models.User, query, q)
         query = self._apply_pagination(
             models.User, query, marker, offset, limit)
 
-        return query.all()
+        users = query.all()
+        if filter_non_public:
+            users = [
+                api_base._filter_non_public_fields(user, user._public_fields)
+                for user in users
+            ]
+
+        return users
