@@ -1,5 +1,5 @@
 ======================================
-Welcome to Storyboard's documentation!
+Welcome to StoryBoard's documentation!
 ======================================
 
 Introduction
@@ -23,13 +23,20 @@ StoryBoard consists of two components:
 
 
 
-This documentation offers information on how Storyboard works and how to
-contribute to the project.
+This documentation offers information on how to use StoryBoard,
+how StoryBoard works and how to contribute to the project.
 
 
 Table of contents
 =================
 
+Using StoryBoard
+----------------
+
+.. toctree::
+   :maxdepth: 1
+
+   gui/manual
 
 Installation guides
 -------------------
