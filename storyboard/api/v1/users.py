@@ -158,7 +158,12 @@ class UsersController(rest.RestController):
             if 'is_superuser' in six.iterkeys(user_dict):
                 del user_dict['is_superuser']
 
-        updated_user = users_api.user_update(user_id, user_dict)
+        filter_non_public = True
+        if user_id == request.current_user_id:
+            filter_non_public = False
+
+        updated_user = users_api.user_update(
+            user_id, user_dict, filter_non_public)
         return wmodels.User.from_db_model(updated_user)
 
     @decorators.db_exceptions

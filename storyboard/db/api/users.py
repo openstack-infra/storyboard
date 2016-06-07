@@ -52,8 +52,9 @@ def user_create(values):
     return api_base.entity_create(models.User, values)
 
 
-def user_update(user_id, values):
-    return api_base.entity_update(models.User, user_id, values)
+def user_update(user_id, values, filter_non_public=False):
+    return api_base.entity_update(models.User, user_id, values,
+                                  filter_non_public=filter_non_public)
 
 
 def user_get_preferences(user_id):
