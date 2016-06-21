@@ -108,7 +108,7 @@ class FilterSubcontroller(rest.RestController):
         if not worklist or not worklists_api.visible(worklist, user_id):
             raise exc.NotFound(_("Worklist %s not found") % worklist_id)
 
-        filter = worklists_api.get_filter(worklist, filter_id)
+        filter = worklists_api.get_filter(filter_id)
 
         return wmodels.WorklistFilter.from_db_model(filter)
 

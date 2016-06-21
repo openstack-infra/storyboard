@@ -520,6 +520,10 @@ def editable_contents(worklist, user=None):
                for name in ['edit_worklist', 'move_items'])
 
 
+def get_filter(filter_id):
+    return api_base.entity_get(models.WorklistFilter, filter_id)
+
+
 def create_filter(worklist_id, filter_dict):
     criteria = filter_dict.pop('filter_criteria')
     filter_dict['list_id'] = worklist_id
