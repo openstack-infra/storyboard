@@ -49,17 +49,25 @@ class TagsController(rest.RestController):
             raise exc.NotFound(_("Tag %s not found") % tag_id)
 
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.Tag], int, int, int)
-    def get_all(self, story_id=None, marker=None, limit=None):
+    @wsme_pecan.wsexpose([wmodels.Tag], int, wtypes.text, int, int, int)
+    def get_all(self, story_id=None, name=None, marker=None, limit=None,
+                offset=None):
         """Retrieve all tags for a given Story. If no story_id is provided
-        all tags will be returned.
+        all tags will be returned, optionally filtered by name.
 
         :param story_id: Filter tags by story ID.
+        :param name: Filter tags by name.
+        :param marker: ID of the tag to start results from.
+        :param limit: Maximum number of results per page.
+        :param offset: Number of results to offset page by.
         """
 
         if not story_id:
             marker_tag = tags_api.tag_get_by_id(marker)
-            tags = tags_api.tag_get_all(marker_tag, limit)
+            tags = tags_api.tag_get_all(name=name,
+                                        marker=marker_tag,
+                                        limit=limit,
+                                        offset=offset)
 
             return [wmodels.Tag.from_db_model(t) for t in tags]
 

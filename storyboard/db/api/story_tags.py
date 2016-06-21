@@ -39,10 +39,12 @@ def tag_get_by_name(name, session=None):
     return query.first()
 
 
-def tag_get_all(marker=None, limit=None):
+def tag_get_all(name=None, marker=None, limit=None, offset=None):
     return api_base.entity_get_all(models.StoryTag,
+                                   name=name,
                                    marker=marker,
-                                   limit=limit)
+                                   limit=limit,
+                                   offset=offset)
 
 
 def tag_get_count(**kwargs):
