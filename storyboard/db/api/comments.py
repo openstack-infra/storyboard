@@ -26,6 +26,12 @@ def comment_create(values):
 
 
 def comment_update(comment_id, values):
+    comment = api_base.entity_get(models.Comment, comment_id)
+    old_dict = {
+        'comment_id': comment_id,
+        'content': comment.content
+    }
+    api_base.entity_create(models.HistoricalComment, old_dict)
     return api_base.entity_update(models.Comment, comment_id, values)
 
 
