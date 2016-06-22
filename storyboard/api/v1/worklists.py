@@ -109,8 +109,10 @@ class FilterSubcontroller(rest.RestController):
             raise exc.NotFound(_("Worklist %s not found") % worklist_id)
 
         filter = worklists_api.get_filter(filter_id)
+        wmodel = wmodels.WorklistFilter.from_db_model(filter)
+        wmodel.resolve_criteria(filter)
 
-        return wmodels.WorklistFilter.from_db_model(filter)
+        return wmodel
 
     @decorators.db_exceptions
     @secure(checks.guest)
@@ -126,8 +128,13 @@ class FilterSubcontroller(rest.RestController):
         if not worklist or not worklists_api.visible(worklist, user_id):
             raise exc.NotFound(_("Worklist %s not found") % worklist_id)
 
-        return [wmodels.WorklistFilter.from_db_model(filter)
-                for filter in worklist.filters]
+        resolved = []
+        for filter in worklist.filters:
+            wmodel = wmodels.WorklistFilter.from_db_model(filter)
+            wmodel.resolve_criteria(filter)
+            resolved.append(wmodel)
+
+        return resolved
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
