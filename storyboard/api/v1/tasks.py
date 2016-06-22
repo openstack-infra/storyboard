@@ -447,6 +447,10 @@ class TasksNestedController(rest.RestController):
     def get_one(self, story_id, task_id):
         """Retrieve details about one task.
 
+        Example::
+
+          curl https://my.example.org/api/v1/stories/11/tasks/2691
+
         :param story_id: An ID of the story.
         :param task_id: An ID of the task.
         """
@@ -469,7 +473,11 @@ class TasksNestedController(rest.RestController):
                 project_group_id=None, branch_id=None, milestone_id=None,
                 status=None, priority=None, marker=None, limit=None,
                 sort_field='id', sort_dir='asc', link=None):
-        """Retrieve definitions of all of the tasks.
+        """Retrieve definitions of all of the tasks associated with a story.
+
+        Example::
+
+          curl https://my.example.org/api/v1/stories/11/tasks
 
         :param story_id: filter tasks by story ID.
         :param title: search by task title.
@@ -537,6 +545,13 @@ class TasksNestedController(rest.RestController):
     def post(self, story_id, task):
         """Create a new task.
 
+        Example::
+
+          curl 'https://my.example.org/api/v1/stories/19/tasks' \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN' \\
+          -H 'Content-Type: application/json;charset=UTF-8' \\
+          --data-binary '{"title":"Task Foo","project_id":153,"key":"todo"}'
+
         :param story_id: An ID of the story.
         :param task: a task within the request body.
         """
@@ -572,6 +587,13 @@ class TasksNestedController(rest.RestController):
     def put(self, story_id, task_id, task):
         """Modify this task.
 
+        Example::
+
+          curl 'https://my.example.org/api/v1/stories/19/tasks/19' -X PUT \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN' \\
+          -H 'Content-Type: application/json;charset=UTF-8' \\
+          --data-binary '{"title":"Task Foio","project_id":153,"key":"todo"}'
+
         :param story_id: An ID of the story.
         :param task_id: An ID of the task.
         :param task: a task within the request body.
@@ -599,6 +621,11 @@ class TasksNestedController(rest.RestController):
     @wsme_pecan.wsexpose(wmodels.Task, int, int, status_code=204)
     def delete(self, story_id, task_id):
         """Delete this task.
+
+        Example::
+
+          curl 'https://my.example.org/api/v1/stories/11/tasks/28' -X DELETE \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN'
 
         :param story_id: An ID of the story.
         :param task_id: An ID of the task.

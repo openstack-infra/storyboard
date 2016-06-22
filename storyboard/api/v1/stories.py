@@ -69,6 +69,10 @@ class StoriesController(rest.RestController):
     def get_one(self, story_id):
         """Retrieve details about one story.
 
+        Example::
+
+          curl https://my.example.org/api/v1/stories/11
+
         :param story_id: An ID of the story.
         """
         story = stories_api.story_get(
@@ -90,6 +94,10 @@ class StoriesController(rest.RestController):
                 offset=None, limit=None, tags_filter_type='all',
                 sort_field='id', sort_dir='asc'):
         """Retrieve definitions of all of the stories.
+
+        Example::
+
+          curl https://my.example.org/api/v1/stories
 
         :param title: A string to filter the title by.
         :param description: A string to filter the description by.
@@ -165,6 +173,13 @@ class StoriesController(rest.RestController):
     def post(self, story):
         """Create a new story.
 
+        Example::
+
+          curl 'https://my.example.org/api/v1/stories' \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN' \\
+          -H 'Content-Type: application/json;charset=UTF-8' \\
+          --data-binary '{"title":"Test Story","description":"A test story."}'
+
         :param story: A story within the request body.
         """
 
@@ -211,6 +226,13 @@ class StoriesController(rest.RestController):
     @wsme_pecan.wsexpose(wmodels.Story, int, body=wmodels.Story)
     def put(self, story_id, story):
         """Modify this story.
+
+        Example::
+
+          curl 'https://my.example.org/api/v1/stories/19' -X PUT \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN' \\
+          -H 'Content-Type: application/json;charset=UTF-8' \\
+          --data-binary '{"title":"Modified","description":"New description."}'
 
         :param story_id: An ID of the story.
         :param story: A story within the request body.
@@ -276,7 +298,12 @@ class StoriesController(rest.RestController):
     @secure(checks.superuser)
     @wsme_pecan.wsexpose(wmodels.Story, int, status_code=204)
     def delete(self, story_id):
-        """Delete this story.
+        """Delete this story. This command is only available to Admin users.
+
+        Example::
+
+          curl 'https://my.example.org/api/v1/stories/5' -X DELETE \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN'
 
         :param story_id: An ID of the story.
         """
@@ -294,6 +321,10 @@ class StoriesController(rest.RestController):
                          int, int, int)
     def search(self, q="", marker=None, offset=None, limit=None):
         """The search endpoint for stories.
+
+        Example::
+
+          curl https://my.example.org/api/v1/stories/search?q=pep8
 
         :param q: The query string.
         :return: List of Stories matching the query.
