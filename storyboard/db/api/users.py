@@ -26,17 +26,47 @@ def user_get(user_id, filter_non_public=False, session=None):
     return entity
 
 
+def _build_user_query(full_name=None, email=None, openid=None):
+    query = api_base.model_query(models.User)
+
+    query = api_base.apply_query_filters(query=query,
+                                         model=models.User,
+                                         full_name=full_name)
+
+    if email:
+        query = query.filter(models.User.email == email)
+
+    if openid:
+        query = query.filter(models.User.openid == openid)
+
+    return query
+
+
 def user_get_all(marker=None, offset=None, limit=None,
                  filter_non_public=False, sort_field=None, sort_dir=None,
+                 full_name=None, email=None, openid=None,
                  **kwargs):
-    return api_base.entity_get_all(models.User,
-                                   marker=marker,
-                                   offset=offset,
-                                   limit=limit,
-                                   filter_non_public=filter_non_public,
-                                   sort_field=sort_field,
-                                   sort_dir=sort_dir,
-                                   **kwargs)
+    query = _build_user_query(full_name=full_name,
+                              email=email,
+                              openid=openid)
+
+    query = api_base.paginate_query(query=query,
+                                    model=models.User,
+                                    limit=limit,
+                                    marker=marker,
+                                    offset=offset,
+                                    sort_key=sort_field,
+                                    sort_dir=sort_dir)
+
+    users = query.all()
+    if len(users) > 0 and filter_non_public:
+        sample_user = users[0]
+        public_fields = getattr(sample_user, "_public_fields", [])
+
+        users = [api_base._filter_non_public_fields(user, public_fields)
+                 for user in users]
+
+    return users
 
 
 def user_get_count(**kwargs):

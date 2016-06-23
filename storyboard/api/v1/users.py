@@ -58,16 +58,18 @@ class UsersController(rest.RestController):
     @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.User], int, int, int, wtypes.text,
-                         wtypes.text, wtypes.text, wtypes.text)
+                         wtypes.text, wtypes.text, wtypes.text, wtypes.text,
+                         wtypes.text)
     def get(self, marker=None, offset=None, limit=None, full_name=None,
-            sort_field='id', sort_dir='asc'):
+            email=None, openid=None, sort_field='id', sort_dir='asc'):
         """Page and filter the users in storyboard.
 
         :param marker: The resource id where the page should begin.
         :param offset: The offset to start the page at.
         :param limit: The number of users to retrieve.
-        :param username: A string of characters to filter the username with.
         :param full_name: A string of characters to filter the full_name with.
+        :param email: A string of characters to filter the email with.
+        :param openid: A string of characters to filter the openid with.
         :param sort_field: The name of the field to sort on.
         :param sort_dir: Sort direction for results (asc, desc).
         """
@@ -85,10 +87,14 @@ class UsersController(rest.RestController):
                                        offset=offset,
                                        limit=limit,
                                        full_name=full_name,
+                                       email=email,
+                                       openid=openid,
                                        filter_non_public=True,
                                        sort_field=sort_field,
                                        sort_dir=sort_dir)
-        user_count = users_api.user_get_count(full_name=full_name)
+        user_count = users_api.user_get_count(full_name=full_name,
+                                              email=email,
+                                              openid=openid)
 
         # Apply the query response headers.
         if limit:
