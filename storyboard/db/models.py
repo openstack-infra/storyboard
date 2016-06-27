@@ -508,6 +508,15 @@ class Comment(FullText, ModelBuilder, Base):
     parent = relationship('Comment', remote_side=[id], backref='children')
 
 
+class HistoricalComment(FullText, ModelBuilder, Base):
+    __tablename__ = 'comments_history'
+    __fulltext_columns__ = ['content']
+
+    content = Column(MYSQL_MEDIUM_TEXT)
+    comment_id = Column(Integer, ForeignKey('comments.id'), nullable=False)
+    current = relationship(Comment, backref='history')
+
+
 # Subscription and notifications
 
 class Subscription(ModelBuilder, Base):
