@@ -19,9 +19,11 @@ import os
 import six
 import smtplib
 
+from email.utils import make_msgid
 from jinja2.exceptions import TemplateNotFound
 from oslo_config import cfg
 from oslo_log import log
+from socket import getfqdn
 
 import storyboard.db.api.base as db_base
 from storyboard.db.api.subscriptions import subscription_get_all_subscriber_ids
@@ -264,6 +266,32 @@ class SubscriptionEmailWorker(EmailWorkerBase):
         sub_resource_instance = self.resolve_resource_by_name(session,
                                                               sub_resource,
                                                               sub_resource_id)
+
+        # Set In-Reply-To message id for 'task' and 'story' resources
+        if resource == 'task' and method == 'DELETE':
+            # FIXME(pedroalvarez): Workaround the fact that the task won't be
+            # in the database anymore if it has been deleted.
+            # We should archive instead of delete to solve this.
+            story_id = resource_before['story_id']
+            created_at = self.resolve_resource_by_name(session, 'story',
+                story_id).created_at
+        elif resource == 'task':
+            story_id = resource_instance.story.id
+            created_at = resource_instance.story.created_at
+        elif resource == 'story':
+            story_id = resource_instance.id
+            created_at = resource_instance.created_at
+
+        if story_id and created_at:
+            thread_id = "<storyboard.story.%s.%s@%s>" % (
+                created_at.strftime("%Y%m%d%H%M"),
+                story_id,
+                getfqdn()
+            )
+        else:
+            thread_id = make_msgid()
+
+        factory.add_header("In-Reply-To", thread_id)
 
         # Figure out the diff between old and new.
         before, after = self.get_changed_properties(resource_before,
