@@ -1,0 +1,48 @@
+# This is a cross-platform list tracking distribution packages needed by tests;
+# see http://docs.openstack.org/infra/bindep/ for additional information.
+
+apt-transport-https
+build-essential [platform:dpkg]
+curl
+cyrus-sasl-devel [platform:rpm]
+dbus
+firefox [!platform:debian]
+gawk
+gettext
+iceweasel [platform:debian]
+language-pack-en [platform:ubuntu]
+libcurl-devel [platform:rpm]
+libcurl4-gnutls-dev [platform:dpkg]
+libmysqlclient-dev [platform:dpkg]
+libpq-dev [platform:dpkg]
+locales [platform:debian]
+lsb-release
+mariadb [platform:rpm]
+mariadb-devel [platform:rpm]
+mariadb-server [platform:rpm]
+mysql-client [platform:dpkg]
+mysql-server [platform:dpkg]
+openldap-devel [platform:rpm]
+pkg-config [platform:dpkg]
+pkgconfig [platform:rpm]
+postgresql
+postgresql-client [platform:dpkg]
+postgresql-devel [platform:rpm]
+postgresql-server [platform:rpm]
+python-dev [platform:dpkg]
+python-devel [platform:rpm]
+python-lxml
+python-zmq
+python3-all-dev [platform:ubuntu-trusty]
+python3-dev [platform:dpkg]
+python3-devel [platform:fedora]
+python3.4 [platform:ubuntu-trusty]
+python34-devel [platform:centos]
+sqlite [platform:rpm]
+sqlite-devel [platform:rpm]
+sqlite3 [platform:dpkg]
+uuid-dev [platform:dpkg]
+xorg-x11-server-Xvfb [platform:rpm]
+xvfb [platform:dpkg]
+zlib-devel [platform:rpm]
+zlib1g-dev [platform:dpkg]
