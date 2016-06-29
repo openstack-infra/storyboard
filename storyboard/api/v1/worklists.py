@@ -364,11 +364,12 @@ class WorklistsController(rest.RestController):
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Worklist], wtypes.text, int, int,
                          bool, int, int, int, bool, wtypes.text, wtypes.text,
-                         wtypes.text, int, int, int)
+                         wtypes.text, int, int, int, int)
     def get_all(self, title=None, creator_id=None, project_id=None,
                 archived=False, user_id=None, story_id=None, task_id=None,
                 hide_lanes=True, sort_field='id', sort_dir='asc',
-                item_type=None, board_id=None, offset=None, limit=None):
+                item_type=None, board_id=None, subscriber_id=None,
+                offset=None, limit=None):
         """Retrieve definitions of all of the worklists.
 
         :param title: A string to filter the title by.
@@ -389,6 +390,7 @@ class WorklistsController(rest.RestController):
         from the story.
         :param board_id: Get all worklists in the board with this id. Other
         filters are not applied.
+        :param subscriber_id: Filter worklists by whether a user is subscribed.
         :param offset: Offset at which to begin the results.
         :param limit: Maximum number of results to return.
 
@@ -416,6 +418,7 @@ class WorklistsController(rest.RestController):
                                           user_id=user_id,
                                           story_id=story_id,
                                           task_id=task_id,
+                                          subscriber_id=subscriber_id,
                                           sort_field=sort_field,
                                           sort_dir=sort_dir,
                                           offset=offset,
@@ -431,6 +434,7 @@ class WorklistsController(rest.RestController):
                                         user_id=user_id,
                                         story_id=story_id,
                                         task_id=task_id,
+                                        subscriber_id=subscriber_id,
                                         current_user=current_user,
                                         hide_lanes=hide_lanes,
                                         item_type=item_type)
