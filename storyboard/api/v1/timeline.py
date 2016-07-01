@@ -120,8 +120,27 @@ class TimeLineEventsController(rest.RestController):
             wmodels.TimeLineEvent.from_db_model(event)) for event in events]
 
 
+class CommentsHistoryController(rest.RestController):
+    """Manages comment history."""
+
+    @decorators.db_exceptions
+    @secure(checks.guest)
+    @wsme_pecan.wsexpose([wmodels.Comment], int, int)
+    def get(self, story_id, comment_id):
+        """Return any historical versions of this comment.
+
+        :param story_id: The ID of the story.
+        :param comment_id: The ID of the comment to inspect history of.
+        """
+        comment = comments_api.comment_get(comment_id)
+        return [wmodels.Comment.from_db_model(old_comment)
+                for old_comment in comment.history]
+
+
 class CommentsController(rest.RestController):
     """Manages comments."""
+
+    history = CommentsHistoryController()
 
     @decorators.db_exceptions
     @secure(checks.guest)
