@@ -34,6 +34,11 @@ class SystemInfoController(rest.RestController):
     @wsme_pecan.wsexpose(wmodels.SystemInfo)
     def get(self):
         """Retrieve the Storyboard system information.
+
+        Example::
+
+          curl https://my.example.org/api/v1/systeminfo
+
         """
         sb_ver = VersionInfo('storyboard')
 
