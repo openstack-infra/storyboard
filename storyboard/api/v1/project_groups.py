@@ -46,6 +46,10 @@ class ProjectsSubcontroller(rest.RestController):
     def get(self, project_group_id):
         """Get projects inside a project group.
 
+        Example::
+
+          curl https://my.example.org/api/v1/project_groups/55/projects
+
         :param project_group_id: An ID of the project group.
         """
 
@@ -63,6 +67,14 @@ class ProjectsSubcontroller(rest.RestController):
     @wsme_pecan.wsexpose(wmodels.Project, int, int)
     def put(self, project_group_id, project_id):
         """Add a project to a project_group.
+           This command is only available to Admin users.
+
+        Example::
+
+          curl https://my.example.org/api/v1/project_groups/17/projects/17 \\
+          -X PUT -H 'Authorization: Bearer MY_ACCESS_TOKEN' \\
+          -H 'Content-Type: application/json;charset=UTF-8' \\
+          --data-binary '{}'
 
         :param project_group_id: An ID of the project group.
         :param project_id: An ID of project in this project group.
@@ -77,6 +89,12 @@ class ProjectsSubcontroller(rest.RestController):
     @wsme_pecan.wsexpose(None, int, int, status_code=204)
     def delete(self, project_group_id, project_id):
         """Delete a project from a project_group.
+           This command is only available to Admin users.
+
+        Example::
+
+          curl https://my.example.org/api/v1/project_groups/17/projects/1 \\
+          -X DELETE -H 'Authorization: Bearer MY_ACCESS_TOKEN'
 
         :param project_group_id: An ID of the project group.
         :param project_id: An ID of project in this project group.
@@ -103,6 +121,10 @@ class ProjectGroupsController(rest.RestController):
     def get_one(self, project_group_id):
         """Retrieve information about the given project group.
 
+        Example::
+
+          curl https://my.example.org/api/v1/project_groups/55
+
         :param project_group_id: Project group id.
         """
 
@@ -120,6 +142,10 @@ class ProjectGroupsController(rest.RestController):
     def get(self, marker=None, offset=None, limit=None, name=None, title=None,
             subscriber_id=None, sort_field='id', sort_dir='asc'):
         """Retrieve a list of projects groups.
+
+        Example::
+
+          curl https://my.example.org/api/v1/project_groups
 
         :param marker: The resource id where the page should begin.
         :param offset: The offset to start the page at.
@@ -168,6 +194,14 @@ class ProjectGroupsController(rest.RestController):
     @wsme_pecan.wsexpose(wmodels.ProjectGroup, body=wmodels.ProjectGroup)
     def post(self, project_group):
         """Create a new project group.
+           This command is only available to Admin users.
+
+        Example::
+
+          curl https://my.example.org/api/v1/project_groups \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN' \\
+          -H 'Content-Type: application/json;charset=UTF-8' \\
+          --data-binary '{"title":"test-group","name":"test-group"}'
 
         :param project_group: A project group within the request body.
         """
@@ -182,6 +216,15 @@ class ProjectGroupsController(rest.RestController):
     @wsme_pecan.wsexpose(wmodels.ProjectGroup, int, body=wmodels.ProjectGroup)
     def put(self, project_group_id, project_group):
         """Modify this project group.
+           This command is only available to Admin users.
+
+        Example::
+
+          curl https://my.example.org/api/v1/project_groups/17 -X PUT \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN' \\
+          -H 'Content-Type: application/json;charset=UTF-8' \\
+          --data-binary '{"id":17,"name":"test-group",\\
+                          "title":"test-group-that-is-changed"}'
 
         :param project_group_id: An ID of the project group.
         :param project_group: A project group within the request body.
@@ -198,6 +241,12 @@ class ProjectGroupsController(rest.RestController):
     @wsme_pecan.wsexpose(None, int, status_code=204)
     def delete(self, project_group_id):
         """Delete this project group.
+           This command is only available to Admin users.
+
+        Example::
+
+          curl https://my.example.org/api/v1/project_groups/17 -X DELETE \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN'
 
         :param project_group_id: An ID of the project group.
         """
