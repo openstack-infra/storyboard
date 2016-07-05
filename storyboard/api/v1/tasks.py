@@ -259,6 +259,10 @@ class TasksPrimaryController(rest.RestController):
     def get_one(self, task_id):
         """Retrieve details about one task.
 
+        Example::
+
+          curl https://my.example.org/api/v1/tasks/24
+
         :param task_id: An ID of the task.
         """
         task = tasks_api.task_get(
@@ -279,6 +283,10 @@ class TasksPrimaryController(rest.RestController):
                 milestone_id=None, status=None, priority=None, marker=None,
                 limit=None, link=None, sort_field='id', sort_dir='asc'):
         """Retrieve definitions of all of the tasks.
+
+        Example::
+
+          curl https://my.example.org/api/v1/tasks
 
         :param title: Search by task title.
         :param story_id: Filter tasks by story ID.
@@ -346,6 +354,14 @@ class TasksPrimaryController(rest.RestController):
     def post(self, task):
         """Create a new task.
 
+        Example::
+
+          curl https://my.example.org/api/v1/tasks \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN' \\
+          -H 'Content-Type: application/json;charset=UTF-8' \\
+          --data-binary '{"story_id":19,"title":"Task Foo",\\
+                          "project_id":153,"status":"todo"}'
+
         :param task: a task within the request body.
         """
 
@@ -374,6 +390,13 @@ class TasksPrimaryController(rest.RestController):
     def put(self, task_id, task):
         """Modify this task.
 
+        Example::
+
+          curl https://my.example.org/api/v1/tasks -X PUT \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN' \\
+          -H 'Content-Type: application/json;charset=UTF-8' \\
+          --data-binary '{"task_id":27,"status":"merged"}'
+
         :param task_id: An ID of the task.
         :param task: A task within the request body.
         """
@@ -398,6 +421,11 @@ class TasksPrimaryController(rest.RestController):
     def delete(self, task_id):
         """Delete this task.
 
+        Example::
+
+          curl https://my.example.org/api/v1/tasks/27 -X DELETE \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN'
+
         :param task_id: An ID of the task.
         """
         original_task = copy.deepcopy(
@@ -420,6 +448,10 @@ class TasksPrimaryController(rest.RestController):
                          int, int)
     def search(self, q="", marker=None, offset=None, limit=None):
         """The search endpoint for tasks.
+
+        Example::
+
+          curl https://my.example.org/api/v1/tasks/search?q=mary
 
         :param q: The query string.
         :return: List of Tasks matching the query.
