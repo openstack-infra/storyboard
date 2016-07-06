@@ -261,7 +261,7 @@ class CommentsController(rest.RestController):
         return wmodels.Comment.from_db_model(updated_comment)
 
     @decorators.db_exceptions
-    @secure(checks.authenticated)
+    @secure(checks.superuser)
     @wsme_pecan.wsexpose(wmodels.Comment, int, int, status_code=204)
     def delete(self, story_id, comment_id):
         """Update an existing comment.
@@ -269,11 +269,6 @@ class CommentsController(rest.RestController):
         :param story_id: A placeholder.
         :param comment_id: The id of a Comment to be updated.
         """
-
-        comment = comments_api.comment_get(comment_id)
-
-        if request.current_user_id != comment.author_id:
-            abort(403, _("You are not allowed to delete this comment."))
 
         comments_api.comment_delete(comment_id)
 
