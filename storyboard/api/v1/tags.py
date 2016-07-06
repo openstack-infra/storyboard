@@ -39,6 +39,10 @@ class TagsController(rest.RestController):
     def get_one(self, tag_id):
         """Retrieve details about one tag.
 
+        Example::
+
+          curl https://my.example.org/api/v1/tags/159
+
         :param tag_id: An ID of the tag.
         """
         tag = tags_api.tag_get_by_id(tag_id)
@@ -52,8 +56,11 @@ class TagsController(rest.RestController):
     @wsme_pecan.wsexpose([wmodels.Tag], int, wtypes.text, int, int, int)
     def get_all(self, story_id=None, name=None, marker=None, limit=None,
                 offset=None):
-        """Retrieve all tags for a given Story. If no story_id is provided
-        all tags will be returned, optionally filtered by name.
+        """Retrieve all tags.
+
+        Example::
+
+          curl https://my.example.org/api/v1/tags
 
         :param story_id: Filter tags by story ID.
         :param name: Filter tags by name.
@@ -83,6 +90,13 @@ class TagsController(rest.RestController):
     def put(self, story_id, tags):
         """Add a list of tags to a Story.
 
+        Example::
+
+          curl https://my.example.org/api/v1/tags/19 -X PUT \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN' \\
+          -H 'Content-Type: application/json;charset=UTF-8' \\
+          --data-binary '["taga","tagb"]'
+
         :param story_id: An id of a Story to which the tags should be added.
         :param tags: A list of tags to be added.
         """
@@ -111,6 +125,13 @@ class TagsController(rest.RestController):
     def post(self, tag_name):
         """Create a tag not attached to any Story.
 
+        Example::
+
+           curl https://my.example.org/api/v1/tags \\
+           -H 'Authorization: Bearer MY_ACCESS_TOKEN' \\
+           -H 'Content-Type: application/json;charset=UTF-8' \\
+           --data-binary '{"tag_name":"created-via-api"}'
+
         :param tag_name: The name of a new tag.
         """
 
@@ -121,6 +142,13 @@ class TagsController(rest.RestController):
     @wsme_pecan.wsexpose(None, int, body=[wtypes.text], status_code=204)
     def delete(self, story_id, tags):
         """Remove a list of tags from a Story.
+
+        Example::
+
+          curl https://my.example.org/api/v1/tags/19 -X DELETE \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN' \\
+          -H 'Content-Type: application/json;charset=UTF-8' \\
+          --data-binary '["taga","tagb"]'
 
         :param story_id: An id of a Story from which the tags should be
                          removed.
