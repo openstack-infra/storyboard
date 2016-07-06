@@ -53,6 +53,10 @@ class BranchesController(rest.RestController):
     def get_one(self, branch_id):
         """Retrieve information about the given branch.
 
+        Example::
+
+          curl https://my.example.org/api/v1/branches/42
+
         :param branch_id: Branch ID.
         """
 
@@ -70,6 +74,10 @@ class BranchesController(rest.RestController):
     def get_all(self, marker=None, limit=None, name=None, project_id=None,
                 project_group_id=None, sort_field='id', sort_dir='asc'):
         """Retrieve a list of branches.
+
+        Example::
+
+          curl https://my.example.org/api/v1/branches
 
         :param marker: The resource id where the page should begin.
         :param limit: The number of branches to retrieve.
@@ -114,6 +122,10 @@ class BranchesController(rest.RestController):
     def post(self, branch):
         """Create a new branch.
 
+        Example::
+
+          TODO
+
         :param branch: A branch within the request body.
         """
 
@@ -131,6 +143,10 @@ class BranchesController(rest.RestController):
     @wsme_pecan.wsexpose(wmodels.Branch, int, body=wmodels.Branch)
     def put(self, branch_id, branch):
         """Modify this branch.
+
+        Example::
+
+          TODO
 
         :param branch_id: An ID of the branch.
         :param branch: A branch within the request body.
