@@ -64,6 +64,10 @@ class UsersController(rest.RestController):
             email=None, openid=None, sort_field='id', sort_dir='asc'):
         """Page and filter the users in storyboard.
 
+        Example::
+
+          curl https://my.example.org/api/v1/users
+
         :param marker: The resource id where the page should begin.
         :param offset: The offset to start the page at.
         :param limit: The number of users to retrieve.
@@ -113,6 +117,10 @@ class UsersController(rest.RestController):
     def get_one(self, user_id):
         """Retrieve details about one user.
 
+        Example::
+
+          curl https://my.example.org/api/v1/users/21
+
         :param user_id: The unique id of this user
         """
 
@@ -130,6 +138,11 @@ class UsersController(rest.RestController):
     @wsme_pecan.wsexpose(wmodels.User, body=wmodels.User)
     def post(self, user):
         """Create a new user.
+           This command is only available to Admin users.
+
+        Example::
+
+          TODO
 
         :param user: A user within the request body.
         """
@@ -141,7 +154,15 @@ class UsersController(rest.RestController):
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wmodels.User, int, body=wmodels.User)
     def put(self, user_id, user):
-        """Modify this user.
+        """Modify this user. Admin users can edit the user details of any user,
+        authenticated users can only modify their own details.
+
+        Example::
+
+          curl https://my.example.org/api/v1/users/21 -X PUT \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN' \\
+          -H 'Content-Type: application/json;charset=UTF-8' \\
+          --data-binary '{"email":"user@my.example.org"}'
 
         :param user_id: Unique id to identify the user.
         :param user: A user within the request body.
@@ -177,6 +198,10 @@ class UsersController(rest.RestController):
     @wsme_pecan.wsexpose([wmodels.User], wtypes.text, int, int, int)
     def search(self, q="", marker=None, offset=None, limit=None):
         """The search endpoint for users.
+
+        Example::
+
+          curl https://my.example.org/api/v1/users/search?q=James
 
         :param q: The query string.
         :return: List of Users matching the query.
