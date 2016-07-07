@@ -42,6 +42,11 @@ class UserPreferencesController(rest.RestController):
     def get_all(self, user_id):
         """Return all preferences for the current user.
 
+        Example::
+
+          curl https://my.example.org/api/v1/users/21/preferences \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN'
+
         :param user_id: An ID of the user.
         """
 
@@ -58,6 +63,13 @@ class UserPreferencesController(rest.RestController):
     def post(self, user_id, body):
         """Allow a user to update their preferences. Note that a user must
         explicitly set a preference value to Null/None to have it deleted.
+
+        Example::
+
+          curl https://my.example.org/api/v1/users/21/preferences \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN' \\
+          -H 'Content-Type: application/json;charset=UTF-8' \\
+          --data-binary '{"display_events_tags_added":"false"}'
 
         :param user_id: The ID of the user whose preferences we're updating.
         :param body: A dictionary of preference values.
