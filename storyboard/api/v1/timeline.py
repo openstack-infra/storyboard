@@ -46,6 +46,10 @@ class TimeLineEventsController(rest.RestController):
     def get_one(self, story_id, event_id):
         """Retrieve details about one event.
 
+        Example::
+
+          curl https://my.example.org/api/v1/stories/11/events/15994
+
         :param story_id: An ID of the story. It stays in params as a
                          placeholder so that pecan knows where to match an
                          incoming value. It will stay unused, as far as events
@@ -69,6 +73,10 @@ class TimeLineEventsController(rest.RestController):
     def get_all(self, story_id=None, event_type=None, marker=None,
                 offset=None, limit=None, sort_field=None, sort_dir=None):
         """Retrieve all events that have happened under specified story.
+
+        Example::
+
+          curl https://my.example.org/api/v1/stories/11/events
 
         :param story_id: Filter events by story ID.
         :param event_type: A selection of event types to get.
@@ -148,6 +156,10 @@ class CommentsController(rest.RestController):
     def get_one(self, story_id, comment_id):
         """Retrieve details about one comment.
 
+        Example::
+
+          curl https://my.example.org/api/v1/stories/11/comments/6834
+
         :param story_id: An ID of the story. It stays in params as a
                          placeholder so that pecan knows where to match an
                          incoming value. It will stay unused, as far as
@@ -169,6 +181,10 @@ class CommentsController(rest.RestController):
     def get_all(self, story_id=None, marker=None, limit=None, sort_field='id',
                 sort_dir='asc'):
         """Retrieve all comments posted under specified story.
+
+        Example::
+
+          curl https://my.example.org/api/v1/stories/11/comments
 
         :param story_id: Filter comments by story ID.
         :param marker: The resource id where the page should begin.
@@ -219,6 +235,13 @@ class CommentsController(rest.RestController):
     def post(self, story_id, comment):
         """Create a new comment.
 
+        Example::
+
+          curl https://my.example.org/api/v1/stories/19/comments \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN' \\
+          -H 'Content-Type: application/json;charset=UTF-8' \\
+          --data-binary '{"content":"creating a new comment"}'
+
         :param story_id: An id of a Story to add a Comment to.
         :param comment: The comment itself.
         """
@@ -240,7 +263,7 @@ class CommentsController(rest.RestController):
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wmodels.Comment, int, int, body=wmodels.Comment)
     def put(self, story_id, comment_id, comment_body):
-        """Update an existing comment.
+        """Update an existing comment. This command is disabled by default.
 
         :param story_id: A placeholder.
         :param comment_id: The id of a Comment to be updated.
@@ -264,7 +287,7 @@ class CommentsController(rest.RestController):
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wmodels.Comment, int, int, status_code=204)
     def delete(self, story_id, comment_id):
-        """Update an existing comment.
+        """Delete an existing comment. This command is disabled by default.
 
         :param story_id: A placeholder.
         :param comment_id: The id of a Comment to be updated.
