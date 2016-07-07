@@ -69,6 +69,11 @@ class SubscriptionsController(rest.RestController):
     def get_one(self, subscription_id):
         """Retrieve a specific subscription record.
 
+        Example::
+
+          curl https://my.example.org/api/v1/subscriptions/4 \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN'
+
         :param subscription_id: The unique id of this subscription.
         """
 
@@ -87,7 +92,12 @@ class SubscriptionsController(rest.RestController):
                          wtypes.text, wtypes.text)
     def get(self, marker=None, limit=None, target_type=None, target_id=None,
             user_id=None, sort_field='id', sort_dir='asc'):
-        """Retrieve a list of subscriptions.
+        """Retrieve a list of subscriptions for the authorized user.
+
+        Example::
+
+          curl https://my.example.org/api/v1/subscriptions \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN'
 
         :param marker: The resource id where the page should begin.
         :param limit: The number of subscriptions to retrieve.
@@ -138,6 +148,14 @@ class SubscriptionsController(rest.RestController):
     @wsme_pecan.wsexpose(Subscription, body=Subscription)
     def post(self, subscription):
         """Create a new subscription.
+           Note: target_id is the same value as the story_id of a story.
+
+        Example::
+
+           curl https://my.example.org/api/v1/subscriptions \\
+           -H 'Authorization: Bearer MY_ACCESS_TOKEN' \\
+           -H 'Content-Type: application/json;charset=UTF-8' \\
+           --data-binary '{"target_type":"story","target_id":8}'
 
         :param subscription: A subscription within the request body.
         """
@@ -181,6 +199,11 @@ class SubscriptionsController(rest.RestController):
     @wsme_pecan.wsexpose(None, int, status_code=204)
     def delete(self, subscription_id):
         """Delete a specific subscription.
+
+        Example::
+
+          curl https://my.example.org/api/v1/subscriptions/10 -X DELETE \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN'
 
         :param subscription_id: The unique id of the subscription to delete.
         """
