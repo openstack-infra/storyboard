@@ -6,6 +6,11 @@ V1 Web API
 API
 ###
 
+MY_ACCESS_TOKEN is to be replaced by a token for a given user obtained
+from https://my.example.org/#!/profile/tokens initially. The User Tokens
+section of the api documentation gives instructions for obtaining
+subsequent tokens.
+
 Projects
 ========
 .. rest-controller:: storyboard.api.v1.projects:ProjectsController
