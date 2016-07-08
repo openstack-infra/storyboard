@@ -138,7 +138,7 @@ class OpenIdClient(object):
                            for token in verify_data_tokens)
 
         if (verify_response.status_code / 100 != 2
-            or verify_dict['is_valid'] != 'true'):
+                or verify_dict['is_valid'] != 'true'):
             raise AccessDenied(redirect_uri=redirect_uri,
                                message=e_msg.OPEN_ID_TOKEN_INVALID)
 

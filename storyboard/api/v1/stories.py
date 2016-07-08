@@ -200,7 +200,7 @@ class StoriesController(rest.RestController):
         if not stories_api.story_can_create_story(story.story_type_id):
             abort(400, _("Can't create story of this type."))
 
-        if not "tags" in story_dict or not story_dict["tags"]:
+        if "tags" not in story_dict or not story_dict["tags"]:
             story_dict["tags"] = []
 
         # We can't set due dates when creating stories at the moment.
