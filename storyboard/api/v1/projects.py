@@ -88,6 +88,10 @@ class ProjectsController(rest.RestController):
             sort_field='id', sort_dir='asc'):
         """Retrieve a list of projects.
 
+        Example::
+
+          curl https://my.example.org/api/v1/projects
+
         :param marker: The resource id where the page should begin.
         :param offset: The offset to start the page at.
         :param limit: The number of projects to retrieve.
@@ -141,6 +145,15 @@ class ProjectsController(rest.RestController):
     @wsme_pecan.wsexpose(wmodels.Project, body=wmodels.Project)
     def post(self, project):
         """Create a new project.
+           This command is only available to Admin users.
+
+        Example::
+
+          curl https://my.example.org/api/v1/projects \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN' \\
+          -H 'Content-Type: application/json;charset=UTF-8' \\
+          --data-binary '{"name":"test-project",\\
+                          "description":"A test project"}'
 
         :param project: A project within the request body.
         """
@@ -153,6 +166,15 @@ class ProjectsController(rest.RestController):
     @wsme_pecan.wsexpose(wmodels.Project, int, body=wmodels.Project)
     def put(self, project_id, project):
         """Modify this project.
+           This command is only available to Admin users.
+
+        Example::
+
+          curl https://my.example.org/api/v1/projects/10 -X PUT \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN' \\
+          -H 'Content-Type: application/json;charset=UTF-8' \\
+          --data-binary '{"name":"test-project-update",\\
+                          "description":"An updated test project"}'
 
         :param project_id: An ID of the project.
         :param project: A project within the request body.
@@ -178,6 +200,10 @@ class ProjectsController(rest.RestController):
                          int, int)
     def search(self, q="", marker=None, offset=None, limit=None):
         """The search endpoint for projects.
+
+        Example::
+
+          curl https://my.example.org/api/v1/projects/search?q=cloud
 
         :param q: The query string.
         :return: List of Projects matching the query.
