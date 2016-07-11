@@ -391,11 +391,11 @@ class TestOAuthAuthorizeReturn(BaseOAuthTest):
         with base.HybridSessionManager():
             token = auth_api.authorization_code_get(parameters['code'])
 
+        redirect_uri = self.valid_params['sb_redirect_uri']
         # Validate the redirect response
         self.assertValidRedirect(response=response,
                                  expected_status_code=302,
-                                 redirect_uri=
-                                 self.valid_params['sb_redirect_uri'],
+                                 redirect_uri=redirect_uri,
                                  state=token.state,
                                  code=token.code)
 
@@ -413,11 +413,11 @@ class TestOAuthAuthorizeReturn(BaseOAuthTest):
                                  state=random_state,
                                  **self.valid_params)
 
+        redirect_uri = self.valid_params['sb_redirect_uri']
         # Validate the redirect response
         self.assertValidRedirect(response=response,
                                  expected_status_code=302,
-                                 redirect_uri=
-                                 self.valid_params['sb_redirect_uri'],
+                                 redirect_uri=redirect_uri,
                                  error='access_denied',
                                  error_description=e_msg.OPEN_ID_TOKEN_INVALID)
 
@@ -438,11 +438,11 @@ class TestOAuthAuthorizeReturn(BaseOAuthTest):
                                  state=random_state,
                                  **invalid_params)
 
+        redirect_uri = self.valid_params['sb_redirect_uri']
         # Validate the redirect response
         self.assertValidRedirect(response=response,
                                  expected_status_code=302,
-                                 redirect_uri=
-                                 self.valid_params['sb_redirect_uri'],
+                                 redirect_uri=redirect_uri,
                                  error='invalid_request',
                                  error_description=e_msg.INVALID_NO_NAME)
 
@@ -463,11 +463,11 @@ class TestOAuthAuthorizeReturn(BaseOAuthTest):
                                  state=random_state,
                                  **invalid_params)
 
+        redirect_uri = self.valid_params['sb_redirect_uri']
         # Validate the redirect response
         self.assertValidRedirect(response=response,
                                  expected_status_code=302,
-                                 redirect_uri=
-                                 self.valid_params['sb_redirect_uri'],
+                                 redirect_uri=redirect_uri,
                                  error='invalid_request',
                                  error_description=e_msg.INVALID_NO_EMAIL)
 
@@ -522,14 +522,14 @@ class TestOAuthAccessToken(BaseOAuthTest):
                 'code': 'test_valid_code'
             })
 
+        content_type = 'application/x-www-form-urlencoded'
         # POST with content: application/x-www-form-urlencoded
         response = self.app.post('/v1/openid/token',
                                  params={
                                      'code': authorization_code.code,
                                      'grant_type': 'authorization_code'
                                  },
-                                 content_type=
-                                 'application/x-www-form-urlencoded',
+                                 content_type=content_type,
                                  expect_errors=True)
 
         # Assert that this is a successful response
@@ -602,13 +602,13 @@ class TestOAuthAccessToken(BaseOAuthTest):
                     'expires_in': 300
                 })
 
+            content_type = 'application/x-www-form-urlencoded'
             response = self.app.post('/v1/openid/token',
                                      params={
                                          'code': authorization_code.code,
                                          'grant_type': 'authorization_code'
                                      },
-                                     content_type=
-                                     'application/x-www-form-urlencoded',
+                                     content_type=content_type,
                                      expect_errors=True)
 
             # Assert that this is a valid call.
@@ -649,14 +649,14 @@ class TestOAuthAccessToken(BaseOAuthTest):
                     'created_at': expired
                 })
 
+            content_type = 'application/x-www-form-urlencoded'
             # POST with content: application/x-www-form-urlencoded
             response = self.app.post('/v1/openid/token',
                                      params={
                                          'code': authorization_code.code,
                                          'grant_type': 'authorization_code'
                                      },
-                                     content_type=
-                                     'application/x-www-form-urlencoded',
+                                     content_type=content_type,
                                      expect_errors=True)
 
             # Assert that this is a valid call.
@@ -682,14 +682,14 @@ class TestOAuthAccessToken(BaseOAuthTest):
                 'expires_in': 300
             })
 
+        content_type = 'application/x-www-form-urlencoded'
         # POST with content: application/x-www-form-urlencoded
         response = self.app.post('/v1/openid/token',
                                  params={
                                      'code': authorization_code.code,
                                      'grant_type': 'invalid_grant_type'
                                  },
-                                 content_type=
-                                 'application/x-www-form-urlencoded',
+                                 content_type=content_type,
                                  expect_errors=True)
 
         # Assert that this is a successful response
@@ -704,14 +704,14 @@ class TestOAuthAccessToken(BaseOAuthTest):
         appropriate error response.
         """
 
+        content_type = 'application/x-www-form-urlencoded'
         # POST with content: application/x-www-form-urlencoded
         response = self.app.post('/v1/openid/token',
                                  params={
                                      'code': 'invalid_access_token',
                                      'grant_type': 'invalid_grant_type'
                                  },
-                                 content_type=
-                                 'application/x-www-form-urlencoded',
+                                 content_type=content_type,
                                  expect_errors=True)
 
         # Assert that this is a successful response
@@ -734,14 +734,14 @@ class TestOAuthAccessToken(BaseOAuthTest):
                 'code': 'test_valid_code'
             })
 
+        content_type = 'application/x-www-form-urlencoded'
         # Generate an auth and a refresh token.
         resp_1 = self.app.post('/v1/openid/token',
                                params={
                                    'code': authorization_code.code,
                                    'grant_type': 'authorization_code'
                                },
-                               content_type=
-                               'application/x-www-form-urlencoded',
+                               content_type=content_type,
                                expect_errors=True)
 
         # Assert that this is a successful response
@@ -762,15 +762,14 @@ class TestOAuthAccessToken(BaseOAuthTest):
 
         self.assertIsNotNone(refresh_token)
 
+        content_type = 'application/x-www-form-urlencoded'
         # Issue a refresh token request.
-
         resp_2 = self.app.post('/v1/openid/token',
                                params={
                                    'refresh_token': t1['refresh_token'],
                                    'grant_type': 'refresh_token'
                                },
-                               content_type=
-                               'application/x-www-form-urlencoded',
+                               content_type=content_type,
                                expect_errors=True)
 
         # Assert that the response is good.
@@ -832,14 +831,14 @@ class TestOAuthAccessToken(BaseOAuthTest):
         into a valid access token.
         """
 
+        content_type = 'application/x-www-form-urlencoded'
         # Generate an auth and a refresh token.
         resp_1 = self.app.post('/v1/openid/token',
                                params={
                                    'refresh_token': 'invalid_refresh_token',
                                    'grant_type': 'refresh_token'
                                },
-                               content_type=
-                               'application/x-www-form-urlencoded',
+                               content_type=content_type,
                                expect_errors=True)
 
         # Assert that this is a correct response

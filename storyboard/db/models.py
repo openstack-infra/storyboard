@@ -63,7 +63,7 @@ def table_args():
 MYSQL_MEDIUM_TEXT = UnicodeText().with_variant(MEDIUMTEXT(), 'mysql')
 
 
-class CommonLength:
+class CommonLength(object):
     top_large_length = 255
     top_middle_length = 100
     top_short_length = 50

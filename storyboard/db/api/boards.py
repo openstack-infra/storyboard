@@ -216,8 +216,8 @@ def get_card(board, item_type, item_id, archived=False):
     for lane in board.lanes:
         for card in lane.worklist.items:
             if (card.item_type == item_type and
-                card.item_id == item_id and
-                card.archived == archived):
+                    card.item_id == item_id and
+                    card.archived == archived):
                 return card
 
 

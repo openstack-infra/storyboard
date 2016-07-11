@@ -70,7 +70,7 @@ def task_details_changed(event):
 
 
 def task_deleted(event):
-    #NOTE: There is nothing to resolve, as the task title is already stored in
+    # NOTE: There is nothing to resolve, as the task title is already stored in
     # the info. There is no way to store an id because the task is hard deleted
     # at the moment we would query it.
     return event

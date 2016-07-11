@@ -12,7 +12,8 @@
 # implied. See the License for the specific language governing permissions and
 # limitations under the License.
 
-from mock import patch, Mock
+from mock import Mock
+from mock import patch
 from storyboard.api.v1.v1_controller import V1Controller
 from storyboard.api.v1.wmodels import Task as TaskWmodel
 import storyboard.common.hook_priorities as priority

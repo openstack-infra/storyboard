@@ -70,7 +70,7 @@ def terminate(sig, frame):
     signal.default_int_handler()
 
 
-class DaemonManager():
+class DaemonManager(object):
     """A Daemon manager to handle multiple subprocesses.
     """
     def __init__(self, child_process_count, daemon_method):
@@ -134,7 +134,7 @@ class DaemonManager():
         self._procs.append(process)
 
 
-class PerpetualTimer():
+class PerpetualTimer(object):
     """A timer wrapper class that repeats itself.
     """
 

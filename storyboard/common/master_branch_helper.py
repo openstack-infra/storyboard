@@ -14,7 +14,7 @@
 # limitations under the License.
 
 
-class MasterBranchHelper:
+class MasterBranchHelper(object):
     name = "master"
     project_id = None
     expired = False
