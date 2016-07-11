@@ -42,7 +42,7 @@ def get(worklist_id):
 def _build_worklist_query(title=None, creator_id=None, project_id=None,
                           archived=False, user_id=None, session=None,
                           current_user=None, hide_lanes=True, item_type=None,
-                          story_id=None, task_id=None):
+                          story_id=None, task_id=None, subscriber_id=None):
     query = api_base.model_query(models.Worklist, session=session).distinct()
 
     query = api_base.apply_query_filters(query=query,
@@ -148,13 +148,23 @@ def _build_worklist_query(title=None, creator_id=None, project_id=None,
         query = query.filter(items.item_type == 'task')
         query = query.filter(items.item_id == task_id)
 
+    # Filter by subscriber id
+    if subscriber_id is not None:
+        subs = api_base.model_query(models.Subscription)
+        subs = api_base.apply_query_filters(query=subs,
+                                            model=models.Subscription,
+                                            target_type='worklist',
+                                            user_id=subscriber_id)
+        subs = subs.subquery()
+        query = query.join(subs, subs.c.target_id == models.Worklist.id)
+
     return query
 
 
 def get_all(title=None, creator_id=None, project_id=None, board_id=None,
-            user_id=None, story_id=None, task_id=None, sort_field=None,
-            sort_dir=None, session=None, offset=None, limit=None,
-            archived=False, current_user=None, hide_lanes=True,
+            user_id=None, story_id=None, task_id=None, subscriber_id=None,
+            sort_field=None, sort_dir=None, session=None, offset=None,
+            limit=None, archived=False, current_user=None, hide_lanes=True,
             item_type=None, **kwargs):
     if sort_field is None:
         sort_field = 'id'
@@ -172,6 +182,7 @@ def get_all(title=None, creator_id=None, project_id=None, board_id=None,
                                   creator_id=creator_id,
                                   project_id=project_id,
                                   user_id=user_id,
+                                  subscriber_id=subscriber_id,
                                   archived=archived,
                                   session=session,
                                   current_user=current_user,
@@ -190,9 +201,9 @@ def get_all(title=None, creator_id=None, project_id=None, board_id=None,
 
 
 def get_count(title=None, creator_id=None, project_id=None, board_id=None,
-              user_id=None, story_id=None, task_id=None, session=None,
-              archived=False, current_user=None, hide_lanes=True,
-              item_type=None, **kwargs):
+              user_id=None, story_id=None, task_id=None, subscriber_id=None,
+              session=None, archived=False, current_user=None,
+              hide_lanes=True, item_type=None, **kwargs):
     if board_id is not None:
         board = boards.get(board_id)
         if board is None:
@@ -205,6 +216,7 @@ def get_count(title=None, creator_id=None, project_id=None, board_id=None,
                                   creator_id=creator_id,
                                   project_id=project_id,
                                   user_id=user_id,
+                                  subscriber_id=subscriber_id,
                                   archived=archived,
                                   session=session,
                                   current_user=current_user,
