@@ -44,6 +44,11 @@ class PermissionsController(rest.RestController):
     def get(self, worklist_id):
         """Get worklist permissions for the current user.
 
+        Example::
+
+          curl https://my.example.org/api/v1/worklists/31/permissions \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN'
+
         :param worklist_id: The ID of the worklist.
 
         """
@@ -61,6 +66,10 @@ class PermissionsController(rest.RestController):
     def post(self, worklist_id, permission):
         """Add a new permission to the worklist.
 
+        Example::
+
+          TODO
+
         :param worklist_id: The ID of the worklist.
         :param permission: The dict to use to create the permission.
 
@@ -77,6 +86,10 @@ class PermissionsController(rest.RestController):
                          body=wtypes.DictType(wtypes.text, wtypes.text))
     def put(self, worklist_id, permission):
         """Update a permission of the worklist.
+
+        Example::
+
+          TODO
 
         :param worklist_id: The ID of the worklist.
         :param permission: The new contents of the permission.
@@ -99,6 +112,10 @@ class FilterSubcontroller(rest.RestController):
     def get_one(self, worklist_id, filter_id):
         """Get a single filter for the worklist.
 
+        Example::
+
+          curl https://my.example.org/api/v1/worklists/49/filters/20
+
         :param worklist_id: The ID of the worklist.
         :param filter_id: The ID of the filter.
 
@@ -119,6 +136,10 @@ class FilterSubcontroller(rest.RestController):
     @wsme_pecan.wsexpose([wmodels.WorklistFilter], int)
     def get(self, worklist_id):
         """Get filters for an automatic worklist.
+
+        Example::
+
+          curl https://my.example.org/api/v1/worklists/49/filters
 
         :param worklist_id: The ID of the worklist.
 
@@ -143,6 +164,10 @@ class FilterSubcontroller(rest.RestController):
     def post(self, worklist_id, filter):
         """Create a new filter for the worklist.
 
+        Example::
+
+          TODO
+
         :param worklist_id: The ID of the worklist to set the filter on.
         :param filter: The filter to set.
 
@@ -163,6 +188,10 @@ class FilterSubcontroller(rest.RestController):
                          body=wmodels.WorklistFilter)
     def put(self, worklist_id, filter_id, filter):
         """Update a filter on the worklist.
+
+        Example::
+
+          TODO
 
         :param worklist_id: The ID of the worklist.
         :param filter_id: The ID of the filter to be updated.
@@ -185,6 +214,10 @@ class FilterSubcontroller(rest.RestController):
     def delete(self, worklist_id, filter_id):
         """Delete a filter from a worklist.
 
+        Example::
+
+          TODO
+
         :param worklist_id: The ID of the worklist.
         :param filter_id: The ID of the filter to be deleted.
 
@@ -205,6 +238,10 @@ class ItemsSubcontroller(rest.RestController):
     @wsme_pecan.wsexpose([wmodels.WorklistItem], int)
     def get(self, worklist_id):
         """Get items inside a worklist.
+
+        Example::
+
+          curl https://my.example.org/api/v1/worklists/49/items
 
         :param worklist_id: The ID of the worklist.
 
@@ -235,6 +272,10 @@ class ItemsSubcontroller(rest.RestController):
     @wsme_pecan.wsexpose(wmodels.WorklistItem, int, int, wtypes.text, int)
     def post(self, id, item_id, item_type, list_position):
         """Add an item to a worklist.
+
+        Example::
+
+          TODO
 
         :param id: The ID of the worklist.
         :param item_id: The ID of the item.
@@ -270,6 +311,10 @@ class ItemsSubcontroller(rest.RestController):
     def put(self, id, item_id, list_position, list_id=None,
             display_due_date=None):
         """Update a WorklistItem.
+
+        Example::
+
+          TODO
 
         This method also updates the positions of other items in affected
         worklists, if necessary.
@@ -321,6 +366,10 @@ class ItemsSubcontroller(rest.RestController):
     def delete(self, id, item_id):
         """Remove an item from a worklist.
 
+        Example::
+
+          TODO
+
         :param id: The ID of the worklist.
         :param item_id: The ID of the worklist item to be removed.
 
@@ -344,6 +393,10 @@ class WorklistsController(rest.RestController):
     @wsme_pecan.wsexpose(wmodels.Worklist, int)
     def get_one(self, worklist_id):
         """Retrieve details about one worklist.
+
+        Example::
+
+          curl https://my.example.org/api/v1/worklists/27
 
         :param worklist_id: The ID of the worklist.
 
@@ -371,6 +424,10 @@ class WorklistsController(rest.RestController):
                 item_type=None, board_id=None, subscriber_id=None,
                 offset=None, limit=None):
         """Retrieve definitions of all of the worklists.
+
+        Example::
+
+          curl https://my.example.org/api/v1/worklists
 
         :param title: A string to filter the title by.
         :param creator_id: Filter worklists by their creator.
@@ -466,6 +523,13 @@ class WorklistsController(rest.RestController):
     def post(self, worklist):
         """Create a new worklist.
 
+        Example::
+
+          curl https://my.example.org/api/v1/worklists \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN' \\
+          -H 'Content-Type: application/json;charset=UTF-8' \\
+          --data-binary '{"title":"create worklist via api"}'
+
         :param worklist: A worklist within the request body.
 
         """
@@ -514,6 +578,10 @@ class WorklistsController(rest.RestController):
     def put(self, id, worklist):
         """Modify this worklist.
 
+        Example::
+
+          TODO
+
         :param id: The ID of the worklist.
         :param worklist: A worklist within the request body.
 
@@ -547,6 +615,14 @@ class WorklistsController(rest.RestController):
     @wsme_pecan.wsexpose(None, int, status_code=204)
     def delete(self, worklist_id):
         """Archive this worklist.
+           Though this uses the DELETE command, the worklist is not deleted.
+           Archived worklists remain viewable at the designated URL, but
+           are not returned in search results nor appear on your dashboard.
+
+        Example::
+
+          curl https://my.example.org/api/v1/worklists/30 -X DELETE \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN'
 
         :param worklist_id: The ID of the worklist to be archived.
 
