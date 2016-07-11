@@ -269,6 +269,9 @@ class CommentsController(rest.RestController):
         :param comment_id: The id of a Comment to be updated.
         :param comment_body: An updated Comment.
         """
+        if not CONF.enable_editable_comments:
+            abort(405, _("Editing of comments is disabled "
+                         "by the server administrator."))
 
         comments_api.comment_get(comment_id)
         comment_author_id = events_api.events_get_all(
@@ -292,6 +295,9 @@ class CommentsController(rest.RestController):
         :param story_id: A placeholder.
         :param comment_id: The id of a Comment to be updated.
         """
+        if not CONF.enable_editable_comments:
+            abort(405, _("Deletion of comments is disabled "
+                         "by the server administrator."))
 
         comments_api.comment_delete(comment_id)
 

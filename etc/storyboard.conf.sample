@@ -41,6 +41,10 @@ lock_path = $state_path/lock
 # and subscriptions.
 # enable_notifications = True
 
+# Enable editing/deletion of comments. When enabled, users can edit their own
+# comments and admins can delete comments.
+# enable_editable_comments = True
+
 [oauth]
 # StoryBoard's oauth configuration.
 

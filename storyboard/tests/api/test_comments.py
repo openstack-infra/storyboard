@@ -61,9 +61,6 @@ class TestComments(base.FunctionalTest):
         update_url = self.comments_resource % self.story_id + \
             "/%d" % original_id
 
-        updated = self.put_json(update_url, delta)
+        response = self.put_json(update_url, delta, expect_errors=True)
 
-        original_content = self.comment_01['content']
-        updated_content = updated.json['content']
-
-        self.assertNotEqual(original_content, updated_content)
+        self.assertEqual(405, response.status_code)

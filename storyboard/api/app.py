@@ -52,7 +52,10 @@ API_OPTS = [
                help='API port'),
     cfg.BoolOpt('enable_notifications',
                default=False,
-               help='Enable Notifications')
+               help='Enable Notifications'),
+    cfg.BoolOpt('enable_editable_comments',
+               default=False,
+               help='Enable editing and deletion of comments')
 ]
 CORS_OPTS = [
     cfg.ListOpt('allowed_origins',
