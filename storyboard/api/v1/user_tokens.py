@@ -61,6 +61,11 @@ class UserTokensController(rest.RestController):
         """Returns all the access tokens with matching refresh tokens for
         the provided user.
 
+        Example::
+
+          curl https://my.example.org/api/v1/users/21/tokens \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN'
+
         :param user_id: The ID of the user.
         :param marker: The marker record at which to start the page.
         :param limit: The number of records to return.
@@ -100,7 +105,13 @@ class UserTokensController(rest.RestController):
     @wsme_pecan.wsexpose(wmodels.AccessToken, int, int)
     def get(self, user_id, access_token_id):
         """Returns a specific access token with assigned refresh token for the
-        given user.
+        given user. Admin users can specify any user id, regular users can only
+        use their own.
+
+        Example::
+
+          curl https://my.example.org/api/v1/users/2/tokens \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN'
 
         :param user_id: The ID of the user.
         :param access_token_id: The ID of the access token.
@@ -119,7 +130,15 @@ class UserTokensController(rest.RestController):
     @wsme_pecan.wsexpose(wmodels.AccessToken, int, body=wmodels.AccessToken)
     def post(self, user_id, body):
         """Create a new access token with assigned refresh token for the given
-        user.
+        user. Admin users can specify any user id, regular users can only use
+        their own.
+
+        Example::
+
+          curl https://my.example.org/api/v1/users/2/tokens \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN' \\
+          -H 'Content-Type: application/json;charset=UTF-8' \\
+          --data-binary '{"expires_in": 3600, "user_id": 2}'
 
         :param user_id: The user ID of the user.
         :param body: The access token.
@@ -156,7 +175,15 @@ class UserTokensController(rest.RestController):
     @wsme_pecan.wsexpose(wmodels.AccessToken, int, int,
                          body=wmodels.AccessToken)
     def put(self, user_id, access_token_id, body):
-        """Update an access token for the given user.
+        """Update an access token for the given user. Admin users can edit
+        any token, regular users can only edit their own.
+
+        Example::
+
+          curl https://my.example.org/api/v1/users/2/tokens/1764 \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN' \\
+          -H 'Content-Type: application/json;charset=UTF-8' \\
+          --data-binary '{"expires_in": 7200, "user_id": 2}'
 
         :param user_id: The user ID of the user.
         :param access_token_id: The ID of the access token.
@@ -190,7 +217,13 @@ class UserTokensController(rest.RestController):
     @wsme_pecan.wsexpose(wmodels.AccessToken, int, int, status_code=204)
     def delete(self, user_id, access_token_id):
         """Deletes an access token with assigned refresh token for the given
-        user.
+        user. Admin users can delete any access tokens, regular users can only
+        delete their own.
+
+        Example::
+
+          curl https://my.example.org/api/v1/users/2/tokens/1764 -X DELETE \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN'
 
         :param user_id: The user ID of the user.
         :param access_token_id: The ID of the access token.
@@ -208,7 +241,12 @@ class UserTokensController(rest.RestController):
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wmodels.AccessToken, int, status_code=204)
     def delete_all(self, user_id):
-        """Deletes all access tokens for the given user
+        """Deletes all access tokens for the given user.
+
+        Example::
+
+          curl https://my.example.com/v1/users/2/tokens/delete_all -X DELETE \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN'
 
         :param user_id: The user ID of the user.
         """
