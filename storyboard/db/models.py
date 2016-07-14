@@ -486,7 +486,9 @@ class StorySummary(Base):
 class TimeLineEvent(ModelBuilder, Base):
     __tablename__ = 'events'
 
-    story_id = Column(Integer, ForeignKey('stories.id'))
+    story_id = Column(Integer, ForeignKey('stories.id'), nullable=True)
+    worklist_id = Column(Integer, ForeignKey('worklists.id'), nullable=True)
+    board_id = Column(Integer, ForeignKey('boards.id'), nullable=True)
     comment_id = Column(Integer, ForeignKey('comments.id'), nullable=True)
     author_id = Column(Integer, ForeignKey('users.id'), nullable=True)
 
