@@ -27,6 +27,7 @@ from storyboard.api.v1 import validations
 from storyboard.api.v1 import wmodels
 from storyboard.common import decorators
 from storyboard.common import exception as exc
+from storyboard.db.api import base as api_base
 from storyboard.db.api import teams as teams_api
 from storyboard.db.api import users as users_api
 from storyboard.openstack.common.gettextutils import _  # noqas
@@ -51,7 +52,9 @@ class UsersSubcontroller(rest.RestController):
         if not team:
             raise exc.NotFound(_("Team %s not found") % team_id)
 
-        return [wmodels.User.from_db_model(user) for user in team.users]
+        users = [api_base._filter_non_public_fields(user, user._public_fields)
+                 for user in team.users]
+        return [wmodels.User.from_db_model(user) for user in users]
 
     @decorators.db_exceptions
     @secure(checks.superuser)
@@ -65,6 +68,7 @@ class UsersSubcontroller(rest.RestController):
 
         teams_api.team_add_user(team_id, user_id)
         user = users_api.user_get(user_id)
+        user = api_base._filter_non_public_fields(user, user._public_fields)
 
         return wmodels.User.from_db_model(user)
 
