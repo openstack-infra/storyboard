@@ -1,4 +1,5 @@
 # Copyright (c) 2014 Mirantis Inc.
+# Copyright (c) 2016 Codethink Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -220,5 +221,198 @@ def tags_deleted_event(story_id, author_id, story_title, tags):
         "author_id": author_id,
         "story_title": story_title,
         "event_type": event_types.TAGS_DELETED,
+        "event_info": json.dumps(event_info)
+    })
+
+
+def worklist_created_event(worklist_id, author_id, worklist_title):
+    event_info = {
+        "worklist_id": worklist_id,
+        "author_id": author_id,
+        "worklist_title": worklist_title
+    }
+
+    return event_create({
+        "worklist_id": worklist_id,
+        "author_id": author_id,
+        "event_type": event_types.WORKLIST_CREATED,
+        "event_info": json.dumps(event_info)
+    })
+
+
+def worklist_details_changed_event(worklist_id, author_id, updated, old, new):
+    event_info = {
+        "worklist_id": worklist_id,
+        "author_id": author_id,
+        "field": updated,
+        "old_value": old,
+        "new_value": new
+    }
+
+    return event_create({
+        "worklist_id": worklist_id,
+        "author_id": author_id,
+        "event_type": event_types.WORKLIST_DETAILS_CHANGED,
+        "event_info": json.dumps(event_info)
+    })
+
+
+def worklist_permission_created_event(worklist_id, author_id, permission_id,
+                                      codename, users):
+    event_info = {
+        "worklist_id": worklist_id,
+        "permission_id": permission_id,
+        "author_id": author_id,
+        "codename": codename,
+        "users": users
+    }
+
+    return event_create({
+        "worklist_id": worklist_id,
+        "author_id": author_id,
+        "event_type": event_types.WORKLIST_PERMISSION_CREATED,
+        "event_info": json.dumps(event_info)
+    })
+
+
+def worklist_permissions_changed_event(worklist_id, author_id, permission_id,
+                                       codename, added=[], removed=[]):
+    event_info = {
+        "worklist_id": worklist_id,
+        "permission_id": permission_id,
+        "author_id": author_id,
+        "codename": codename,
+        "added": added,
+        "removed": removed
+    }
+
+    return event_create({
+        "worklist_id": worklist_id,
+        "author_id": author_id,
+        "event_type": event_types.WORKLIST_PERMISSIONS_CHANGED,
+        "event_info": json.dumps(event_info)
+    })
+
+
+def worklist_filters_changed_event(worklist_id, author_id, added=None,
+                                   removed=None, updated=None):
+    event_info = {
+        "worklist_id": worklist_id,
+        "author_id": author_id,
+        "added": added,
+        "removed": removed,
+        "updated": updated
+    }
+
+    return event_create({
+        "worklist_id": worklist_id,
+        "author_id": author_id,
+        "event_type": event_types.WORKLIST_FILTERS_CHANGED,
+        "event_info": json.dumps(event_info)
+    })
+
+
+def worklist_contents_changed_event(worklist_id, author_id, added=None,
+                                    removed=None, updated=None):
+    event_info = {
+        "worklist_id": worklist_id,
+        "author_id": author_id,
+        "added": added,
+        "removed": removed,
+        "updated": updated
+    }
+
+    return event_create({
+        "worklist_id": worklist_id,
+        "author_id": author_id,
+        "event_type": event_types.WORKLIST_CONTENTS_CHANGED,
+        "event_info": json.dumps(event_info)
+    })
+
+
+def board_created_event(board_id, author_id, board_title, board_description):
+    event_info = {
+        "board_id": board_id,
+        "author_id": author_id,
+        "board_title": board_title,
+        "board_description": board_description
+    }
+
+    return event_create({
+        "board_id": board_id,
+        "author_id": author_id,
+        "event_type": event_types.BOARD_CREATED,
+        "event_info": json.dumps(event_info)
+    })
+
+
+def board_details_changed_event(board_id, author_id, updated, old, new):
+    event_info = {
+        "board_id": board_id,
+        "author_id": author_id,
+        "field": updated,
+        "old_value": old,
+        "new_value": new
+    }
+
+    return event_create({
+        "board_id": board_id,
+        "author_id": author_id,
+        "event_type": event_types.BOARD_DETAILS_CHANGED,
+        "event_info": json.dumps(event_info)
+    })
+
+
+def board_permission_created_event(board_id, author_id, permission_id,
+                                   codename, users):
+    event_info = {
+        "board_id": board_id,
+        "permission_id": permission_id,
+        "author_id": author_id,
+        "codename": codename,
+        "users": users
+    }
+
+    return event_create({
+        "board_id": board_id,
+        "author_id": author_id,
+        "event_type": event_types.BOARD_PERMISSION_CREATED,
+        "event_info": json.dumps(event_info)
+    })
+
+
+def board_permissions_changed_event(board_id, author_id, permission_id,
+                                    codename, added=[], removed=[]):
+    event_info = {
+        "board_id": board_id,
+        "permission_id": permission_id,
+        "author_id": author_id,
+        "codename": codename,
+        "added": added,
+        "removed": removed
+    }
+
+    return event_create({
+        "board_id": board_id,
+        "author_id": author_id,
+        "event_type": event_types.BOARD_PERMISSIONS_CHANGED,
+        "event_info": json.dumps(event_info)
+    })
+
+
+def board_lanes_changed_event(board_id, author_id, added=None, removed=None,
+                              updated=None):
+    event_info = {
+        "board_id": board_id,
+        "author_id": author_id,
+        "added": added,
+        "removed": removed,
+        "updated": updated
+    }
+
+    return event_create({
+        "board_id": board_id,
+        "author_id": author_id,
+        "event_type": event_types.BOARD_LANES_CHANGED,
         "event_info": json.dumps(event_info)
     })

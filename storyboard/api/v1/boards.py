@@ -13,12 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
+
 from oslo_config import cfg
 from pecan import abort
 from pecan import request
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
+import six
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
@@ -27,11 +30,20 @@ from storyboard.api.v1 import wmodels
 from storyboard.common import decorators
 from storyboard.common import exception as exc
 from storyboard.db.api import boards as boards_api
+from storyboard.db.api import timeline_events as events_api
+from storyboard.db.api import users as users_api
 from storyboard.db.api import worklists as worklists_api
 from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 CONF = cfg.CONF
+
+
+def serialize_lane(lane):
+    return {
+        "worklist_id": lane.list_id,
+        "position": lane.position
+    }
 
 
 def get_lane(list_id, board):
@@ -51,15 +63,64 @@ def update_lanes(board_dict, board_id):
             new_lane = get_lane(lane.list_id, board_dict)
             if lane.position != new_lane.position:
                 del new_lane.worklist
+                original = copy.deepcopy(lane)
                 boards_api.update_lane(
                     board, lane, new_lane.as_dict(omit_unset=True))
+                updated = {
+                    "old": serialize_lane(original),
+                    "new": serialize_lane(new_lane)
+                }
+
+                events_api.board_lanes_changed_event(board_id,
+                                                     request.current_user_id,
+                                                     updated=updated)
+
     for lane in board_dict['lanes']:
         if lane.list_id not in existing_list_ids:
             lane.worklist = None
             boards_api.add_lane(board, lane.as_dict(omit_unset=True))
+            events_api.board_lanes_changed_event(board_id,
+                                                 request.current_user_id,
+                                                 added=serialize_lane(lane))
 
     board = boards_api.get(board_id)
     del board_dict['lanes']
+
+
+def post_timeline_events(original, updated):
+    author_id = request.current_user_id
+
+    if original.title != updated.title:
+        events_api.board_details_changed_event(
+            original.id,
+            author_id,
+            'title',
+            original.title,
+            updated.title)
+
+    if original.description != updated.description:
+        events_api.board_details_changed_event(
+            original.id,
+            author_id,
+            'description',
+            original.description,
+            updated.description)
+
+    if original.private != updated.private:
+        events_api.board_details_changed_event(
+            original.id,
+            author_id,
+            'private',
+            original.private,
+            updated.private)
+
+    if original.archived != updated.archived:
+        events_api.board_details_changed_event(
+            original.id,
+            author_id,
+            'archived',
+            original.archived,
+            updated.archived)
 
 
 class PermissionsController(rest.RestController):
@@ -91,9 +152,18 @@ class PermissionsController(rest.RestController):
         :param permission: The dict to use to create the permission.
 
         """
-        if boards_api.editable(boards_api.get(board_id),
-                               request.current_user_id):
-            return boards_api.create_permission(board_id)
+        user_id = request.current_user_id
+        if boards_api.editable(boards_api.get(board_id), user_id):
+            created = boards_api.create_permission(board_id, permission)
+
+            users = [{user.id: user.full_name} for user in created.users]
+            events_api.board_permission_created_event(board_id,
+                                                      user_id,
+                                                      created.id,
+                                                      created.codename,
+                                                      users)
+
+            return created
         else:
             raise exc.NotFound(_("Board %s not found") % board_id)
 
@@ -108,9 +178,36 @@ class PermissionsController(rest.RestController):
         :param permission: The new contents of the permission.
 
         """
-        if boards_api.editable(boards_api.get(board_id),
-                               request.current_user_id):
-            return boards_api.update_permission(board_id, permission).codename
+        user_id = request.current_user_id
+        board = boards_api.get(board_id)
+
+        old = None
+        for perm in board.permissions:
+            if perm.codename == permission['codename']:
+                old = perm
+
+        if old is None:
+            raise exc.NotFound(_("Permission with codename %s not found")
+                               % permission['codename'])
+
+        old_users = {user.id: user.full_name for user in old.users}
+
+        if boards_api.editable(board, user_id):
+            updated = boards_api.update_permission(board_id, permission)
+            new_users = {user.id: user.full_name for user in updated.users}
+
+            added = [{id: name} for id, name in six.iteritems(new_users)
+                     if id not in old_users]
+            removed = [{id: name} for id, name in six.iteritems(old_users)
+                       if id not in new_users]
+
+            if added or removed:
+                events_api.board_permissions_changed_event(board.id,
+                                                           user_id,
+                                                           updated.id,
+                                                           updated.codename,
+                                                           added,
+                                                           removed)
         else:
             raise exc.NotFound(_("Board %s not found") % board_id)
 
@@ -233,8 +330,15 @@ class BoardsController(rest.RestController):
             del board_dict['due_dates']
 
         created_board = boards_api.create(board_dict)
+        events_api.board_created_event(created_board.id,
+                                       user_id,
+                                       created_board.title,
+                                       created_board.description)
         for lane in lanes:
             boards_api.add_lane(created_board, lane.as_dict())
+            events_api.board_lanes_changed_event(created_board.id,
+                                                 user_id,
+                                                 added=serialize_lane(lane))
 
         edit_permission = {
             'name': 'edit_board_%d' % created_board.id,
@@ -246,8 +350,22 @@ class BoardsController(rest.RestController):
             'codename': 'move_cards',
             'users': users
         }
-        boards_api.create_permission(created_board.id, edit_permission)
-        boards_api.create_permission(created_board.id, move_permission)
+        edit = boards_api.create_permission(created_board.id, edit_permission)
+        move = boards_api.create_permission(created_board.id, move_permission)
+        event_owners = [{id: users_api.user_get(id).full_name}
+                        for id in owners]
+        event_users = [{id: users_api.user_get(id).full_name}
+                       for id in users]
+        events_api.board_permission_created_event(created_board.id,
+                                                  user_id,
+                                                  edit.id,
+                                                  edit.codename,
+                                                  event_owners)
+        events_api.board_permission_created_event(created_board.id,
+                                                  user_id,
+                                                  move.id,
+                                                  move.codename,
+                                                  event_users)
 
         return wmodels.Board.from_db_model(created_board)
 
@@ -262,8 +380,14 @@ class BoardsController(rest.RestController):
 
         """
         user_id = request.current_user_id
-        if not boards_api.editable(boards_api.get(id), user_id):
+        original = boards_api.get(id)
+        if not boards_api.editable(original, user_id):
             raise exc.NotFound(_("Board %s not found") % id)
+
+        # We use copy here because we only need to check changes
+        # to the related objects, just the board's own attributes.
+        # Also, deepcopy trips up on the lanes' backrefs.
+        original = copy.copy(original)
 
         board_dict = board.as_dict(omit_unset=True)
         update_lanes(board_dict, id)
@@ -273,6 +397,8 @@ class BoardsController(rest.RestController):
             del board_dict['due_dates']
 
         updated_board = boards_api.update(id, board_dict)
+
+        post_timeline_events(original, updated_board)
 
         if boards_api.visible(updated_board, user_id):
             board_model = wmodels.Board.from_db_model(updated_board)
@@ -296,9 +422,21 @@ class BoardsController(rest.RestController):
         if not boards_api.editable(board, user_id):
             raise exc.NotFound(_("Board %s not found") % id)
 
-        boards_api.update(id, {"archived": True})
+        # We use copy here because we only need to check changes
+        # to the related objects, just the board's own attributes.
+        # Also, deepcopy trips up on the lanes' backrefs.
+        original = copy.copy(board)
+        updated = boards_api.update(id, {"archived": True})
+
+        post_timeline_events(original, updated)
 
         for lane in board.lanes:
+            original = copy.deepcopy(worklists_api.get(lane.worklist.id))
             worklists_api.update(lane.worklist.id, {"archived": True})
+
+            if not original.archived:
+                events_api.worklist_details_changed_event(
+                    lane.worklist.id, user_id, 'archived', original.archived,
+                    True)
 
     permissions = PermissionsController()

@@ -105,6 +105,8 @@ def subscription_get_all_subscriber_ids(resource, resource_id, session=None):
                                     resource_id,
                                     session=session)
         if event:
+            if event.story_id is None:
+                return set()
             resource = 'story'
             resource_id = event.story_id
         else:

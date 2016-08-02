@@ -13,12 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
+
 from oslo_config import cfg
 from pecan import abort
 from pecan import request
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
+import six
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
@@ -28,12 +31,66 @@ from storyboard.common import decorators
 from storyboard.common import exception as exc
 from storyboard.db.api import stories as stories_api
 from storyboard.db.api import tasks as tasks_api
+from storyboard.db.api import timeline_events as events_api
+from storyboard.db.api import users as users_api
 from storyboard.db.api import worklists as worklists_api
 from storyboard.db import models
 from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 CONF = cfg.CONF
+
+
+def serialize_filter(filter):
+    serialized = {
+        "id": filter.id,
+        "type": filter.type,
+        "criteria": []
+    }
+    for criterion in filter.criteria:
+        serialized['criteria'].append({
+            "title": criterion.title,
+            "negative": criterion.negative,
+            "value": criterion.value,
+            "field": criterion.field
+        })
+    return serialized
+
+
+def post_timeline_events(original, updated):
+    author_id = request.current_user_id
+
+    if original.title != updated.title:
+        events_api.worklist_details_changed_event(
+            original.id,
+            author_id,
+            'title',
+            original.title,
+            updated.title)
+
+    if original.private != updated.private:
+        events_api.worklist_details_changed_event(
+            original.id,
+            author_id,
+            'private',
+            original.private,
+            updated.private)
+
+    if original.automatic != updated.automatic:
+        events_api.worklist_details_changed_event(
+            original.id,
+            author_id,
+            'automatic',
+            original.automatic,
+            updated.automatic)
+
+    if original.archived != updated.archived:
+        events_api.worklist_details_changed_event(
+            original.id,
+            author_id,
+            'archived',
+            original.archived,
+            updated.archived)
 
 
 class PermissionsController(rest.RestController):
@@ -75,9 +132,18 @@ class PermissionsController(rest.RestController):
         :param permission: The dict to use to create the permission.
 
         """
-        if worklists_api.editable(worklists_api.get(worklist_id),
-                                  request.current_user_id):
-            return worklists_api.create_permission(worklist_id)
+        user_id = request.current_user_id
+        if worklists_api.editable(worklists_api.get(worklist_id), user_id):
+            created = worklists_api.create_permission(worklist_id, permission)
+
+            users = [{user.id: user.full_name} for user in created.users]
+            events_api.worklist_permission_created_event(worklist_id,
+                                                         user_id,
+                                                         created.id,
+                                                         created.codename,
+                                                         users)
+
+            return created.codename
         else:
             raise exc.NotFound(_("Worklist %s not found") % worklist_id)
 
@@ -92,14 +158,58 @@ class PermissionsController(rest.RestController):
 
           TODO
 
+        This takes a dict in the form::
+
+            {
+                "codename": "my-permission",
+                "users": [
+                    1,
+                    2,
+                    3
+                ]
+            }
+
+        The given codename must match an existing permission's
+        codename.
+
         :param worklist_id: The ID of the worklist.
         :param permission: The new contents of the permission.
 
         """
-        if worklists_api.editable(worklists_api.get(worklist_id),
-                                  request.current_user_id):
-            return worklists_api.update_permission(
-                worklist_id, permission).codename
+        user_id = request.current_user_id
+        worklist = worklists_api.get(worklist_id)
+
+        old = None
+        for perm in worklist.permissions:
+            if perm.codename == permission['codename']:
+                old = perm
+
+        if old is None:
+            raise exc.NotFound(_("Permission with codename %s not found")
+                               % permission['codename'])
+
+        old_users = {user.id: user.full_name for user in old.users}
+
+        if worklists_api.editable(worklist, user_id):
+            updated = worklists_api.update_permission(
+                worklist_id, permission)
+            new_users = {user.id: user.full_name for user in updated.users}
+
+            added = [{id: name} for id, name in six.iteritems(new_users)
+                     if id not in old_users]
+            removed = [{id: name} for id, name in six.iteritems(old_users)
+                       if id not in new_users]
+
+            if added or removed:
+                events_api.worklist_permissions_changed_event(
+                    worklist_id,
+                    user_id,
+                    updated.id,
+                    updated.codename,
+                    added,
+                    removed)
+            return updated.codename
+
         else:
             raise exc.NotFound(_("Worklist %s not found") % worklist_id)
 
@@ -179,6 +289,12 @@ class FilterSubcontroller(rest.RestController):
             raise exc.NotFound(_("Worklist %s not found") % worklist_id)
 
         created = worklists_api.create_filter(worklist_id, filter.as_dict())
+
+        added = serialize_filter(created)
+        events_api.worklist_filters_changed_event(worklist_id,
+                                                  user_id,
+                                                  added=added)
+
         model = wmodels.WorklistFilter.from_db_model(created)
         model.resolve_criteria(created)
         return model
@@ -204,10 +320,23 @@ class FilterSubcontroller(rest.RestController):
         if not worklists_api.editable(worklist, user_id):
             raise exc.NotFound(_("Worklist %s not found") % worklist_id)
 
+        old = serialize_filter(worklists_api.get_filter(filter_id))
+
         update_dict = filter.as_dict(omit_unset=True)
         updated = worklists_api.update_filter(filter_id, update_dict)
 
-        return wmodels.WorklistFilter.from_db_model(updated)
+        changes = {
+            "old": old,
+            "new": serialize_filter(updated)
+        }
+        events_api.worklist_filters_changed_event(worklist_id,
+                                                  user_id,
+                                                  updated=changes)
+
+        updated_model = wmodels.WorklistFilter.from_db_model(updated)
+        updated_model.resolve_criteria(updated)
+
+        return updated_model
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
@@ -227,6 +356,12 @@ class FilterSubcontroller(rest.RestController):
         user_id = request.current_user_id
         if not worklists_api.editable(worklist, user_id):
             raise exc.NotFound(_("Worklist %s not found") % worklist_id)
+
+        filter = serialize_filter(worklists_api.get_filter(filter_id))
+
+        events_api.worklist_filters_changed_event(worklist_id,
+                                                  user_id,
+                                                  removed=filter)
 
         worklists_api.delete_filter(filter_id)
 
@@ -303,6 +438,16 @@ class ItemsSubcontroller(rest.RestController):
             id, item_id, item_type, list_position,
             current_user=request.current_user_id)
 
+        added = {
+            "worklist_id": id,
+            "item_id": item_id,
+            "item_title": item.title,
+            "item_type": item_type,
+            "position": list_position
+        }
+
+        events_api.worklist_contents_changed_event(id, user_id, added=added)
+
         return wmodels.WorklistItem.from_db_model(
             worklists_api.get_item_at_position(id, list_position))
 
@@ -346,6 +491,26 @@ class ItemsSubcontroller(rest.RestController):
             raise exc.NotFound(_("Item %s refers to a non-existent task or "
                                  "story.") % item_id)
 
+        old = {
+            "worklist_id": card.list_id,
+            "item_id": card.item_id,
+            "item_title": item.title,
+            "item_type": card.item_type,
+            "position": card.list_position,
+            "due_date_id": card.display_due_date
+        }
+
+        new = {
+            "item_id": card.item_id,
+            "item_title": item.title,
+            "item_type": card.item_type
+        }
+
+        if list_position != card.list_position and list_position is not None:
+            new['position'] = list_position
+        if list_id != card.list_id and list_id is not None:
+            new['worklist_id'] = list_id
+
         worklists_api.move_item(id, item_id, list_position, list_id)
 
         if display_due_date is not None:
@@ -355,6 +520,15 @@ class ItemsSubcontroller(rest.RestController):
                 'display_due_date': display_due_date
             }
             worklists_api.update_item(item_id, update_dict)
+            new['due_date_id'] = display_due_date
+
+        updated = {
+            "old": old,
+            "new": new
+        }
+        events_api.worklist_contents_changed_event(id,
+                                                   user_id,
+                                                   updated=updated)
 
         updated = worklists_api.get_item_by_id(item_id)
         result = wmodels.WorklistItem.from_db_model(updated)
@@ -379,12 +553,31 @@ class ItemsSubcontroller(rest.RestController):
         worklist = worklists_api.get(id)
         if not worklists_api.editable_contents(worklist, user_id):
             raise exc.NotFound(_("Worklist %s not found") % id)
-        item = worklists_api.get_item_by_id(item_id)
-        if item is None:
+        card = worklists_api.get_item_by_id(item_id)
+        if card is None:
             raise exc.NotFound(_("Item %s seems to have already been deleted,"
                                  " try refreshing your page.") % item_id)
         worklists_api.update_item(item_id, {'archived': True})
         worklists_api.normalize_positions(worklist)
+
+        item = None
+        if card.item_type == 'story':
+            item = stories_api.story_get(
+                card.item_id, current_user=user_id)
+        elif card.item_type == 'task':
+            item = tasks_api.task_get(
+                card.item_id, current_user=user_id)
+        if item is None:
+            item.title = ''
+
+        removed = {
+            "worklist_id": id,
+            "item_id": card.item_id,
+            "item_title": item.title
+        }
+        events_api.worklist_contents_changed_event(id,
+                                                   user_id,
+                                                   removed=removed)
 
 
 class WorklistsController(rest.RestController):
@@ -553,6 +746,9 @@ class WorklistsController(rest.RestController):
             users = []
 
         created_worklist = worklists_api.create(worklist_dict)
+        events_api.worklist_created_event(created_worklist.id,
+                                          user_id,
+                                          created_worklist.title)
 
         edit_permission = {
             'name': 'edit_worklist_%d' % created_worklist.id,
@@ -564,13 +760,35 @@ class WorklistsController(rest.RestController):
             'codename': 'move_items',
             'users': users
         }
-        worklists_api.create_permission(created_worklist.id, edit_permission)
-        worklists_api.create_permission(created_worklist.id, move_permission)
+        edit = worklists_api.create_permission(
+            created_worklist.id, edit_permission)
+        move = worklists_api.create_permission(
+            created_worklist.id, move_permission)
+
+        event_owners = [{id: users_api.user_get(id).full_name}
+                        for id in owners]
+        event_users = [{id: users_api.user_get(id).full_name}
+                       for id in users]
+
+        events_api.worklist_permission_created_event(created_worklist.id,
+                                                     user_id,
+                                                     edit.id,
+                                                     edit.codename,
+                                                     event_owners)
+        events_api.worklist_permission_created_event(created_worklist.id,
+                                                     user_id,
+                                                     move.id,
+                                                     move.codename,
+                                                     event_users)
 
         if worklist_dict['automatic']:
             for filter in filters:
-                worklists_api.create_filter(created_worklist.id,
-                                            filter.as_dict())
+                created_filter = worklists_api.create_filter(
+                    created_worklist.id, filter.as_dict())
+                added = serialize_filter(created_filter)
+                events_api.worklist_filters_changed_event(created_worklist.id,
+                                                          user_id,
+                                                          added=added)
 
         return wmodels.Worklist.from_db_model(created_worklist)
 
@@ -602,8 +820,10 @@ class WorklistsController(rest.RestController):
 
         worklist_dict = worklist.as_dict(omit_unset=True)
 
+        original = copy.deepcopy(worklists_api.get(id))
         updated_worklist = worklists_api.update(id, worklist_dict)
 
+        post_timeline_events(original, updated_worklist)
         if worklists_api.visible(updated_worklist, user_id):
             worklist_model = wmodels.Worklist.from_db_model(updated_worklist)
             worklist_model.resolve_items(updated_worklist)
@@ -630,11 +850,14 @@ class WorklistsController(rest.RestController):
 
         """
         worklist = worklists_api.get(worklist_id)
+        original = copy.deepcopy(worklist)
         user_id = request.current_user_id
         if not worklists_api.editable(worklist, user_id):
             raise exc.NotFound(_("Worklist %s not found") % worklist_id)
 
-        worklists_api.update(worklist_id, {"archived": True})
+        updated = worklists_api.update(worklist_id, {"archived": True})
+
+        post_timeline_events(original, updated)
 
     items = ItemsSubcontroller()
     permissions = PermissionsController()
