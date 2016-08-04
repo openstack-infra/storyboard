@@ -372,6 +372,17 @@ def get_item_by_item_id(worklist, item_type, item_id, archived):
     return query.first()
 
 
+def normalize_positions(worklist):
+    for item in worklist.items:
+        if item.archived:
+            item.list_position = 99999
+    items = worklist.items.order_by(
+        models.WorklistItem.list_position)
+    for position, item in enumerate(items):
+        if not item.archived:
+            item.list_position = position
+
+
 def move_item(worklist_id, item_id, list_position, list_id=None):
     session = api_base.get_session()
 
@@ -392,16 +403,16 @@ def move_item(worklist_id, item_id, list_position, list_id=None):
             old_list.items.remove(item)
             old_list.items = old_list.items.order_by(
                 models.WorklistItem.list_position)
-            modified = old_list.items[old_pos:]
-            for list_item in modified:
+            for list_item in old_list.items[old_pos:]:
                 list_item.list_position -= 1
+            normalize_positions(old_list)
 
             new_list.items = new_list.items.order_by(
                 models.WorklistItem.list_position)
-            modified = new_list.items[list_position:]
-            for list_item in modified:
+            for list_item in new_list.items[list_position:]:
                 list_item.list_position += 1
             new_list.items.append(item)
+            normalize_positions(new_list)
         else:
             # Item has changed position in the list.
             # Update the position of every item between the original
@@ -420,6 +431,8 @@ def move_item(worklist_id, item_id, list_position, list_id=None):
                     list_item.list_position -= 1
                 elif direction == 'down' and list_item != item:
                     list_item.list_position += 1
+
+            normalize_positions(old_list)
 
 
 def update_item(item_id, updated):

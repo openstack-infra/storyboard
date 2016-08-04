@@ -326,14 +326,15 @@ class ItemsSubcontroller(rest.RestController):
 
         """
         user_id = request.current_user_id
-        if not worklists_api.editable_contents(worklists_api.get(id),
-                                               user_id):
+        worklist = worklists_api.get(id)
+        if not worklists_api.editable_contents(worklist, user_id):
             raise exc.NotFound(_("Worklist %s not found") % id)
         item = worklists_api.get_item_by_id(item_id)
         if item is None:
             raise exc.NotFound(_("Item %s seems to have already been deleted,"
                                  " try refreshing your page.") % item_id)
         worklists_api.update_item(item_id, {'archived': True})
+        worklists_api.normalize_positions(worklist)
 
 
 class WorklistsController(rest.RestController):
