@@ -29,6 +29,7 @@ from storyboard.common import exception as exc
 from storyboard.db.api import stories as stories_api
 from storyboard.db.api import tasks as tasks_api
 from storyboard.db.api import worklists as worklists_api
+from storyboard.db import models
 from storyboard.openstack.common.gettextutils import _  # noqa
 
 
@@ -221,7 +222,7 @@ class ItemsSubcontroller(rest.RestController):
         if worklist.items is None:
             return []
 
-        worklist.items.sort(key=lambda i: i.list_position)
+        worklist.items.order_by(models.WorklistItem.list_position)
 
         visible_items = worklists_api.get_visible_items(
             worklist, current_user=request.current_user_id)
