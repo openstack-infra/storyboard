@@ -1,0 +1,5 @@
+{% set info = after['event_info'] %}{{ author.full_name }} created a new permission for worklist "{{ resource.title }}"
+
+Permission: {{ info['codename'] }}
+Users:{% for user in info['users'] %}
+    - {% for key in user %}{{ user[key] }}{% endfor %}{% endfor %}

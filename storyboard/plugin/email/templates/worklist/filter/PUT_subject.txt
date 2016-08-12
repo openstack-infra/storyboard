@@ -1,0 +1,1 @@
+Worklist "{{ resource.title }}" had its filters modified by {{ author.full_name }}

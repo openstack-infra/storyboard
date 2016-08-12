@@ -1,0 +1,1 @@
+Worklist "{{resource.title}}" was created by {{author.full_name}}

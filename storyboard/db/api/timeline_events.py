@@ -121,7 +121,7 @@ def event_create(values):
     return new_event
 
 
-def is_visible(event, user_id):
+def is_visible(event, user_id, session=None):
     if event is None:
         return False
     if 'worklist_contents' in event.event_type:
@@ -137,12 +137,12 @@ def is_visible(event, user_id):
 
         if info.get('item_type') == 'story':
             story = stories_api.story_get_simple(
-                info['item_id'], current_user=user_id)
+                info['item_id'], current_user=user_id, session=session)
             if story is None:
                 return False
         elif info.get('item_type') == 'task':
             task = tasks_api.task_get(
-                info['item_id'], current_user=user_id)
+                info['item_id'], current_user=user_id, session=session)
             if task is None:
                 return False
     return True

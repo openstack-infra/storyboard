@@ -1,0 +1,1 @@
+Worklist "{{resource.title}}" was updated by {{author.full_name}}

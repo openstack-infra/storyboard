@@ -1,0 +1,38 @@
+{% if after['event_info']['added'] is not none %}{{author.full_name}} added a card to the worklist "{{resource.title}}":
+
+    {{after['event_info']['added']['item_type'].capitalize()}} {{after['event_info']['added']['item_id']}}: {{after['event_info']['added']['item_title']}}
+    Position: {{after['event_info']['added']['position']}}
+{% elif after['event_info']['removed'] is not none %}{{author.full_name}} archived a card from the worklist "{{resource.title}}":
+
+    {{after['event_info']['removed']['item_type'].capitalize()}} {{after['event_info']['removed']['item_id']}}: {{after['event_info']['removed']['item_title']}}
+{% elif after['event_info']['updated'] is not none %}{{ author.full_name }} updated a card from the worklist "{{ resource.title }}":
+
+    {{after['event_info']['updated']['old']['item_type'].capitalize()}} {{after['event_info']['updated']['item_id']}}: {{after['event_info']['updated']['old']['item_title']}}
+    Position: {{ after['event_info']['updated']['old']['position'] + 1 }} ---> {{ after['event_info']['updated']['new']['position'] + 1 }}
+{% for key in after['event_info']['updated']['new'] if key != 'position' and after['event_info']['updated']['new'][key] != after['event_info']['updated']['old'][key] %}{{ key }}: "{{ after['event_info']['updated']['old'][key] }}" ---> "{{ after['event_info']['updated']['new'][key] }}"
+{% endfor %}{% endif %}{#
+
+Examples
+========
+
+Added:
+
+    Adam Coldrick added a card to the worklist "Test Worklist":
+
+        Task 1234: Test task
+        Position: 5
+
+Removed:
+
+    Adam Coldrick archived a card from the worklist "Test Worklist":
+
+        Task 1234: Test task
+
+Updated:
+
+    Adam Coldrick updated a card from the worklist "Test Worklist":
+
+        Task 1234: Test task
+        Position: 5 ---> 1
+
+#}

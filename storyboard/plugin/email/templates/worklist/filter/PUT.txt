@@ -1,0 +1,38 @@
+{% macro inline_filter(filter) -%}{{ 'Stories' if filter['type'] == 'Story' else 'Tasks' }} where {% for criterion in filter['criteria'] %}{{ criterion['field'] }} {{ 'is not' if criterion['negative'] else 'is' }} {{ criterion['title'] }} {{ 'and ' if criterion != filter['criteria']|last }}{% endfor %}{%- endmacro %}{% if after['event_info']['added'] is not none %}{% set filter = after['event_info']['added'] %}{{ author.full_name }} added a filter to the worklist "{{ resource.title }}":
+
+    {{ inline_filter(filter) }}
+{% elif after['event_info']['removed'] is not none %}{% set filter = after['event_info']['removed'] %}{{ author.full_name }} removed a filter from the worklist "{{ resource.title }}":
+
+    {{ inline_filter(filter) }}
+{% elif after['event_info']['updated'] is not none %}{% set old = after['event_info']['updated']['old'] %}{% set new = after['event_info']['updated']['new'] %}{{ author.full_name }} updated a filter for the worklist "{{ resource.title }}":
+
+    From: {{ inline_filter(old) }}
+    To:   {{ inline_filter(new) }}
+
+{% endif %}{#
+
+Examples
+========
+
+Added:
+
+    Adam Coldrick added a filter to the worklist "Test Worklist":
+
+        Stories where User is Adam Coldrick
+
+
+Removed:
+
+    Adam Coldrick removed a filter from the worklist "Test Worklist":
+
+        Stories where User is Adam Coldrick
+
+
+Updated:
+
+    Adam coldrick updated a filter for the worklist "Test Worklist":
+
+        From: Stories where User is Adam Coldrick
+        To: Stories where User is Zara
+
+#}

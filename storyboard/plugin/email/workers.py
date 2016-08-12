@@ -15,6 +15,7 @@
 
 import abc
 import copy
+import json
 import os
 import six
 import smtplib
@@ -27,6 +28,7 @@ from socket import getfqdn
 
 import storyboard.db.api.base as db_base
 from storyboard.db.api.subscriptions import subscription_get_all_subscriber_ids
+from storyboard.db.api import timeline_events as events_api
 import storyboard.db.models as models
 from storyboard.plugin.email.base import EmailPluginBase
 from storyboard.plugin.email.factory import EmailFactory
@@ -71,8 +73,28 @@ class EmailWorkerBase(EmailPluginBase, WorkerTaskBase):
 
         # We only care about a subset of resource types.
         if resource not in ['task', 'project_group', 'project', 'story',
-                            'branch', 'milestone', 'tag']:
+                            'branch', 'milestone', 'tag', 'timeline_event']:
             return
+
+        if resource == 'timeline_event':
+            if resource_after['worklist_id'] is None:
+                return
+            resource = 'worklist'
+            resource_id = resource_after['worklist_id']
+            resource_after['event_info'] = json.loads(
+                resource_after['event_info'])
+
+            if 'created' not in resource_after['event_type']:
+                method = 'PUT'
+
+            if 'contents' in resource_after['event_type']:
+                sub_resource = 'item'
+
+            if 'filters' in resource_after['event_type']:
+                sub_resource = 'filter'
+
+            if 'permission' in resource_after['event_type']:
+                sub_resource = 'permission'
 
         # We only care about PUT, POST, and DELETE requests that do not
         # result in errors or redirects.
@@ -267,7 +289,10 @@ class SubscriptionEmailWorker(EmailWorkerBase):
                                                               sub_resource,
                                                               sub_resource_id)
 
-        # Set In-Reply-To message id for 'task' and 'story' resources
+        # Set In-Reply-To message id for 'task', 'story', and
+        # 'worklist' resources
+        story_id = None
+        worklist_id = None
         if resource == 'task' and method == 'DELETE':
             # FIXME(pedroalvarez): Workaround the fact that the task won't be
             # in the database anymore if it has been deleted.
@@ -281,9 +306,18 @@ class SubscriptionEmailWorker(EmailWorkerBase):
         elif resource == 'story':
             story_id = resource_instance.id
             created_at = resource_instance.created_at
+        elif resource == 'worklist':
+            worklist_id = resource_instance.id
+            created_at = resource_instance.created_at
 
         if story_id and created_at:
             thread_id = "<storyboard.story.%s.%s@%s>" % (
+                created_at.strftime("%Y%m%d%H%M"),
+                story_id,
+                getfqdn()
+            )
+        elif worklist_id and created_at:
+            thread_id = "<storyboard.worklist.%s.%s@%s>" % (
                 created_at.strftime("%Y%m%d%H%M"),
                 story_id,
                 getfqdn()
@@ -292,6 +326,7 @@ class SubscriptionEmailWorker(EmailWorkerBase):
             thread_id = make_msgid()
 
         factory.add_header("In-Reply-To", thread_id)
+        factory.add_header("X-StoryBoard-Subscription-Type", resource)
 
         # Figure out the diff between old and new.
         before, after = self.get_changed_properties(resource_before,
@@ -307,6 +342,22 @@ class SubscriptionEmailWorker(EmailWorkerBase):
                         or self.get_preference('plugin_email_digest',
                                                subscriber):
                     continue
+
+                send_notification = self.get_preference(
+                    'receive_notifications_worklists', subscriber)
+                if send_notification != 'true' and story_id is None:
+                    continue
+
+                # Don't send a notification if the user isn't allowed to see
+                # the thing this event is about.
+                if 'event_type' in resource:
+                    event = events_api.event_get(
+                        resource['id'],
+                        current_user=subscriber.id,
+                        session=session)
+                    if not events_api.is_visible(
+                            event, subscriber.id, session=session):
+                        continue
 
                 try:
                     # Build an email.

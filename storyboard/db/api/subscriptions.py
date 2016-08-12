@@ -101,7 +101,8 @@ def subscription_get_all_subscriber_ids(resource, resource_id, session=None):
         'project_group': set(),
         'project': set(),
         'story': set(),
-        'task': set()
+        'task': set(),
+        'worklist': set()
     }
 
     # If we accidentally pass a timeline_event, we're actually going to treat
@@ -111,10 +112,14 @@ def subscription_get_all_subscriber_ids(resource, resource_id, session=None):
                                     resource_id,
                                     session=session)
         if event:
-            if event.story_id is None:
+            if event.story_id is not None:
+                resource = 'story'
+                resource_id = event.story_id
+            elif event.worklist_id is not None:
+                resource = 'worklist'
+                resource_id = event.worklist_id
+            else:
                 return set()
-            resource = 'story'
-            resource_id = event.story_id
         else:
             return set()
 

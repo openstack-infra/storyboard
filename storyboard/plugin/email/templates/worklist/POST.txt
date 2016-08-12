@@ -1,0 +1,5 @@
+Worklist "{{resource.title}}" was created by {{author.full_name}}:
+
+URL: {{url}}#!/worklist/{{resource.id}}
+
+{{after}}

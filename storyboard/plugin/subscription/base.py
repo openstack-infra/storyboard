@@ -16,8 +16,15 @@ import json
 
 import storyboard.db.api.base as db_api
 from storyboard.db.api import subscriptions as sub_api
+from storyboard.db.api import timeline_events as events_api
 import storyboard.db.models as models
 from storyboard.plugin.event_worker import WorkerTaskBase
+
+
+def get_preference(name, user):
+    if name not in user.preferences:
+        return None
+    return user.preferences[name].cast_value
 
 
 class Subscription(WorkerTaskBase):
@@ -49,13 +56,18 @@ class Subscription(WorkerTaskBase):
         :param resource_after: The resource state after this event occurred.
         """
         if resource == 'timeline_event':
-            event = db_api.entity_get(models.TimeLineEvent, resource_id,
-                                      session=session)
-            if event.story_id is not None:
+            story_id = resource_after.get('story_id')
+            worklist_id = resource_after.get('worklist_id')
+            if story_id is not None:
                 subscribers = sub_api.subscription_get_all_subscriber_ids(
-                    'story', event.story_id, session=session)
+                    'story', story_id, session=session)
                 self.handle_timeline_events(
-                    session, event, author, subscribers)
+                    session, resource_after, author, subscribers)
+            if worklist_id is not None:
+                subscribers = sub_api.subscription_get_all_subscriber_ids(
+                    'worklist', worklist_id, session=session)
+                self.handle_timeline_events(
+                    session, resource_after, author, subscribers)
 
         elif resource == 'project_group':
             subscribers = sub_api.subscription_get_all_subscriber_ids(
@@ -89,21 +101,35 @@ class Subscription(WorkerTaskBase):
                                       sub_id,
                                       session=session)
 
-    def handle_timeline_events(self, session, event, author, subscribers):
+    def handle_timeline_events(self, session, resource, author, subscribers):
 
         for user_id in subscribers:
-            if event.event_type == 'user_comment':
+            user = db_api.entity_get(models.User, user_id, session=session)
+            send_notification = get_preference(
+                'receive_notifications_worklists', user)
+            if (send_notification != 'true' and
+                    resource.get('worklist_id') is not None):
+                continue
+
+            if resource['event_type'] == 'user_comment':
                 event_info = json.dumps(
-                    self.resolve_comments(session=session, event=event)
+                    self.resolve_comments(session=session, event=resource)
                 )
 
             else:
-                event_info = event.event_info
+                event_info = resource['event_info']
+
+            # Don't send a notification if the user isn't allowed to see the
+            # thing this event is about.
+            event = events_api.event_get(
+                resource['id'], current_user=user_id, session=session)
+            if not events_api.is_visible(event, user_id, session=session):
+                continue
 
             db_api.entity_create(models.SubscriptionEvents, {
                 "author_id": author.id,
                 "subscriber_id": user_id,
-                "event_type": event.event_type,
+                "event_type": resource['event_type'],
                 "event_info": event_info
             }, session=session)
 
@@ -151,14 +177,14 @@ class Subscription(WorkerTaskBase):
 
         # Retrieve the content of the comment.
         comment = db_api.entity_get(models.Comment,
-                                    event.comment_id,
+                                    event['comment_id'],
                                     session=session)
         if not comment:
             return None
 
         # Retrieve the timeline events.
         timeline_event = session.query(models.TimeLineEvent) \
-            .filter(models.TimeLineEvent.comment_id == event.comment_id) \
+            .filter(models.TimeLineEvent.comment_id == event['comment_id']) \
             .first()
         if not timeline_event:
             return None

@@ -1,0 +1,8 @@
+{% set info = after['event_info'] %}{{ author.full_name }} changed the permissions of the worklist "{{ resource.title }}"
+
+Permission: {% if info['codename'] == 'edit_worklist' %}Owners{% elif info['codename'] == 'move_items' %}Users{% else %}{{ info['codename'] }}{% endif %}{% if info['added'] %}
+People Added:{% for user in info['added'] %}
+    - {% for key in user %}{{ user[key] }}{% endfor %}{% endfor %}{% endif %}
+{% if info['removed'] %}
+People Removed:{% for user in info['removed'] %}
+    - {% for key in user %}{{ user[key] }}{% endfor %}{% endfor %}{% endif %}

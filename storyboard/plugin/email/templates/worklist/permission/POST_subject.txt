@@ -1,0 +1,1 @@
+New permission created for worklist "{{ resource.title }}" by {{ author.full_name }}

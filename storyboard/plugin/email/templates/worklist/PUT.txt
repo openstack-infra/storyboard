@@ -1,0 +1,5 @@
+Worklist "{{resource.title}}" was updated by {{author.full_name}}
+
+"{{after['event_info']['field']|capitalize}}" was changed from {{after['event_info']['old_value']}} to {{after['event_info']['new_value']}}.
+
+URL: {{url}}#!/worklist/{{resource.id}}
