@@ -22,7 +22,6 @@ from wsme import types as wtypes
 from storyboard.api.v1 import base
 from storyboard.common.custom_types import NameType
 from storyboard.common import event_resolvers
-from storyboard.common import event_types
 from storyboard.db.api import boards as boards_api
 from storyboard.db.api import comments as comments_api
 from storyboard.db.api import due_dates as due_dates_api
@@ -421,6 +420,12 @@ class TimeLineEvent(base.APIBase):
     story_id = int
     """The ID of the corresponding Story."""
 
+    worklist_id = int
+    """The ID of the corresponding Worklist."""
+
+    board_id = int
+    """The ID of the corresponding Board."""
+
     author_id = int
     """The ID of User who has left the comment."""
 
@@ -450,38 +455,7 @@ class TimeLineEvent(base.APIBase):
 
     @staticmethod
     def _resolve_info(event):
-        if event.event_type == event_types.STORY_CREATED:
-            return event_resolvers.story_created(event)
-
-        elif event.event_type == event_types.STORY_DETAILS_CHANGED:
-            return event_resolvers.story_details_changed(event)
-
-        elif event.event_type == event_types.USER_COMMENT:
-            return event_resolvers.user_comment(event)
-
-        elif event.event_type == event_types.TASK_CREATED:
-            return event_resolvers.task_created(event)
-
-        elif event.event_type == event_types.TASK_STATUS_CHANGED:
-            return event_resolvers.task_status_changed(event)
-
-        elif event.event_type == event_types.TASK_PRIORITY_CHANGED:
-            return event_resolvers.task_priority_changed(event)
-
-        elif event.event_type == event_types.TASK_ASSIGNEE_CHANGED:
-            return event_resolvers.task_assignee_changed(event)
-
-        elif event.event_type == event_types.TASK_DETAILS_CHANGED:
-            return event_resolvers.task_details_changed(event)
-
-        elif event.event_type == event_types.TASK_DELETED:
-            return event_resolvers.task_deleted(event)
-
-        elif event.event_type == event_types.TAGS_ADDED:
-            return event_resolvers.tags_added(event)
-
-        elif event.event_type == event_types.TAGS_DELETED:
-            return event_resolvers.tags_deleted(event)
+        return event_resolvers.resolvers[event.event_type](event)
 
 
 class RefreshToken(base.APIBase):

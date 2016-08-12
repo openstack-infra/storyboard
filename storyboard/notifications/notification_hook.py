@@ -38,7 +38,8 @@ class_mappings = {'task': [models.Task, wmodels.Task],
                   'worklist': [models.Worklist, wmodels.Worklist],
                   'board': [models.Board, wmodels.Board],
                   'comment': [models.Comment, wmodels.Comment],
-                  'due_date': [models.DueDate, wmodels.DueDate]}
+                  'due_date': [models.DueDate, wmodels.DueDate],
+                  'event': [models.TimeLineEvent, wmodels.TimeLineEvent]}
 
 
 class NotificationHook(hooks.PecanHook):
@@ -170,6 +171,7 @@ class NotificationHook(hooks.PecanHook):
             'worklists': 'worklist',
             'boards': 'board',
             'due_dates': 'due_date',
+            'events': 'event',
 
             # Second level resources
             'comments': 'comment'

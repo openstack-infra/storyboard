@@ -15,6 +15,7 @@
 
 import json
 
+from storyboard.common import event_types
 from storyboard.db.api import users as users_api
 
 
@@ -82,3 +83,73 @@ def tags_added(event):
 
 def tags_deleted(event):
     return event
+
+
+def worklist_created(event):
+    return event
+
+
+def worklist_details_changed(event):
+    return event
+
+
+def worklist_permission_created(event):
+    return event
+
+
+def worklist_permissions_changed(event):
+    return event
+
+
+def worklist_filters_changed(event):
+    return event
+
+
+def worklist_contents_changed(event):
+    return event
+
+
+def board_created(event):
+    return event
+
+
+def board_details_changed(event):
+    return event
+
+
+def board_permission_created(event):
+    return event
+
+
+def board_permissions_changed(event):
+    return event
+
+
+def board_lanes_changed(event):
+    return event
+
+
+resolvers = {
+    event_types.STORY_CREATED: story_created,
+    event_types.STORY_DETAILS_CHANGED: story_details_changed,
+    event_types.TAGS_ADDED: tags_added,
+    event_types.TAGS_DELETED: tags_deleted,
+    event_types.USER_COMMENT: user_comment,
+    event_types.TASK_CREATED: task_created,
+    event_types.TASK_DETAILS_CHANGED: task_details_changed,
+    event_types.TASK_STATUS_CHANGED: task_status_changed,
+    event_types.TASK_PRIORITY_CHANGED: task_priority_changed,
+    event_types.TASK_ASSIGNEE_CHANGED: task_assignee_changed,
+    event_types.TASK_DELETED: task_deleted,
+    event_types.WORKLIST_CREATED: worklist_created,
+    event_types.WORKLIST_DETAILS_CHANGED: worklist_details_changed,
+    event_types.WORKLIST_PERMISSION_CREATED: worklist_permission_created,
+    event_types.WORKLIST_PERMISSIONS_CHANGED: worklist_permissions_changed,
+    event_types.WORKLIST_FILTERS_CHANGED: worklist_filters_changed,
+    event_types.WORKLIST_CONTENTS_CHANGED: worklist_contents_changed,
+    event_types.BOARD_CREATED: board_created,
+    event_types.BOARD_DETAILS_CHANGED: board_details_changed,
+    event_types.BOARD_PERMISSION_CREATED: board_permission_created,
+    event_types.BOARD_PERMISSIONS_CHANGED: board_permissions_changed,
+    event_types.BOARD_LANES_CHANGED: board_lanes_changed
+}

@@ -29,7 +29,7 @@ from storyboard.api.v1.search import search_engine
 from storyboard.api.v1.tags import TagsController
 from storyboard.api.v1.tasks import TasksNestedController
 from storyboard.api.v1.timeline import CommentsController
-from storyboard.api.v1.timeline import TimeLineEventsController
+from storyboard.api.v1.timeline import NestedTimeLineEventsController
 from storyboard.api.v1 import validations
 from storyboard.api.v1 import wmodels
 from storyboard.common import decorators
@@ -311,7 +311,7 @@ class StoriesController(rest.RestController):
             story_id, current_user=request.current_user_id)
 
     comments = CommentsController()
-    events = TimeLineEventsController()
+    events = NestedTimeLineEventsController()
     tasks = TasksNestedController()
     tags = TagsController()
 

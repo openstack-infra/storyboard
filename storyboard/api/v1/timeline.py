@@ -39,6 +39,101 @@ SEARCH_ENGINE = search_engine.get_engine()
 
 
 class TimeLineEventsController(rest.RestController):
+    """Manages timeline events."""
+
+    @decorators.db_exceptions
+    @secure(checks.guest)
+    @wsme_pecan.wsexpose(wmodels.TimeLineEvent, int)
+    def get_one(self, event_id):
+        """Retrieve details about one event.
+
+        Example::
+
+          curl https://my.example.org/api/v1/events/15994
+
+        :param event_id: An ID of the event.
+        """
+
+        event = events_api.event_get(event_id,
+                                     current_user=request.current_user_id)
+
+        if events_api.is_visible(event, request.current_user_id):
+            wsme_event = wmodels.TimeLineEvent.from_db_model(event)
+            wsme_event = wmodels.TimeLineEvent.resolve_event_values(wsme_event)
+            return wsme_event
+        else:
+            raise exc.NotFound(_("Event %s not found") % event_id)
+
+    @decorators.db_exceptions
+    @secure(checks.guest)
+    @wsme_pecan.wsexpose([wmodels.TimeLineEvent], int, int, int, [wtypes.text],
+                         int, int, wtypes.text, wtypes.text)
+    def get_all(self, story_id=None, worklist_id=None, board_id=None,
+                event_type=None, offset=None, limit=None,
+                sort_field=None, sort_dir=None):
+        """Retrieve a filtered list of all events.
+
+        With no filters or limit set this will likely take a long time
+        and return a very long list. Applying some filters is recommended.
+
+        Example::
+
+          curl https://my.example.org/api/v1/events
+
+        :param story_id: Filter events by story ID.
+        :param worklist_id: Filter events by worklist ID.
+        :param board_id: Filter events by board ID.
+        :param event_type: A selection of event types to get.
+        :param offset: The offset to start the page at.
+        :param limit: The number of events to retrieve.
+        :param sort_field: The name of the field to sort on.
+        :param sort_dir: Sort direction for results (asc, desc).
+        """
+        current_user = request.current_user_id
+
+        # Boundary check on limit.
+        if limit is not None:
+            limit = max(0, limit)
+
+        # Sanity check on event types.
+        if event_type:
+            for r_type in event_type:
+                if r_type not in event_types.ALL:
+                    msg = _('Invalid event_type requested. Event type must be '
+                            'one of the following: %s')
+                    msg = msg % (', '.join(event_types.ALL),)
+                    abort(400, msg)
+
+        events = events_api.events_get_all(story_id=story_id,
+                                           worklist_id=worklist_id,
+                                           board_id=board_id,
+                                           event_type=event_type,
+                                           sort_field=sort_field,
+                                           sort_dir=sort_dir,
+                                           current_user=current_user)
+
+        # Apply the query response headers.
+        if limit:
+            response.headers['X-Limit'] = str(limit)
+        if offset is not None:
+            response.headers['X-Offset'] = str(offset)
+
+        visible = [event for event in events
+                   if events_api.is_visible(event, current_user)]
+
+        if offset is None:
+            offset = 0
+        if limit is None:
+            limit = len(visible)
+
+        response.headers['X-Total'] = str(len(visible))
+
+        return [wmodels.TimeLineEvent.resolve_event_values(
+                wmodels.TimeLineEvent.from_db_model(event))
+                for event in visible[offset:limit + offset]]
+
+
+class NestedTimeLineEventsController(rest.RestController):
     """Manages comments."""
 
     @decorators.db_exceptions

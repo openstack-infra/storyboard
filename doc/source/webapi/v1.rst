@@ -38,6 +38,9 @@ Comments and Timeline events
    :webprefix: /v1/stories/<story_id>/comments
 
 .. rest-controller:: storyboard.api.v1.timeline:TimeLineEventsController
+   :webprefix: /v1/events
+
+.. rest-controller:: storyboard.api.v1.timeline:NestedTimeLineEventsController
    :webprefix: /v1/stories/<story_id>/events
 
 Tasks

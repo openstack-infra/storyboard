@@ -23,6 +23,8 @@ from wsme.rest.json import tojson
 from storyboard.api.v1.wmodels import TimeLineEvent
 from storyboard.common import event_types
 from storyboard.db.api import base as api_base
+from storyboard.db.api import stories as stories_api
+from storyboard.db.api import tasks as tasks_api
 from storyboard.db import models
 from storyboard.notifications.publisher import publish
 
@@ -35,11 +37,15 @@ def event_get(event_id, session=None, current_user=None):
     query = query.outerjoin(models.Story)
     query = api_base.filter_private_stories(query, current_user)
 
-    query = query.outerjoin(models.Worklist)
+    query = query.outerjoin((
+        models.Worklist,
+        models.Worklist.id == models.TimeLineEvent.worklist_id))
     query = api_base.filter_private_worklists(
         query, current_user, hide_lanes=False)
 
-    query = query.outerjoin(models.Board)
+    query = query.outerjoin((
+        models.Board,
+        models.Board.id == models.TimeLineEvent.board_id))
     query = api_base.filter_private_boards(query, current_user)
 
     return query.first()
@@ -55,11 +61,15 @@ def _events_build_query(current_user=None, **kwargs):
     query = query.outerjoin(models.Story)
     query = api_base.filter_private_stories(query, current_user)
 
-    query = query.outerjoin(models.Worklist)
+    query = query.outerjoin((
+        models.Worklist,
+        models.Worklist.id == models.TimeLineEvent.worklist_id))
     query = api_base.filter_private_worklists(
         query, current_user, hide_lanes=False)
 
-    query = query.outerjoin(models.Board)
+    query = query.outerjoin((
+        models.Board,
+        models.Board.id == models.TimeLineEvent.board_id))
     query = api_base.filter_private_boards(query, current_user)
 
     return query
@@ -109,6 +119,33 @@ def event_create(values):
                 resource_after=event_dict or None)
 
     return new_event
+
+
+def is_visible(event, user_id):
+    if event is None:
+        return False
+    if 'worklist_contents' in event.event_type:
+        event_info = json.loads(event.event_info)
+        if event_info['updated'] is not None:
+            info = event_info['updated']['old']
+        elif event_info['removed'] is not None:
+            info = event_info['removed']
+        elif event_info['added'] is not None:
+            info = event_info['added']
+        else:
+            return True
+
+        if info.get('item_type') == 'story':
+            story = stories_api.story_get_simple(
+                info['item_id'], current_user=user_id)
+            if story is None:
+                return False
+        elif info.get('item_type') == 'task':
+            task = tasks_api.task_get(
+                info['item_id'], current_user=user_id)
+            if task is None:
+                return False
+    return True
 
 
 def story_created_event(story_id, author_id, story_title):

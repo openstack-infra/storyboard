@@ -573,6 +573,7 @@ class ItemsSubcontroller(rest.RestController):
         removed = {
             "worklist_id": id,
             "item_id": card.item_id,
+            "item_type": card.item_type,
             "item_title": item.title
         }
         events_api.worklist_contents_changed_event(id,

@@ -434,7 +434,7 @@ def filter_private_worklists(query, current_user, hide_lanes=True):
     # into the lists which are in boards (`lanes`) and those which
     # aren't (`lists`). We then either hide the lanes entirely or
     # unify the two queries.
-    lanes = query.outerjoin(
+    lanes = query.join(
         (board_worklists, models.Worklist.id == board_worklists.list_id))
     lanes = (lanes
         .outerjoin((boards, boards.id == board_worklists.board_id))
@@ -484,7 +484,7 @@ def filter_private_worklists(query, current_user, hide_lanes=True):
         lists = lists.filter(
             or_(
                 models.Worklist.private == false(),
-                models.Worklist.id.is_(None)
+                models.Worklist.private.is_(None)
             )
         )
 

@@ -28,6 +28,7 @@ from storyboard.api.v1.tags import TagsController
 from storyboard.api.v1.task_statuses import TaskStatusesController
 from storyboard.api.v1.tasks import TasksPrimaryController
 from storyboard.api.v1.teams import TeamsController
+from storyboard.api.v1.timeline import TimeLineEventsController
 from storyboard.api.v1.users import UsersController
 from storyboard.api.v1.worklists import WorklistsController
 
@@ -50,5 +51,6 @@ class V1Controller(object):
     worklists = WorklistsController()
     boards = BoardsController()
     due_dates = DueDatesController()
+    events = TimeLineEventsController()
 
     openid = AuthController()
