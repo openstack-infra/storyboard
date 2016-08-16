@@ -9,6 +9,9 @@ Javascript-based web client.
 Installing and Upgrading the API server
 =======================================
 
+NOTE: If you are using a Virtual Machine (VM), all commands that begin with
+``tox`` will need to be preceeded by ``sudo``.
+
 1. To start the API server, make sure you have the following packages installed
    locally:
 
@@ -20,6 +23,7 @@ Installing and Upgrading the API server
 
     sudo apt-get update
     sudo apt-get install libpq-dev libmysqlclient-dev python-dev
+    sudo apt-get mysql-server-5.6    #Here you will be asked to set a password
     mysql --version
 
 
@@ -29,7 +33,11 @@ Installing and Upgrading the API server
     cd storyboard
 
 
-3. Add MySQL user and create database::
+3. Add MySQL user and create database:
+
+  NOTE: You will need to replace the ``$DB_USER`` with ``root`` and the
+  ``$DB_PASSWORD`` with the password you set when you ran
+  ``sudo apt-get mysql-server-5.6`` in step 1::
 
     mysql -u $DB_USER -p$DB_PASSWORD -e 'DROP DATABASE IF EXISTS storyboard;'
     mysql -u $DB_USER -p$DB_PASSWORD -e 'CREATE DATABASE storyboard;'
@@ -40,12 +48,16 @@ Installing and Upgrading the API server
     cp ./etc/storyboard.conf.sample ./etc/storyboard.conf
 
 
-5. Edit ``./etc/storyboard.conf`` and set the ``connection`` parameter in
-   the ``[database]`` section as per instructions in comments above that
-   parameter in the storyboard.conf file.
+5. Edit ``./etc/storyboard.conf`` and in the ``oauth`` section, add your IP
+   Adress to the list of ``valid_oauth_clients``. Then in the ``database``
+   section, on the line which reads
+   ``# connection = mysql+pymysql://root:pass@127.0.0.1:3306/storyboard``,
+   replace the ``pass`` with your password (the same as used in the above
+   steps). On both of these lines you will need to remove the ``#``.
 
 
-6. Install the correct version of tox. Latest tox has a bug. https://bugs.launchpad.net/openstack-ci/+bug/1274135::
+6. Install the correct version of tox. Latest tox has a bug.
+   https://bugs.launchpad.net/openstack-ci/+bug/1274135::
 
     pip install --upgrade "tox>=1.6,<1.7"
 
@@ -63,24 +75,17 @@ Installing and Upgrading the API server
 Installing the Javascript-based web client
 ==========================================
 
-1. To build and start the web client, you will need either of these
-   dependency sets installed locally:
 
-   * *Option 1:*
+1. To build and start the web client, you will need this dependency set
+   installed locally:
 
      * Python 2.6 or 2.7
      * NodeJS v0.10.29 or newer
      * NPM v1.3.10 or newer
 
      (Ubuntu Trusty packages are sufficient, even though they indicate an older
-     version. MySQL must be >= 5.6. )
+     version. MySQL must be >= 5.6.)
 
-   * *Option 2:*
-
-     * GCC 4.2 or newer
-     * Python 2.6 or 2.7
-     * GNU Make 3.81 or newer
-     * libexecinfo (FreeBSD and OpenBSD only)
 
 2. Clone storyboard::
 
@@ -88,18 +93,22 @@ Installing the Javascript-based web client
     cd storyboard-webclient
 
 
-3. Run a local development server, which uses the localhost API::
+Do one of the following that applies to you:
+
+ 3a. Run a local development server, which uses the localhost API::
 
     tox -egrunt_no_api -- serve
 
+or...
 
-4. Run a local development server, which binds to a specific IP and
+ 3b. Run a local development server, which binds to a specific IP and
    consumes the localhost API::
 
     tox -egrunt_no_api -- serve --hostname 0.0.0.0
 
+or...
 
-5. Run a local development server, which uses the production API::
+ 3c. Run a local development server, which uses the production API::
 
     tox -egrunt_no_api -- serve:prod
 
@@ -110,13 +119,13 @@ Make user an admin - current bug
 Once logged into the webclient, this user needs to be set to admin
 manually due to a current bug in Storyboard.
 
-1. Ensure that you have logged into your Storyboard instance at least once so that your
-   user details are stored in the database.
+1. Ensure that you have logged into your Storyboard instance at least once so
+   that your user details are stored in the database.
 
-2. Run mysql and change your user to superadmin:
+2. Run mysql and change your user to superadmin::
 
     mysql -u root -p
-    mysql> use storyboard;
+    use storyboard;
     update users set is_superuser=1;
 
 
@@ -127,11 +136,12 @@ StoryBoard has certain server dependencies which are often complicated to
 install on any development environment. To simplify this,
 we've provided a vagrantfile which includes all required services.
 
-The vagrant machine will handle mysql and rabbitmq (and set them up automatically)
-however be aware that it is not set up for actually running the api in the vagrant vm.
+The vagrant machine will handle mysql and rabbitmq (and set them up
+automatically) however be aware that it is not set up for actually running the
+api in the vagrant vm.
 
-Using the vagrant machine is useful because you can run the test suite against the
-database it provides.
+Using the vagrant machine is useful because you can run the test suite against
+the database it provides.
 
 1. Install [vagrant](https://www.vagrantup.com/)
 2. Install [VirtualBox](https://www.virtualbox.org/)
