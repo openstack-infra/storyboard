@@ -44,7 +44,7 @@ def _build_board_query(title=None, creator_id=None, user_id=None,
     query = api_base.model_query(models.Board, session=session).distinct()
 
     query = api_base.apply_query_filters(query=query,
-                                         model=models.Worklist,
+                                         model=models.Board,
                                          title=title,
                                          creator_id=creator_id,
                                          project_id=project_id)
