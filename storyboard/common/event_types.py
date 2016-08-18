@@ -1,4 +1,5 @@
 # Copyright (c) 2014 Mirantis Inc.
+# Copyright (c) 2016 Codethink Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,6 +33,27 @@ TASK_PRIORITY_CHANGED = "task_priority_changed"
 TASK_ASSIGNEE_CHANGED = "task_assignee_changed"
 TASK_DELETED = "task_deleted"
 
+WORKLIST_CREATED = "worklist_created"
+# WORKLIST_DETAILS_CHANGED should occur when a value in any of the fields
+# in the `worklists` database table is changed. Changes in related tables
+# such as worklist_permissions, worklist_filters, and worklist_items have
+# their own event types.
+WORKLIST_DETAILS_CHANGED = "worklist_details_changed"
+WORKLIST_PERMISSION_CREATED = "worklist_permission_created"
+WORKLIST_PERMISSIONS_CHANGED = "worklist_permissions_changed"
+WORKLIST_FILTERS_CHANGED = "worklist_filters_changed"
+WORKLIST_CONTENTS_CHANGED = "worklist_contents_changed"
+
+BOARD_CREATED = "board_created"
+# BOARD_DETAILS_CHANGED should occur when a value in any of the fields
+# in the `boards` database table is changed. Changes in related tables
+# such as board_permissions, and board_worklists have their own event
+# types.
+BOARD_DETAILS_CHANGED = "board_details_changed"
+BOARD_PERMISSION_CREATED = "board_permission_created"
+BOARD_PERMISSIONS_CHANGED = "board_permissions_changed"
+BOARD_LANES_CHANGED = "board_lanes_changed"
+
 ALL = (
     STORY_CREATED,
     STORY_DETAILS_CHANGED,
@@ -43,5 +65,16 @@ ALL = (
     TASK_DETAILS_CHANGED,
     TASK_STATUS_CHANGED,
     TASK_PRIORITY_CHANGED,
-    TASK_DELETED
+    TASK_DELETED,
+    WORKLIST_CREATED,
+    WORKLIST_DETAILS_CHANGED,
+    WORKLIST_PERMISSION_CREATED,
+    WORKLIST_PERMISSIONS_CHANGED,
+    WORKLIST_FILTERS_CHANGED,
+    WORKLIST_CONTENTS_CHANGED,
+    BOARD_CREATED,
+    BOARD_DETAILS_CHANGED,
+    BOARD_PERMISSION_CREATED,
+    BOARD_PERMISSIONS_CHANGED,
+    BOARD_LANES_CHANGED
 )

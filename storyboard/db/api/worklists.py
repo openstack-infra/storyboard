@@ -553,6 +553,8 @@ def create_filter(worklist_id, filter_dict):
     criteria = filter_dict.pop('filter_criteria')
     filter_dict['list_id'] = worklist_id
     filter = api_base.entity_create(models.WorklistFilter, filter_dict)
+
+    # Create criteria for the filter
     filter = api_base.entity_get(models.WorklistFilter, filter.id)
     filter.criteria = []
     for criterion in criteria:
@@ -567,20 +569,23 @@ def create_filter(worklist_id, filter_dict):
 def update_filter(filter_id, update):
     old_filter = api_base.entity_get(models.WorklistFilter, filter_id)
     if 'filter_criteria' in update:
-        new_ids = [criterion.id for criterion in update['filter_criteria']]
+        # Change the criteria for this filter. If an ID is provided, change
+        # the criterion to match the provided criterion. If no ID is provided,
+        # create a new criterion and add it to the filter.
         for criterion in update['filter_criteria']:
             criterion_dict = criterion.as_dict(omit_unset=True)
             if 'id' in criterion_dict:
-                existing = api_base.entity_get(models.FilterCriterion,
-                                               criterion['id'])
-                if existing.as_dict() != criterion_dict:
-                    api_base.entity_update(models.FilterCriterion,
-                                           criterion_dict['id'],
-                                           criterion_dict)
+                id = criterion_dict.pop('id')
+                api_base.entity_update(models.FilterCriterion,
+                                       id, criterion_dict)
             else:
                 created = api_base.entity_create(models.FilterCriterion,
                                                  criterion_dict)
+                criterion.id = created
                 old_filter.criteria.append(created)
+
+        # Remove criteria which aren't in the provided set
+        new_ids = [criterion.id for criterion in update['filter_criteria']]
         for criterion in old_filter.criteria:
             if criterion.id not in new_ids:
                 old_filter.criteria.remove(criterion)

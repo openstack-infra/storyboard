@@ -51,9 +51,11 @@ class Subscription(WorkerTaskBase):
         if resource == 'timeline_event':
             event = db_api.entity_get(models.TimeLineEvent, resource_id,
                                       session=session)
-            subscribers = sub_api.subscription_get_all_subscriber_ids(
-                'story', event.story_id, session=session)
-            self.handle_timeline_events(session, event, author, subscribers)
+            if event.story_id is not None:
+                subscribers = sub_api.subscription_get_all_subscriber_ids(
+                    'story', event.story_id, session=session)
+                self.handle_timeline_events(
+                    session, event, author, subscribers)
 
         elif resource == 'project_group':
             subscribers = sub_api.subscription_get_all_subscriber_ids(
