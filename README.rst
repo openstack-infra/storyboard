@@ -1,7 +1,11 @@
 Storyboard
 ==========
 
-Storyboard is a task tracker for OpenStack.
+Storyboard is a task tracker created to serve the needs of highly-distributed
+systems that span multiple projects, to enable cross-project work on a massive
+scale.  Concepts were adapted from existing tools, and as many potential points
+of contention were removed as possible, to better facilitate coordination of
+project work by stakeholders with widely varied interests and needs.
 
 
 -----------------
