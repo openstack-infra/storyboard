@@ -44,6 +44,10 @@ class UsersSubcontroller(rest.RestController):
     def get(self, team_id):
         """Get users inside a team.
 
+        Example::
+
+          curl https://my.example.org/api/v1/teams/1/users
+
         :param team_id: An ID of the team.
         """
 
@@ -62,6 +66,10 @@ class UsersSubcontroller(rest.RestController):
     def put(self, team_id, user_id):
         """Add a user to a team.
 
+        Example::
+
+          TODO
+
         :param team_id: An ID of the team.
         :param user_id: An ID of the user.
         """
@@ -77,6 +85,10 @@ class UsersSubcontroller(rest.RestController):
     @wsme_pecan.wsexpose(None, int, int, status_code=204)
     def delete(self, team_id, user_id):
         """Delete a user from a team.
+
+        Example::
+
+          TODO
 
         :param team_id: An ID of the team.
         :param user_id: An ID of the user.
@@ -130,6 +142,10 @@ class TeamsController(rest.RestController):
             description=None, sort_field='id', sort_dir='asc'):
         """Retrieve a list of teams.
 
+        Example::
+
+          curl https://my.example.org/api/v1/teams
+
         :param offset: The offset at which to start the page.
         :param marker: The resource id where the page should begin.
         :param limit: The number of teams to retrieve.
@@ -173,6 +189,10 @@ class TeamsController(rest.RestController):
     def post(self, team):
         """Create a new team.
 
+        Example::
+
+          TODO
+
         :param team: a team within the request body.
         """
         result = teams_api.team_create(team.as_dict())
@@ -183,6 +203,10 @@ class TeamsController(rest.RestController):
     @wsme_pecan.wsexpose(wmodels.Team, int, body=wmodels.Team)
     def put(self, team_id, team):
         """Modify this team.
+
+        Example::
+
+          TODO
 
         :param team_id: An ID of the team.
         :param team: A team within the request body.
@@ -228,6 +252,10 @@ class TeamsController(rest.RestController):
     @wsme_pecan.wsexpose(None, int, status_code=204)
     def delete(self, team_id):
         """Delete this team.
+
+        Example::
+
+          TODO
 
         :param team_id: An ID of the team.
         """
