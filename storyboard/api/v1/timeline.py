@@ -29,6 +29,7 @@ from storyboard.common import decorators
 from storyboard.common import event_types
 from storyboard.common import exception as exc
 from storyboard.db.api import comments as comments_api
+from storyboard.db.api import stories as stories_api
 from storyboard.db.api import timeline_events as events_api
 from storyboard.openstack.common.gettextutils import _  # noqa
 
@@ -57,7 +58,8 @@ class TimeLineEventsController(rest.RestController):
         :param event_id: An ID of the event.
         """
 
-        event = events_api.event_get(event_id)
+        event = events_api.event_get(event_id,
+                                     current_user=request.current_user_id)
 
         if event:
             wsme_event = wmodels.TimeLineEvent.from_db_model(event)
@@ -87,6 +89,8 @@ class TimeLineEventsController(rest.RestController):
         :param sort_dir: Sort direction for results (asc, desc).
         """
 
+        current_user = request.current_user_id
+
         # Boundary check on limit.
         if limit is not None:
             limit = max(0, limit)
@@ -106,14 +110,16 @@ class TimeLineEventsController(rest.RestController):
             marker_event = events_api.event_get(marker)
 
         event_count = events_api.events_get_count(story_id=story_id,
-                                                  event_type=event_type)
+                                                  event_type=event_type,
+                                                  current_user=current_user)
         events = events_api.events_get_all(story_id=story_id,
                                            event_type=event_type,
                                            marker=marker_event,
                                            offset=offset,
                                            limit=limit,
                                            sort_field=sort_field,
-                                           sort_dir=sort_dir)
+                                           sort_dir=sort_dir,
+                                           current_user=current_user)
 
         # Apply the query response headers.
         if limit:
@@ -141,6 +147,15 @@ class CommentsHistoryController(rest.RestController):
         :param comment_id: The ID of the comment to inspect history of.
         """
         comment = comments_api.comment_get(comment_id)
+        if comment is None:
+            raise exc.NotFound(_("Comment %s not found") % comment_id)
+
+        # Check that the user can actually see the relevant story
+        story = stories_api.story_get_simple(
+            comment.event[0].story_id, current_user=request.current_user_id)
+        if story is None:
+            raise exc.NotFound(_("Comment %s not found") % comment_id)
+
         return [wmodels.Comment.from_db_model(old_comment)
                 for old_comment in comment.history]
 
@@ -166,13 +181,17 @@ class CommentsController(rest.RestController):
                          comments have their own unique ids.
         :param comment_id: An ID of the comment.
         """
-
         comment = comments_api.comment_get(comment_id)
-
-        if comment:
-            return wmodels.Comment.from_db_model(comment)
-        else:
+        if comment is None:
             raise exc.NotFound(_("Comment %s not found") % comment_id)
+
+        # Check that the user can actually see the relevant story
+        story = stories_api.story_get_simple(
+            comment.event[0].story_id, current_user=request.current_user_id)
+        if story is None:
+            raise exc.NotFound(_("Comment %s not found") % comment_id)
+
+        return wmodels.Comment.from_db_model(comment)
 
     @decorators.db_exceptions
     @secure(checks.guest)
@@ -192,6 +211,7 @@ class CommentsController(rest.RestController):
         :param sort_field: The name of the field to sort on.
         :param sort_dir: Sort direction for results (asc, desc).
         """
+        current_user = request.current_user_id
 
         # Boundary check on limit.
         if limit is not None:
@@ -202,20 +222,23 @@ class CommentsController(rest.RestController):
         if marker:
             event_query = \
                 events_api.events_get_all(comment_id=marker,
-                                          event_type=event_types.USER_COMMENT)
+                                          event_type=event_types.USER_COMMENT,
+                                          current_user=current_user)
             if len(event_query) > 0:
                 marker_event = event_query[0]
 
         events_count = events_api.events_get_count(
             story_id=story_id,
-            event_type=event_types.USER_COMMENT)
+            event_type=event_types.USER_COMMENT,
+            current_user=current_user)
 
         events = events_api.events_get_all(story_id=story_id,
                                            marker=marker_event,
                                            limit=limit,
                                            event_type=event_types.USER_COMMENT,
                                            sort_field=sort_field,
-                                           sort_dir=sort_dir)
+                                           sort_dir=sort_dir,
+                                           current_user=current_user)
 
         comments = [comments_api.comment_get(event.comment_id)
                     for event in events]

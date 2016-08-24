@@ -490,6 +490,7 @@ class TimeLineEvent(ModelBuilder, Base):
     worklist_id = Column(Integer, ForeignKey('worklists.id'), nullable=True)
     board_id = Column(Integer, ForeignKey('boards.id'), nullable=True)
     comment_id = Column(Integer, ForeignKey('comments.id'), nullable=True)
+    comment = relationship('Comment', backref='event')
     author_id = Column(Integer, ForeignKey('users.id'), nullable=True)
 
     event_type = Column(Enum(*event_types.ALL), nullable=False)

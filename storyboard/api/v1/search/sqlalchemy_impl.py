@@ -91,10 +91,13 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
 
         return query.all()
 
-    def comments_query(self, q, marker=None, offset=None,
-                       limit=None, **kwargs):
+    def comments_query(self, q, marker=None, offset=None, limit=None,
+                       current_user=None, **kwargs):
         session = api_base.get_session()
         query = api_base.model_query(models.Comment, session)
+        query = query.outerjoin(models.Story)
+        query = api_base.filter_private_stories(query, current_user)
+
         query = self._build_fulltext_search(models.Comment, query, q)
         query = self._apply_pagination(
             models.Comment, query, marker, offset, limit)

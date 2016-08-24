@@ -29,23 +29,63 @@ from storyboard.notifications.publisher import publish
 CONF = cfg.CONF
 
 
-def event_get(event_id):
-    return api_base.entity_get(models.TimeLineEvent, event_id)
+def event_get(event_id, session=None, current_user=None):
+    query = (api_base.model_query(models.TimeLineEvent, session)
+        .filter_by(id=event_id))
+    query = query.outerjoin(models.Story)
+    query = api_base.filter_private_stories(query, current_user)
+
+    query = query.outerjoin(models.Worklist)
+    query = api_base.filter_private_worklists(
+        query, current_user, hide_lanes=False)
+
+    query = query.outerjoin(models.Board)
+    query = api_base.filter_private_boards(query, current_user)
+
+    return query.first()
 
 
-def events_get_all(marker=None, limit=None, sort_field=None, sort_dir=None,
-                   **kwargs):
-    return api_base.entity_get_all(models.TimeLineEvent,
-                                   marker=marker,
-                                   limit=limit,
-                                   sort_field=sort_field,
-                                   sort_dir=sort_dir,
-                                   **kwargs)
+def _events_build_query(current_user=None, **kwargs):
+    query = api_base.model_query(models.TimeLineEvent).distinct()
+
+    query = api_base.apply_query_filters(query=query,
+                                         model=models.TimeLineEvent,
+                                         **kwargs)
+
+    query = query.outerjoin(models.Story)
+    query = api_base.filter_private_stories(query, current_user)
+
+    query = query.outerjoin(models.Worklist)
+    query = api_base.filter_private_worklists(
+        query, current_user, hide_lanes=False)
+
+    query = query.outerjoin(models.Board)
+    query = api_base.filter_private_boards(query, current_user)
+
+    return query
 
 
-def events_get_count(**kwargs):
-    return api_base.entity_get_count(models.TimeLineEvent,
-                                     **kwargs)
+def events_get_all(marker=None, offset=None, limit=None, sort_field=None,
+                   sort_dir=None, current_user=None, **kwargs):
+    if sort_field is None:
+        sort_field = 'id'
+    if sort_dir is None:
+        sort_dir = 'asc'
+
+    query = _events_build_query(current_user=current_user, **kwargs)
+    query = api_base.paginate_query(query=query,
+                                    model=models.TimeLineEvent,
+                                    marker=marker,
+                                    limit=limit,
+                                    offset=offset,
+                                    sort_key=sort_field,
+                                    sort_dir=sort_dir)
+    return query.all()
+
+
+def events_get_count(current_user=None, **kwargs):
+    query = _events_build_query(current_user=current_user, **kwargs)
+    return query.count()
 
 
 def event_create(values):

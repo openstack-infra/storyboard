@@ -472,7 +472,7 @@ def filter_private_worklists(query, current_user, hide_lanes=True):
             or_(
                 and_(
                     users.id == current_user,
-                    boards.private == true()
+                    models.Worklist.private == true()
                 ),
                 models.Worklist.private == false(),
                 models.Worklist.id.is_(None)
