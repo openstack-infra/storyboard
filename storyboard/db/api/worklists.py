@@ -13,9 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from sqlalchemy import and_, or_
 from sqlalchemy.orm import aliased
-from sqlalchemy.sql.expression import false, true
 from wsme.exc import ClientSideError
 
 from storyboard.common import exception as exc
@@ -51,53 +49,7 @@ def _build_worklist_query(title=None, creator_id=None, project_id=None,
                                          creator_id=creator_id,
                                          project_id=project_id)
 
-    # Filter out lists that the current user can't see.
-    # This gets complicated because worklists permissions must be
-    # inherited from the board which contains the list (if any). To
-    # handle this we split the query into the  lists which are in
-    # boards (`lanes`) and those which aren't (`lists`). We then
-    # either hide the lanes entirely or unify the two queries.
-    lanes = query.join(models.BoardWorklist,
-                       models.Board,
-                       models.board_permissions)
-    lanes = lanes.join(models.Permission,
-                       models.user_permissions,
-                       models.User)
-    lists = query.outerjoin(models.BoardWorklist)
-    lists = lists.filter(models.BoardWorklist.board_id.is_(None))
-    lists = lists.join(models.worklist_permissions,
-                       models.Permission,
-                       models.user_permissions,
-                       models.User)
-    if current_user:
-        if not hide_lanes:
-            lanes = lanes.filter(
-                or_(
-                    and_(
-                        models.User.id == current_user,
-                        models.Board.private == true()
-                    ),
-                    models.Board.private == false()
-                )
-            )
-        lists = lists.filter(
-            or_(
-                and_(
-                    models.User.id == current_user,
-                    models.Worklist.private == true()
-                ),
-                models.Worklist.private == false()
-            )
-        )
-    else:
-        if not hide_lanes:
-            lanes = lanes.filter(models.Board.private == false())
-        lists = lists.filter(models.Worklist.private == false())
-
-    if hide_lanes:
-        query = lists
-    else:
-        query = lists.union(lists)
+    query = api_base.filter_private_worklists(query, current_user)
 
     # Filter by lists that a given user has permissions to use
     if user_id:
@@ -231,43 +183,13 @@ def get_visible_items(worklist, current_user=None):
     stories = worklist.items.filter(models.WorklistItem.item_type == 'story')
     stories = stories.join(
         (models.Story, models.Story.id == models.WorklistItem.item_id))
-    stories = stories.outerjoin(models.story_permissions,
-                                models.Permission,
-                                models.user_permissions,
-                                models.User)
-    if current_user is not None:
-        stories = stories.filter(
-            or_(
-                and_(
-                    models.User.id == current_user,
-                    models.Story.private == true()
-                ),
-                models.Story.private == false()
-            )
-        )
-    else:
-        stories = stories.filter(models.Story.private == false())
+    stories = api_base.filter_private_stories(stories, current_user)
 
     tasks = worklist.items.filter(models.WorklistItem.item_type == 'task')
     tasks = tasks.join(
         (models.Task, models.Task.id == models.WorklistItem.item_id))
-    tasks = tasks.outerjoin(models.Story,
-                            models.story_permissions,
-                            models.Permission,
-                            models.user_permissions,
-                            models.User)
-    if current_user is not None:
-        tasks = tasks.filter(
-            or_(
-                and_(
-                    models.User.id == current_user,
-                    models.Story.private == true()
-                ),
-                models.Story.private == false()
-            )
-        )
-    else:
-        tasks = tasks.filter(models.Story.private == false())
+    tasks = tasks.outerjoin(models.Story)
+    tasks = api_base.filter_private_stories(tasks, current_user)
 
     return stories.union(tasks)
 

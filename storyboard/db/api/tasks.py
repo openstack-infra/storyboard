@@ -13,9 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from sqlalchemy import and_, or_
-from sqlalchemy.sql.expression import false, true
-
 from storyboard.db.api import base as api_base
 from storyboard.db import models
 
@@ -25,23 +22,8 @@ def task_get(task_id, session=None, current_user=None):
     query = query.filter(models.Task.id == task_id)
 
     # Filter out tasks or stories that the current user can't see
-    query = query.outerjoin(models.Story,
-                            models.story_permissions,
-                            models.Permission,
-                            models.user_permissions,
-                            models.User)
-    if current_user is not None:
-        query = query.filter(
-            or_(
-                and_(
-                    models.User.id == current_user,
-                    models.Story.private == true()
-                ),
-                models.Story.private == false()
-            )
-        )
-    else:
-        query = query.filter(models.Story.private == false())
+    query = query.outerjoin(models.Story)
+    query = api_base.filter_private_stories(query, current_user)
 
     return query.first()
 
@@ -106,23 +88,8 @@ def task_build_query(project_group_id, current_user=None, **kwargs):
                                          **kwargs)
 
     # Filter out tasks or stories that the current user can't see
-    query = query.outerjoin(models.Story,
-                            models.story_permissions,
-                            models.Permission,
-                            models.user_permissions,
-                            models.User)
-    if current_user is not None:
-        query = query.filter(
-            or_(
-                and_(
-                    models.User.id == current_user,
-                    models.Story.private == true()
-                ),
-                models.Story.private == false()
-            )
-        )
-    else:
-        query = query.filter(models.Story.private == false())
+    query = query.outerjoin(models.Story)
+    query = api_base.filter_private_stories(query, current_user)
 
     return query
 

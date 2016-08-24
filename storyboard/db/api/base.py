@@ -23,6 +23,9 @@ from oslo_db.sqlalchemy.utils import paginate_query as utils_paginate_query
 from oslo_log import log
 from pecan import request
 import six
+from sqlalchemy import and_, or_
+from sqlalchemy.orm import aliased
+from sqlalchemy.sql.expression import false, true
 import sqlalchemy.types as sqltypes
 
 from storyboard.common import exception as exc
@@ -371,3 +374,163 @@ def entity_hard_delete(kls, entity_id, session=None):
         raise exc.DBDeadLock()
     except db_exc.DBInvalidUnicodeParameter:
         raise exc.DBInvalidUnicodeParameter()
+
+
+def filter_private_stories(query, current_user, story_model=models.Story):
+    """Takes a query and filters out stories the user shouldn't see.
+
+    :param query: The query to be filtered.
+    :param current_user: The ID of the user requesting the result.
+    :param story_model: The database model used for stories in the query.
+
+    """
+    query = query.outerjoin(models.story_permissions,
+                            models.Permission,
+                            models.user_permissions,
+                            models.User)
+    if current_user:
+        query = query.filter(
+            or_(
+                and_(
+                    models.User.id == current_user,
+                    story_model.private == true()
+                ),
+                story_model.private == false(),
+                story_model.id.is_(None)
+            )
+        )
+    else:
+        query = query.filter(
+            or_(
+                story_model.private == false(),
+                story_model.id.is_(None)
+            )
+        )
+
+    return query
+
+
+def filter_private_worklists(query, current_user, hide_lanes=True):
+    """Takes a query and filters out worklists the user shouldn't see.
+
+    :param query: The query to be filtered.
+    :param current_user: The ID of the user requesting the result.
+    :param hide_lanes: Whether or not to also filter out worklists which
+    are lanes in a board.
+
+    """
+    # Alias all the things we're joining, in case they've been
+    # joined already.
+    board_worklists = aliased(models.BoardWorklist)
+    boards = aliased(models.Board)
+    board_permissions = aliased(models.board_permissions)
+    worklist_permissions = aliased(models.worklist_permissions)
+    permissions = aliased(models.Permission)
+    user_permissions = aliased(models.user_permissions)
+    users = aliased(models.User)
+
+    # Worklists permissions must be inherited from the board which
+    # contains the list (if any). To handle this we split the query
+    # into the lists which are in boards (`lanes`) and those which
+    # aren't (`lists`). We then either hide the lanes entirely or
+    # unify the two queries.
+    lanes = query.outerjoin(
+        (board_worklists, models.Worklist.id == board_worklists.list_id))
+    lanes = (lanes
+        .outerjoin((boards, boards.id == board_worklists.board_id))
+        .outerjoin((board_permissions,
+                    boards.id == board_permissions.c.board_id))
+        .outerjoin((permissions,
+                    permissions.id == board_permissions.c.permission_id))
+        .outerjoin((user_permissions,
+                    permissions.id == user_permissions.c.permission_id))
+        .outerjoin((users, user_permissions.c.user_id == users.id)))
+
+    lists = query.outerjoin(
+        (board_worklists, models.Worklist.id == board_worklists.list_id))
+    lists = (lists.filter(board_worklists.board_id.is_(None))
+        .outerjoin((worklist_permissions,
+                    models.Worklist.id == worklist_permissions.c.worklist_id))
+        .outerjoin((permissions,
+                    permissions.id == worklist_permissions.c.permission_id))
+        .outerjoin((user_permissions,
+                    user_permissions.c.permission_id == permissions.id))
+        .outerjoin((users, user_permissions.c.user_id == users.id)))
+
+    if current_user:
+        if not hide_lanes:
+            lanes = lanes.filter(
+                or_(
+                    and_(
+                        users.id == current_user,
+                        boards.private == true()
+                    ),
+                    boards.private == false()
+                )
+            )
+        lists = lists.filter(
+            or_(
+                and_(
+                    users.id == current_user,
+                    boards.private == true()
+                ),
+                models.Worklist.private == false(),
+                models.Worklist.id.is_(None)
+            )
+        )
+    else:
+        if not hide_lanes:
+            lanes = lanes.filter(boards.private == false())
+        lists = lists.filter(
+            or_(
+                models.Worklist.private == false(),
+                models.Worklist.id.is_(None)
+            )
+        )
+
+    if hide_lanes:
+        return lists
+    return lists.union(lanes)
+
+
+def filter_private_boards(query, current_user):
+    """Takes a query and filters out the boards that the user should not see.
+
+    :param query: The query to be filtered.
+    :param current_user: The ID of the user requesting the result.
+
+    """
+    board_permissions = aliased(models.board_permissions)
+    permissions = aliased(models.Permission)
+    user_permissions = aliased(models.user_permissions)
+    users = aliased(models.User)
+
+    query = (query
+        .outerjoin((board_permissions,
+                    models.Board.id == board_permissions.c.board_id))
+        .outerjoin((permissions,
+                    board_permissions.c.permission_id == permissions.id))
+        .outerjoin((user_permissions,
+                    permissions.id == user_permissions.c.permission_id))
+        .outerjoin((users, user_permissions.c.user_id == users.id)))
+
+    if current_user:
+        query = query.filter(
+            or_(
+                and_(
+                    users.id == current_user,
+                    models.Board.private == true()
+                ),
+                models.Board.private == false(),
+                models.Board.id.is_(None)
+            )
+        )
+    else:
+        query = query.filter(
+            or_(
+                models.Board.private == false(),
+                models.Board.id.is_(None)
+            )
+        )
+
+    return query
