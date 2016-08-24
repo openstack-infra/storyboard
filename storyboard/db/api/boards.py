@@ -13,9 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from sqlalchemy import and_, or_
 from sqlalchemy.orm import aliased, subqueryload
-from sqlalchemy.sql.expression import false, true
 from wsme.exc import ClientSideError
 
 from storyboard.db.api import base as api_base
@@ -50,22 +48,7 @@ def _build_board_query(title=None, creator_id=None, user_id=None,
                                          project_id=project_id)
 
     # Filter out boards that the current user can't see
-    query = query.join(models.board_permissions,
-                       models.Permission,
-                       models.user_permissions,
-                       models.User)
-    if current_user:
-        query = query.filter(
-            or_(
-                and_(
-                    models.User.id == current_user,
-                    models.Board.private == true()
-                ),
-                models.Board.private == false()
-            )
-        )
-    else:
-        query = query.filter(models.Board.private == false())
+    query = api_base.filter_private_boards(query, current_user)
 
     # Filter by boards that a given user has permissions to use
     if user_id:

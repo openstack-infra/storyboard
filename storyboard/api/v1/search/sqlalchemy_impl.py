@@ -13,9 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from sqlalchemy import and_, or_
 from sqlalchemy.orm import subqueryload
-from sqlalchemy.sql.expression import false, true
 from sqlalchemy_fulltext import FullTextSearch
 import sqlalchemy_fulltext.modes as FullTextMode
 
@@ -62,22 +60,7 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
         subquery = api_base.model_query(models.Story, session)
 
         # Filter out stories that the current user can't see
-        subquery = subquery.outerjoin(models.story_permissions,
-                                      models.Permission,
-                                      models.user_permissions,
-                                      models.User)
-        if current_user is not None:
-            subquery = subquery.filter(
-                or_(
-                    and_(
-                        models.User.id == current_user,
-                        models.Story.private == true()
-                    ),
-                    models.Story.private == false()
-                )
-            )
-        else:
-            subquery = subquery.filter(models.Story.private == false())
+        subquery = api_base.filter_private_stories(subquery, current_user)
 
         subquery = self._build_fulltext_search(models.Story, subquery, q)
         subquery = self._apply_pagination(models.Story,
@@ -99,23 +82,8 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
         query = api_base.model_query(models.Task, session)
 
         # Filter out tasks or stories that the current user can't see
-        query = query.outerjoin(models.Story,
-                                models.story_permissions,
-                                models.Permission,
-                                models.user_permissions,
-                                models.User)
-        if current_user is not None:
-            query = query.filter(
-                or_(
-                    and_(
-                        models.User.id == current_user,
-                        models.Story.private == true()
-                    ),
-                    models.Story.private == false()
-                )
-            )
-        else:
-            query = query.filter(models.Story.private == false())
+        query = query.outerjoin(models.Story)
+        query = api_base.filter_private_stories(query, current_user)
 
         query = self._build_fulltext_search(models.Task, query, q)
         query = self._apply_pagination(
