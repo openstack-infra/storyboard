@@ -19,6 +19,7 @@ from sqlalchemy.orm import subqueryload
 from storyboard.db.api import base as api_base
 from storyboard.db.api import stories as stories_api
 from storyboard.db.api import tasks as tasks_api
+from storyboard.db.api import worklists as worklists_api
 from storyboard.db import models
 from storyboard.db.models import TimeLineEvent
 
@@ -53,6 +54,11 @@ def subscription_get_resource(target_type, target_id, current_user=None):
         return stories_api.story_get(target_id, current_user=current_user)
     elif target_type == 'task':
         return tasks_api.task_get(target_id, current_user=current_user)
+    elif target_type == 'worklist':
+        worklist = worklists_api.get(target_id)
+        if worklists_api.visible(worklist, current_user):
+            return worklist
+        return None
 
     return api_base.entity_get(SUPPORTED_TYPES[target_type], target_id)
 
