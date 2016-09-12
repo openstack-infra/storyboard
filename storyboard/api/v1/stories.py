@@ -50,8 +50,10 @@ def create_story_wmodel(story):
     story_model.summarize_task_statuses(story)
     if story.permissions:
         story_model.resolve_users(story)
+        story_model.resolve_teams(story)
     else:
         story_model.users = []
+        story_model.teams = []
     return story_model
 
 
@@ -207,17 +209,22 @@ class StoriesController(rest.RestController):
         if "due_dates" in story_dict:
             del story_dict['due_dates']
 
-        users = []
+        users = None
+        teams = None
         if "users" in story_dict:
             users = story_dict.pop("users")
         if users is None:
             users = [wmodels.User.from_db_model(users_api.user_get(user_id))]
+        if "teams" in story_dict:
+            teams = story_dict.pop("teams")
+        if teams is None:
+            teams = []
 
         created_story = stories_api.story_create(story_dict)
         events_api.story_created_event(created_story.id, user_id, story.title)
 
         if story.private:
-            stories_api.create_permission(created_story, users)
+            stories_api.create_permission(created_story, users, teams)
 
         return wmodels.Story.from_db_model(created_story)
 
@@ -237,6 +244,7 @@ class StoriesController(rest.RestController):
         :param story_id: An ID of the story.
         :param story: A story within the request body.
         """
+        user_id = request.current_user_id
 
         # Reject private story types while ACL is not created.
         if (story.story_type_id and
@@ -245,7 +253,7 @@ class StoriesController(rest.RestController):
                   story.story_type_id)
 
         original_story = stories_api.story_get_simple(
-            story_id, current_user=request.current_user_id)
+            story_id, current_user=user_id)
 
         if not original_story:
             raise exc.NotFound(_("Story %s not found") % story_id)
@@ -267,28 +275,54 @@ class StoriesController(rest.RestController):
         if 'tags' in story_dict:
             story_dict.pop('tags')
 
-        users = story_dict.get("users", [])
-        ids = [user.id for user in users]
-        if story.private:
-            if request.current_user_id not in ids \
-                    and not original_story.permissions:
-                users.append(wmodels.User.from_db_model(
-                    users_api.user_get(request.current_user_id)))
+        users = story_dict.get("users")
+        teams = story_dict.get("teams")
+
+        private = story_dict.get("private", original_story.private)
+        if private:
+            # If trying to make a story private with no permissions set, add
+            # the user making the change to the permission so that at least
+            # the story isn't lost to everyone.
+            if not users and not teams and not original_story.permissions:
+                users = [wmodels.User.from_db_model(
+                    users_api.user_get(user_id))]
+
+            original_teams = None
+            original_users = None
+            if original_story.permissions:
+                original_teams = original_story.permissions[0].teams
+                original_users = original_story.permissions[0].users
+
+            # Don't allow both permission lists to be deliberately emptied
+            # on a private story, to make sure the story remains visible to
+            # at least someone.
+            valid = True
+            if users == [] and teams == []:
+                valid = False
+            elif users == [] and original_teams == []:
+                valid = False
+            elif teams == [] and original_users == []:
+                valid = False
+            if not valid and original_story.private:
+                abort(400,
+                      _("Can't make a private story have no users or teams"))
+
+            # If the story doesn't already have permissions, create them.
             if not original_story.permissions:
-                stories_api.create_permission(original_story, users)
+                stories_api.create_permission(original_story, users, teams)
 
         updated_story = stories_api.story_update(
             story_id,
             story_dict,
-            current_user=request.current_user_id)
+            current_user=user_id)
 
-        if users == [] and updated_story.private:
-            abort(400, _("Can't make a private story with no users"))
+        # If the story is private and already has some permissions, update
+        # them as needed. This is done after updating the story in case the
+        # request is trying to both update some story fields and also remove
+        # the user making the change from the ACL.
+        if private and original_story.permissions:
+            stories_api.update_permission(updated_story, users, teams)
 
-        if story.private:
-            stories_api.update_permission(updated_story, users)
-
-        user_id = request.current_user_id
         events_api.story_details_changed_event(story_id, user_id,
                                                updated_story.title)
 

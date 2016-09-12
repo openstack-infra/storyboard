@@ -182,6 +182,24 @@ class User(base.APIBase):
             last_login=datetime(2014, 1, 1, 16, 42))
 
 
+class Team(base.APIBase):
+    """The Team is a group of Users with a fixed set of permissions."""
+
+    name = NameType()
+    """The Team unique name. This name will be displayed in the URL.
+    At least 3 alphanumeric symbols. Minus and dot symbols are allowed as
+    separators."""
+
+    description = wtypes.text
+    """Details about the team."""
+
+    @classmethod
+    def sample(cls):
+        return cls(
+            name="StoryBoard-core",
+            description="Core reviewers of StoryBoard team.")
+
+
 class Story(base.APIBase):
     """The Story is the main element of StoryBoard. It represents a user story
     (generally a bugfix or a feature) that needs to be implemented. It will be
@@ -222,6 +240,9 @@ class Story(base.APIBase):
     users = wtypes.ArrayType(User)
     """The set of users with permission to see this story if it is private."""
 
+    teams = wtypes.ArrayType(Team)
+    """The set of teams with permission to see this story if it is private."""
+
     @classmethod
     def sample(cls):
         return cls(
@@ -251,6 +272,12 @@ class Story(base.APIBase):
         users = [api_base._filter_non_public_fields(user, user._public_fields)
                  for user in story.permissions[0].users]
         self.users = [User.from_db_model(user) for user in users]
+
+    @nodoc
+    def resolve_teams(self, story):
+        """Resolve the teams who can see the story."""
+        self.teams = [Team.from_db_model(team)
+                      for team in story.permissions[0].teams]
 
 
 class Tag(base.APIBase):
@@ -387,24 +414,6 @@ class Milestone(base.APIBase):
             expired=True,
             expiration_date=datetime(2015, 1, 1, 1, 1)
         )
-
-
-class Team(base.APIBase):
-    """The Team is a group of Users with a fixed set of permissions."""
-
-    name = NameType()
-    """The Team unique name. This name will be displayed in the URL.
-    At least 3 alphanumeric symbols. Minus and dot symbols are allowed as
-    separators."""
-
-    description = wtypes.text
-    """Details about the team."""
-
-    @classmethod
-    def sample(cls):
-        return cls(
-            name="StoryBoard-core",
-            description="Core reviewers of StoryBoard team.")
 
 
 class TimeLineEvent(base.APIBase):
