@@ -22,6 +22,7 @@ from wsme import types as wtypes
 from storyboard.api.v1 import base
 from storyboard.common.custom_types import NameType
 from storyboard.common import event_resolvers
+from storyboard.db.api import base as api_base
 from storyboard.db.api import boards as boards_api
 from storyboard.db.api import comments as comments_api
 from storyboard.db.api import due_dates as due_dates_api
@@ -247,8 +248,9 @@ class Story(base.APIBase):
     @nodoc
     def resolve_users(self, story):
         """Resolve the people who can see the story."""
-        self.users = [User.from_db_model(user)
-                      for user in story.permissions[0].users]
+        users = [api_base._filter_non_public_fields(user, user._public_fields)
+                 for user in story.permissions[0].users]
+        self.users = [User.from_db_model(user) for user in users]
 
 
 class Tag(base.APIBase):
