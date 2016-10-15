@@ -50,7 +50,8 @@ class UsersController(rest.RestController):
     # Import user token management.
     tokens = UserTokensController()
 
-    _custom_actions = {"search": ["GET"]}
+    _custom_actions = {"search": ["GET"],
+                       "self": ["GET"]}
 
     validation_post_schema = validations.USERS_POST_SCHEMA
     validation_put_schema = validations.USERS_PUT_SCHEMA
@@ -214,6 +215,27 @@ class UsersController(rest.RestController):
 
         return [wmodels.User.from_db_model(u) for u in users]
 
+    @decorators.db_exceptions
+    @secure(checks.authenticated)
+    @wsme_pecan.wsexpose(wmodels.User)
+    def self(self):
+        """Return the currently logged in user
+
+        Example::
+
+          curl https://my.example.org/api/v1/users/self \\
+          -H 'Authorization: Bearer MY_ACCESS_TOKEN'
+
+        :return: The User record for the current user.
+        """
+        user = users_api.user_get(request.current_user_id,
+                                  filter_non_public=False)
+
+        if not user:
+            raise exc.NotFound(_("User %s not found") %
+                               request.current_user_id)
+        return user
+
     @expose()
     def _route(self, args, request):
         if request.method == 'GET' and len(args) == 1:
@@ -223,6 +245,9 @@ class UsersController(rest.RestController):
             if something == "search":
                 # Request to a search endpoint
                 return self.search, args
+            elif something == "self":
+                # Return the currently logged in user
+                return self.self, []
             else:
                 return self.get_one, args
 

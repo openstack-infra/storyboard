@@ -79,6 +79,10 @@ class TestUsersAsUser(base.FunctionalTest):
         # Make certain that this user was not updated.
         self.assertEqual(response.json, real_user)
 
+    def test_self(self):
+        result = self.get_json(self.resource + '/self')
+        self.assertEqual(2, result['id'])
+
 
 class TestSearchUsers(base.FunctionalTest):
     def setUp(self):
