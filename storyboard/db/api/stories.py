@@ -49,7 +49,8 @@ def story_get(story_id, session=None, current_user=None):
 
 def story_get_all(title=None, description=None, status=None, assignee_id=None,
                   creator_id=None, project_group_id=None, project_id=None,
-                  subscriber_id=None, tags=None, marker=None, offset=None,
+                  subscriber_id=None, tags=None, updated_since=None,
+                  marker=None, offset=None,
                   limit=None, tags_filter_type="all", sort_field='id',
                   sort_dir='asc', current_user=None):
     # Sanity checks, in case someone accidentally explicitly passes in 'None'
@@ -69,6 +70,7 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
                                   project_group_id=project_group_id,
                                   project_id=project_id,
                                   tags=tags,
+                                  updated_since=updated_since,
                                   tags_filter_type=tags_filter_type,
                                   current_user=current_user)
 
@@ -108,8 +110,9 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
 
 
 def story_get_count(title=None, description=None, status=None,
-                    assignee_id=None, creator_id=None, project_group_id=None,
-                    project_id=None, subscriber_id=None, tags=None,
+                    assignee_id=None, creator_id=None,
+                    project_group_id=None, project_id=None,
+                    subscriber_id=None, tags=None, updated_since=None,
                     tags_filter_type="all", current_user=None):
     query = _story_build_query(title=title,
                                description=description,
@@ -117,6 +120,7 @@ def story_get_count(title=None, description=None, status=None,
                                creator_id=creator_id,
                                project_group_id=project_group_id,
                                project_id=project_id,
+                               updated_since=updated_since,
                                tags=tags,
                                tags_filter_type=tags_filter_type,
                                current_user=current_user)
@@ -144,8 +148,9 @@ def story_get_count(title=None, description=None, status=None,
 
 
 def _story_build_query(title=None, description=None, assignee_id=None,
-                       creator_id=None, project_group_id=None, project_id=None,
-                       tags=None, tags_filter_type='all', current_user=None):
+                       creator_id=None, project_group_id=None,
+                       project_id=None, updated_since=None, tags=None,
+                       tags_filter_type='all', current_user=None):
     # First build a standard story query.
     query = api_base.model_query(models.Story.id).distinct()
 
@@ -155,6 +160,8 @@ def _story_build_query(title=None, description=None, assignee_id=None,
                                          title=title,
                                          description=description,
                                          creator_id=creator_id)
+    if updated_since:
+        query = query.filter(models.Story.updated_at > updated_since)
 
     # Filter out stories that the current user can't see
     query = api_base.filter_private_stories(query, current_user)

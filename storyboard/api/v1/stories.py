@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime
+
 from oslo_config import cfg
 from pecan import abort
 from pecan import expose
@@ -87,12 +89,13 @@ class StoriesController(rest.RestController):
     @secure(checks.guest)
     @wsme_pecan.wsexpose([wmodels.Story], wtypes.text, wtypes.text,
                          [wtypes.text], int, int, int, int, int, [wtypes.text],
-                         int, int, int, wtypes.text, wtypes.text, wtypes.text)
+                         datetime, int, int, int, wtypes.text,
+                         wtypes.text, wtypes.text)
     def get_all(self, title=None, description=None, status=None,
                 assignee_id=None, creator_id=None, project_group_id=None,
-                project_id=None, subscriber_id=None, tags=None, marker=None,
-                offset=None, limit=None, tags_filter_type='all',
-                sort_field='id', sort_dir='asc'):
+                project_id=None, subscriber_id=None, tags=None,
+                updated_since=None, marker=None, offset=None, limit=None,
+                tags_filter_type='all', sort_field='id', sort_dir='asc'):
         """Retrieve definitions of all of the stories.
 
         Example::
@@ -108,6 +111,7 @@ class StoriesController(rest.RestController):
         :param project_id: Filter stories by project ID.
         :param subscriber_id: Filter stories by subscriber ID.
         :param tags: A list of tags to filter by.
+        :param updated_since: Filter stories by last updated time.
         :param marker: The resource id where the page should begin.
         :param offset: The offset to start the page at.
         :param limit: The number of stories to retrieve.
@@ -136,6 +140,7 @@ class StoriesController(rest.RestController):
                            project_id=project_id,
                            subscriber_id=subscriber_id,
                            tags=tags,
+                           updated_since=updated_since,
                            marker=marker_story,
                            offset=offset,
                            tags_filter_type=tags_filter_type,
@@ -153,6 +158,7 @@ class StoriesController(rest.RestController):
                              project_id=project_id,
                              subscriber_id=subscriber_id,
                              tags=tags,
+                             updated_since=updated_since,
                              tags_filter_type=tags_filter_type,
                              current_user=request.current_user_id)
 
