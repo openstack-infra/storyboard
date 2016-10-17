@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
+import pytz
+
 from sqlalchemy.orm import subqueryload
 
 from storyboard.common import exception as exc
@@ -206,6 +209,19 @@ def story_create(values):
 def story_update(story_id, values, current_user=None):
     api_base.entity_update(models.Story, story_id, values)
     return story_get(story_id, current_user=current_user)
+
+
+def story_update_updated_at(story_id):
+    session = api_base.get_session()
+
+    with session.begin(subtransactions=True):
+        story = story_get_simple(story_id, session=session)
+        if not story:
+            raise exc.NotFound(_("%(name)s %(id)s not found") %
+                               {'name': "Story", 'id': story_id})
+        story.updated_at = datetime.datetime.now(tz=pytz.utc)
+        session.add(story)
+    session.expunge(story)
 
 
 def story_add_tag(story_id, tag_name, current_user=None):

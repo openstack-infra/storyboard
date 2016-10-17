@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from storyboard.db.api import base as api_base
+from storyboard.db.api import stories as stories_api
 from storyboard.db import models
 
 
@@ -58,17 +59,26 @@ def task_get_count(project_group_id=None, current_user=None, **kwargs):
 
 
 def task_create(values):
-    return api_base.entity_create(models.Task, values)
+    task = api_base.entity_create(models.Task, values)
+
+    if task:
+        stories_api.story_update_updated_at(task.story_id)
+    return task
 
 
 def task_update(task_id, values):
-    return api_base.entity_update(models.Task, task_id, values)
+    task = api_base.entity_update(models.Task, task_id, values)
+
+    if task:
+        stories_api.story_update_updated_at(task.story_id)
+    return task
 
 
 def task_delete(task_id):
     task = task_get(task_id)
 
     if task:
+        stories_api.story_update_updated_at(task.story_id)
         api_base.entity_hard_delete(models.Task, task_id)
 
 
