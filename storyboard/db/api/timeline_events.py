@@ -100,6 +100,8 @@ def events_get_count(current_user=None, **kwargs):
 
 def event_create(values):
     new_event = api_base.entity_create(models.TimeLineEvent, values)
+    if new_event:
+        stories_api.story_update_updated_at(new_event.story_id)
 
     if CONF.enable_notifications:
         # Build the payload. Use of None is included to ensure that we don't
