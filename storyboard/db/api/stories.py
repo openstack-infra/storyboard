@@ -246,6 +246,7 @@ def story_add_tag(story_id, tag_name, current_user=None):
                 {'id': story_id, 'tag': tag_name})
 
         story.tags.append(tag)
+        story.updated_at = datetime.datetime.now(tz=pytz.utc)
         session.add(story)
     session.expunge(story)
 
@@ -268,6 +269,7 @@ def story_remove_tag(story_id, tag_name, current_user=None):
 
         tag = [t for t in story.tags if t.name == tag_name][0]
         story.tags.remove(tag)
+        story.updated_at = datetime.datetime.now(tz=pytz.utc)
         session.add(story)
     session.expunge(story)
 
