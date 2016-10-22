@@ -90,8 +90,10 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
                                   project_id=project_id,
                                   tags=tags,
                                   updated_since=updated_since,
-                                  tags_filter_type=tags_filter_type,
-                                  current_user=current_user)
+                                  tags_filter_type=tags_filter_type)
+
+    # Filter out stories that the current user can't see
+    subquery = api_base.filter_private_stories(subquery, current_user)
 
     # Filter by subscriber ID
     if subscriber_id is not None:
@@ -141,8 +143,10 @@ def story_get_count(title=None, description=None, status=None,
                                project_id=project_id,
                                updated_since=updated_since,
                                tags=tags,
-                               tags_filter_type=tags_filter_type,
-                               current_user=current_user)
+                               tags_filter_type=tags_filter_type)
+
+    # Filter out stories that the current user can't see
+    query = api_base.filter_private_stories(query, current_user)
 
     # Filter by subscriber ID
     if subscriber_id is not None:
@@ -169,9 +173,9 @@ def story_get_count(title=None, description=None, status=None,
 def _story_build_query(title=None, description=None, assignee_id=None,
                        creator_id=None, project_group_id=None,
                        project_id=None, updated_since=None, tags=None,
-                       tags_filter_type='all', current_user=None):
+                       tags_filter_type='all', session=None):
     # First build a standard story query.
-    query = api_base.model_query(models.Story.id).distinct()
+    query = api_base.model_query(models.Story.id, session=session).distinct()
 
     # Apply basic filters
     query = api_base.apply_query_filters(query=query,
@@ -181,9 +185,6 @@ def _story_build_query(title=None, description=None, assignee_id=None,
                                          creator_id=creator_id)
     if updated_since:
         query = query.filter(models.Story.updated_at > updated_since)
-
-    # Filter out stories that the current user can't see
-    query = api_base.filter_private_stories(query, current_user)
 
     # Filtering by tags
     if tags:

@@ -19,6 +19,7 @@ import sqlalchemy_fulltext.modes as FullTextMode
 
 from storyboard.api.v1.search import search_engine
 from storyboard.db.api import base as api_base
+from storyboard.db.api import stories as stories_api
 from storyboard.db import models
 
 
@@ -30,7 +31,12 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
         return query
 
     def _apply_pagination(self, model_cls, query, marker=None,
-                          offset=None, limit=None):
+                          offset=None, limit=None, sort_field='id',
+                          sort_dir='asc'):
+        if not sort_field:
+            sort_field = 'id'
+        if not sort_dir:
+            sort_dir = 'asc'
 
         marker_entity = None
         if marker:
@@ -53,27 +59,58 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
 
         return query.all()
 
-    def stories_query(self, q, marker=None, offset=None,
-                      limit=None, current_user=None, **kwargs):
+    def stories_query(self, q, status=None, assignee_id=None,
+                      creator_id=None, project_group_id=None, project_id=None,
+                      subscriber_id=None, tags=None, updated_since=None,
+                      marker=None, offset=None,
+                      limit=None, tags_filter_type="all", sort_field='id',
+                      sort_dir='asc', current_user=None):
         session = api_base.get_session()
 
-        subquery = api_base.model_query(models.Story, session)
+        subquery = stories_api._story_build_query(
+            assignee_id=assignee_id,
+            creator_id=creator_id,
+            project_group_id=project_group_id,
+            project_id=project_id,
+            tags=tags,
+            updated_since=updated_since,
+            tags_filter_type=tags_filter_type,
+            session=session)
+
+        # Filter by subscriber ID
+        if subscriber_id is not None:
+            subs = api_base.model_query(models.Subscription)
+            subs = api_base.apply_query_filters(query=subs,
+                                                model=models.Subscription,
+                                                target_type='story',
+                                                user_id=subscriber_id)
+            subs = subs.subquery()
+            subquery = subquery.join(subs, subs.c.target_id == models.Story.id)
+
         subquery = self._build_fulltext_search(models.Story, subquery, q)
-        subquery = self._apply_pagination(models.Story,
-                                          subquery, marker, offset, limit)
+
+        # Filter out stories that the current user can't see
+        subquery = api_base.filter_private_stories(subquery, current_user)
 
         subquery = subquery.subquery('stories_with_idx')
 
         query = api_base.model_query(models.StorySummary)\
             .options(subqueryload(models.StorySummary.tags))
         query = query.join(subquery,
-                           models.StorySummary.id == subquery.c.id)
+                           models.StorySummary.id == subquery.c.stories_id)
 
-        # Filter out stories that the current user can't see
-        query = api_base.filter_private_stories(query, current_user)
+        if status:
+            query = query.filter(models.StorySummary.status.in_(status))
 
-        stories = query.all()
-        return stories
+        query = self._apply_pagination(models.StorySummary,
+                                       query,
+                                       marker,
+                                       offset,
+                                       limit,
+                                       sort_field=sort_field,
+                                       sort_dir=sort_dir)
+
+        return query.all()
 
     def tasks_query(self, q, marker=None, offset=None, limit=None,
                     current_user=None, **kwargs):

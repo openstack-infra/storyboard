@@ -357,9 +357,15 @@ class StoriesController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.Story], wtypes.text, wtypes.text,
-                         int, int, int)
-    def search(self, q="", marker=None, offset=None, limit=None):
+    @wsme_pecan.wsexpose([wmodels.Story], wtypes.text,
+                         [wtypes.text], int, int, int, int, int, [wtypes.text],
+                         datetime, int, int, int, wtypes.text,
+                         wtypes.text, wtypes.text)
+    def search(self, q="", status=None, assignee_id=None, creator_id=None,
+               project_group_id=None, project_id=None, subscriber_id=None,
+               tags=None, updated_since=None, marker=None, offset=None,
+               limit=None, tags_filter_type='all', sort_field='id',
+               sort_dir='asc'):
         """The search endpoint for stories.
 
         Example::
@@ -367,15 +373,40 @@ class StoriesController(rest.RestController):
           curl https://my.example.org/api/v1/stories/search?q=pep8
 
         :param q: The query string.
-        :return: List of Stories matching the query.
-        """
+        :param status: Only show stories with this particular status.
+        :param assignee_id: Filter stories by who they are assigned to.
+        :param creator_id: Filter stories by who created them.
+        :param project_group_id: Filter stories by project group.
+        :param project_id: Filter stories by project ID.
+        :param subscriber_id: Filter stories by subscriber ID.
+        :param tags: A list of tags to filter by.
+        :param updated_since: Filter stories by last updated time.
+        :param marker: The resource id where the page should begin.
+        :param offset: The offset to start the page at.
+        :param limit: The number of stories to retrieve.
+        :param tags_filter_type: Type of tags filter.
+        :param sort_field: The name of the field to sort on.
+        :param sort_dir: Sort direction for results (asc, desc).
+        :return: List of Stories matching the query and any other filters.
 
+        """
         user = request.current_user_id
-        stories = SEARCH_ENGINE.stories_query(q=q,
-                                              marker=marker,
-                                              offset=offset,
-                                              limit=limit,
-                                              current_user=user)
+        stories = SEARCH_ENGINE.stories_query(
+            q,
+            status=status,
+            assignee_id=assignee_id,
+            creator_id=creator_id,
+            project_group_id=project_group_id,
+            project_id=project_id,
+            subscriber_id=subscriber_id,
+            tags=tags,
+            updated_since=updated_since,
+            offset=offset,
+            tags_filter_type=tags_filter_type,
+            limit=limit,
+            sort_field=sort_field,
+            sort_dir=sort_dir,
+            current_user=user)
 
         return [create_story_wmodel(story) for story in stories]
 
