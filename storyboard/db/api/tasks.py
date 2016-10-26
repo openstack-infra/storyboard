@@ -38,8 +38,11 @@ def task_get_all(marker=None, limit=None, sort_field=None, sort_dir=None,
         sort_dir = 'asc'
 
     # Construct the query
-    query = task_build_query(
-        project_group_id, current_user=current_user, **kwargs)
+    query = task_build_query(project_group_id, **kwargs)
+
+    # Filter out tasks or stories that the current user can't see
+    query = query.outerjoin(models.Story)
+    query = api_base.filter_private_stories(query, current_user)
 
     query = api_base.paginate_query(query=query,
                                     model=models.Task,
@@ -53,8 +56,12 @@ def task_get_all(marker=None, limit=None, sort_field=None, sort_dir=None,
 
 
 def task_get_count(project_group_id=None, current_user=None, **kwargs):
-    query = task_build_query(
-        project_group_id, current_user=current_user, **kwargs)
+    query = task_build_query(project_group_id, **kwargs)
+
+    # Filter out tasks or stories that the current user can't see
+    query = query.outerjoin(models.Story)
+    query = api_base.filter_private_stories(query, current_user)
+
     return query.count()
 
 
@@ -82,9 +89,9 @@ def task_delete(task_id):
         api_base.entity_hard_delete(models.Task, task_id)
 
 
-def task_build_query(project_group_id, current_user=None, **kwargs):
+def task_build_query(project_group_id, session=None, **kwargs):
     # Construct the query
-    query = api_base.model_query(models.Task)
+    query = api_base.model_query(models.Task, session=session)
 
     if project_group_id:
         query = query.join(models.Project,
@@ -96,10 +103,6 @@ def task_build_query(project_group_id, current_user=None, **kwargs):
     query = api_base.apply_query_filters(query=query,
                                          model=models.Task,
                                          **kwargs)
-
-    # Filter out tasks or stories that the current user can't see
-    query = query.outerjoin(models.Story)
-    query = api_base.filter_private_stories(query, current_user)
 
     return query
 
