@@ -27,13 +27,28 @@ from storyboard.db import models
 from storyboard.openstack.common.gettextutils import _  # noqa
 
 
-def story_get_simple(story_id, session=None, current_user=None):
+def story_get_simple(story_id, session=None, current_user=None,
+                     no_permissions=False):
+    """Return a story with the given ID.
+
+    The `no_permissions` parameter should only ever be used in situations
+    where the permissions have already been checked. For example, when
+    updating the "updated_at" field when comments are made on stories.
+
+    :param story_id: ID of the story to return.
+    :param session: DB session to use.
+    :param current_user: The ID of the user making the request.
+    :param no_permissions: Skip filtering stories by permission.
+    :return: The story being searched for, or None if nothing found.
+
+    """
     query = api_base.model_query(models.Story, session) \
         .options(subqueryload(models.Story.tags)) \
         .filter_by(id=story_id)
 
-    # Filter out stories that the current user can't see
-    query = api_base.filter_private_stories(query, current_user)
+    if not no_permissions:
+        # Filter out stories that the current user can't see
+        query = api_base.filter_private_stories(query, current_user)
 
     return query.first()
 
@@ -215,7 +230,8 @@ def story_update_updated_at(story_id):
     session = api_base.get_session()
 
     with session.begin(subtransactions=True):
-        story = story_get_simple(story_id, session=session)
+        story = story_get_simple(story_id, session=session,
+                                 no_permissions=True)
         if not story:
             raise exc.NotFound(_("%(name)s %(id)s not found") %
                                {'name': "Story", 'id': story_id})
