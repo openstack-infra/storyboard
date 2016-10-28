@@ -22,6 +22,7 @@ import uuid
 
 from alembic import command
 import fixtures
+from oslo_concurrency.fixture import lockutils as lockutils_fixture
 from oslo_config import cfg
 from oslo_log import log as logging
 import pecan
@@ -33,11 +34,8 @@ import testtools
 import storyboard.common.working_dir as working_dir
 from storyboard.db.api import base as db_api_base
 from storyboard.db.migration.cli import get_alembic_config
-from storyboard.openstack.common import lockutils
 import storyboard.tests.mock_data as mock_data
 
-
-cfg.set_defaults(lockutils.util_opts, lock_path='/tmp')
 
 CONF = cfg.CONF
 _TRUE_VALUES = ('true', '1', 'yes')
@@ -74,6 +72,7 @@ class TestCase(testtools.TestCase):
 
         self.useFixture(fixtures.NestedTempfile())
         self.useFixture(fixtures.TempHomeDir())
+        self.useFixture(lockutils_fixture.ExternalLockFixture())
 
         self.addCleanup(CONF.reset)
 

@@ -28,6 +28,7 @@ import os
 from alembic import command
 from alembic import config as alembic_config
 from alembic import migration
+from oslo_concurrency import lockutils
 from oslo_config import cfg
 from oslo_log import log as logging
 import six
@@ -36,14 +37,12 @@ import six.moves.urllib.parse as urlparse
 
 from storyboard.db import api as db_api
 import storyboard.db.migration
-from storyboard.openstack.common import lockutils
 from storyboard.openstack.common import processutils
 from storyboard.tests import base
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
 
-cfg.set_defaults(lockutils.util_opts, lock_path='/tmp')
 synchronized = lockutils.synchronized_with_prefix('storyboard-')
 
 
