@@ -212,7 +212,8 @@ class Team(ModelBuilder, Base):
     )
     name = Column(Unicode(CommonLength.top_large_length))
     users = relationship("User", secondary="team_membership")
-    permissions = relationship("Permission", secondary="team_permissions")
+    permissions = relationship("Permission", secondary="team_permissions",
+                               backref="teams")
 
 
 project_group_mapping = Table(

@@ -384,12 +384,13 @@ def filter_private_stories(query, current_user, story_model=models.Story):
     :param story_model: The database model used for stories in the query.
 
     """
+    # First filter based on users with permissions set directly
     query = query.outerjoin(models.story_permissions,
                             models.Permission,
                             models.user_permissions,
                             models.User)
     if current_user:
-        query = query.filter(
+        visible_to_users = query.filter(
             or_(
                 and_(
                     models.User.id == current_user,
@@ -400,14 +401,40 @@ def filter_private_stories(query, current_user, story_model=models.Story):
             )
         )
     else:
-        query = query.filter(
+        visible_to_users = query.filter(
             or_(
                 story_model.private == false(),
                 story_model.id.is_(None)
             )
         )
 
-    return query
+    # Now filter based on membership of teams with permissions
+    users = aliased(models.User)
+    query = query.outerjoin(models.team_permissions,
+                            models.Team,
+                            models.team_membership,
+                            (users,
+                             users.id == models.team_membership.c.user_id))
+    if current_user:
+        visible_to_teams = query.filter(
+            or_(
+                and_(
+                    users.id == current_user,
+                    story_model.private == true()
+                ),
+                story_model.private == false(),
+                story_model.id.is_(None)
+            )
+        )
+    else:
+        visible_to_teams = query.filter(
+            or_(
+                story_model.private == false(),
+                story_model.id.is_(None)
+            )
+        )
+
+    return visible_to_users.union(visible_to_teams)
 
 
 def filter_private_worklists(query, current_user, hide_lanes=True):

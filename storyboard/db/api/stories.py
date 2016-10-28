@@ -22,6 +22,7 @@ from storyboard.common import exception as exc
 from storyboard.db.api import base as api_base
 from storyboard.db.api import story_tags
 from storyboard.db.api import story_types
+from storyboard.db.api import teams as teams_api
 from storyboard.db.api import users as users_api
 from storyboard.db import models
 from storyboard.openstack.common.gettextutils import _  # noqa
@@ -109,7 +110,7 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
     query = api_base.model_query(models.StorySummary)\
         .options(subqueryload(models.StorySummary.tags))
     query = query.join(subquery,
-                       models.StorySummary.id == subquery.c.id)
+                       models.StorySummary.id == subquery.c.stories_id)
 
     if status:
         query = query.filter(models.StorySummary.status.in_(status))
@@ -159,7 +160,7 @@ def story_get_count(title=None, description=None, status=None,
         query = query.subquery()
         summary_query = api_base.model_query(models.StorySummary)
         summary_query = summary_query \
-            .join(query, models.StorySummary.id == query.c.id)
+            .join(query, models.StorySummary.id == query.c.stories_id)
         query = summary_query.filter(models.StorySummary.status.in_(status))
 
     return query.count()
@@ -214,7 +215,7 @@ def _story_build_query(title=None, description=None, assignee_id=None,
         if project_id:
             query = query.filter(models.Task.project_id == project_id)
 
-    return query
+    return query.distinct()
 
 
 def story_create(values):
@@ -363,7 +364,7 @@ def story_can_mutate(story, new_story_type_id):
     return False
 
 
-def create_permission(story, users, session=None):
+def create_permission(story, users, teams, session=None):
     story = api_base.model_query(models.Story, session) \
         .options(subqueryload(models.Story.tags)) \
         .filter_by(id=story.id).first()
@@ -373,13 +374,18 @@ def create_permission(story, users, session=None):
     }
     permission = api_base.entity_create(models.Permission, permission_dict)
     story.permissions.append(permission)
-    for user in users:
-        user = users_api.user_get(user.id)
-        user.permissions.append(permission)
+    if users is not None:
+        for user in users:
+            user = users_api.user_get(user.id)
+            user.permissions.append(permission)
+    if teams is not None:
+        for team in teams:
+            team = teams_api.team_get(team.id)
+            team.permissions.append(permission)
     return permission
 
 
-def update_permission(story, users, session=None):
+def update_permission(story, users, teams, session=None):
     story = api_base.model_query(models.Story, session) \
         .options(subqueryload(models.Story.tags)) \
         .filter_by(id=story.id).first()
@@ -389,9 +395,14 @@ def update_permission(story, users, session=None):
     permission = story.permissions[0]
     permission_dict = {
         'name': permission.name,
-        'codename': permission.codename,
-        'users': [users_api.user_get(user.id) for user in users]
+        'codename': permission.codename
     }
+    if users is not None:
+        permission_dict['users'] = [users_api.user_get(user.id)
+                                    for user in users]
+    if teams is not None:
+        permission_dict['teams'] = [teams_api.team_get(team.id)
+                                    for team in teams]
 
     return api_base.entity_update(models.Permission,
                                   permission.id,

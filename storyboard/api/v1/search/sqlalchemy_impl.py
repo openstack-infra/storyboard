@@ -58,10 +58,6 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
         session = api_base.get_session()
 
         subquery = api_base.model_query(models.Story, session)
-
-        # Filter out stories that the current user can't see
-        subquery = api_base.filter_private_stories(subquery, current_user)
-
         subquery = self._build_fulltext_search(models.Story, subquery, q)
         subquery = self._apply_pagination(models.Story,
                                           subquery, marker, offset, limit)
@@ -73,6 +69,9 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
         query = query.join(subquery,
                            models.StorySummary.id == subquery.c.id)
 
+        # Filter out stories that the current user can't see
+        query = api_base.filter_private_stories(query, current_user)
+
         stories = query.all()
         return stories
 
@@ -81,11 +80,12 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
         session = api_base.get_session()
         query = api_base.model_query(models.Task, session)
 
+        query = self._build_fulltext_search(models.Task, query, q)
+
         # Filter out tasks or stories that the current user can't see
         query = query.outerjoin(models.Story)
         query = api_base.filter_private_stories(query, current_user)
 
-        query = self._build_fulltext_search(models.Task, query, q)
         query = self._apply_pagination(
             models.Task, query, marker, offset, limit)
 
