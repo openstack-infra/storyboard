@@ -313,8 +313,10 @@ class Story(FullText, ModelBuilder, Base):
     description = Column(UnicodeText())
     is_bug = Column(Boolean, default=True)
     private = Column(Boolean, default=False)
-    tasks = relationship('Task', backref='story')
-    events = relationship('TimeLineEvent', backref='story')
+    tasks = relationship('Task', backref='story',
+                         cascade="all, delete-orphan")
+    events = relationship('TimeLineEvent', backref='story',
+                          cascade="all, delete-orphan")
     tags = relationship('StoryTag', secondary='story_storytags')
     permissions = relationship('Permission', secondary='story_permissions')
 
