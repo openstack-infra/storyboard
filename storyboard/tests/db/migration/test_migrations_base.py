@@ -29,6 +29,7 @@ from alembic import command
 from alembic import config as alembic_config
 from alembic import migration
 from oslo_concurrency import lockutils
+from oslo_concurrency import processutils
 from oslo_config import cfg
 from oslo_log import log as logging
 import six
@@ -37,7 +38,6 @@ import six.moves.urllib.parse as urlparse
 
 from storyboard.db import api as db_api
 import storyboard.db.migration
-from storyboard.openstack.common import processutils
 from storyboard.tests import base
 
 LOG = logging.getLogger(__name__)
