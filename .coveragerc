@@ -2,7 +2,6 @@
 branch = True
 source = storyboard
 omit =
- */openstack/common/*
  .tox/*
  storyboard/tests/*
 
