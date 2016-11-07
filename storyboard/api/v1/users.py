@@ -24,6 +24,7 @@ import six
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
+from storyboard._i18n import _
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1.search import search_engine
 from storyboard.api.v1.user_preferences import UserPreferencesController
@@ -33,7 +34,6 @@ from storyboard.api.v1 import wmodels
 from storyboard.common import decorators
 from storyboard.common import exception as exc
 from storyboard.db.api import users as users_api
-from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 CONF = cfg.CONF

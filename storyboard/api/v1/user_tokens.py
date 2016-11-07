@@ -26,12 +26,12 @@ import six
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
+from storyboard._i18n import _
 from storyboard.api.auth import authorization_checks as checks
 import storyboard.api.v1.wmodels as wmodels
 from storyboard.common import decorators
 import storyboard.db.api.user_tokens as token_api
 import storyboard.db.api.users as user_api
-from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 CONF = cfg.CONF

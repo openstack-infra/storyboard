@@ -23,7 +23,7 @@ from oslo_log import log
 import storyboard.db.api.base as db_api
 from storyboard.notifications.notification_hook import class_mappings
 from storyboard.notifications.subscriber import subscribe
-from storyboard.openstack.common.gettextutils import _LI, _LW  # noqa
+from storyboard._i18n import _LI, _LW
 from storyboard.plugin.base import PluginBase
 
 CONF = cfg.CONF

@@ -25,9 +25,9 @@ from oslo_config import cfg
 from oslo_db import options
 import six
 
+from storyboard._i18n import _
 from storyboard.db import projects_loader
 from storyboard.db import superusers_loader
-from storyboard.openstack.common.gettextutils import _  # noqa
 
 gettext.install('storyboard')
 

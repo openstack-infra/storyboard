@@ -24,6 +24,7 @@ from pecan.secure import secure
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
+from storyboard._i18n import _
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import wmodels
 from storyboard.common import decorators
@@ -33,7 +34,6 @@ from storyboard.db.api import due_dates as due_dates_api
 from storyboard.db.api import stories as stories_api
 from storyboard.db.api import tasks as tasks_api
 from storyboard.db.api import worklists as worklists_api
-from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 CONF = cfg.CONF

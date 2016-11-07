@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from storyboard._i18n import _
 from storyboard.common import exception as exc
 from storyboard.db.api import base as api_base
 from storyboard.db import models
-from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 def branch_get(branch_id):

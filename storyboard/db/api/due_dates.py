@@ -16,10 +16,10 @@
 from sqlalchemy import func
 from wsme.exc import ClientSideError
 
+from storyboard._i18n import _
 from storyboard.db.api import base as api_base
 from storyboard.db.api import users as users_api
 from storyboard.db import models
-from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 def _due_date_get(id, session=None):

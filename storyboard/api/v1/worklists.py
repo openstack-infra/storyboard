@@ -25,6 +25,7 @@ import six
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
+from storyboard._i18n import _
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import wmodels
 from storyboard.common import decorators
@@ -35,7 +36,6 @@ from storyboard.db.api import timeline_events as events_api
 from storyboard.db.api import users as users_api
 from storyboard.db.api import worklists as worklists_api
 from storyboard.db import models
-from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 CONF = cfg.CONF

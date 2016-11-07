@@ -29,7 +29,7 @@ from eventlet import greenthread
 from oslo_log import log as logging
 import six
 
-from storyboard.openstack.common.gettextutils import _
+from storyboard._i18n import _
 
 
 LOG = logging.getLogger(__name__)

@@ -23,12 +23,12 @@ from pecan.secure import secure
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
+from storyboard._i18n import _
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1 import base
 from storyboard.common import decorators
 from storyboard.db.api import subscription_events as subscription_events_api
 from storyboard.db.api import users as user_api
-from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 CONF = cfg.CONF

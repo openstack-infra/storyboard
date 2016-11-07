@@ -21,13 +21,13 @@ from oslo_log import log
 import six
 from sqlalchemy.exc import SADeprecationWarning
 
+from storyboard._i18n import _LW
 from storyboard.common.custom_types import NameType
 from storyboard.common.master_branch_helper import MasterBranchHelper
 from storyboard.db.api import base as db_api
 from storyboard.db.models import Branch
 from storyboard.db.models import Project
 from storyboard.db.models import ProjectGroup
-from storyboard.openstack.common.gettextutils import _LW  # noqa
 
 
 warnings.simplefilter("ignore", SADeprecationWarning)

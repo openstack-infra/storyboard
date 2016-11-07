@@ -26,6 +26,7 @@ from pecan.secure import secure
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
+from storyboard._i18n import _
 from storyboard.api.auth import authorization_checks as checks
 from storyboard.api.v1.search import search_engine
 from storyboard.api.v1.tags import TagsController
@@ -39,7 +40,6 @@ from storyboard.common import exception as exc
 from storyboard.db.api import stories as stories_api
 from storyboard.db.api import timeline_events as events_api
 from storyboard.db.api import users as users_api
-from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 CONF = cfg.CONF

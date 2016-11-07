@@ -23,7 +23,7 @@ from stevedore import enabled
 
 from storyboard.notifications.conf import NOTIFICATION_OPTS
 from storyboard.notifications.connection_service import ConnectionService
-from storyboard.openstack.common.gettextutils import _, _LW  # noqa
+from storyboard._i18n import _, _LW
 
 
 CONF = cfg.CONF

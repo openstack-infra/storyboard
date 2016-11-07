@@ -18,6 +18,7 @@ import pytz
 
 from sqlalchemy.orm import subqueryload
 
+from storyboard._i18n import _
 from storyboard.common import exception as exc
 from storyboard.db.api import base as api_base
 from storyboard.db.api import story_tags
@@ -25,7 +26,6 @@ from storyboard.db.api import story_types
 from storyboard.db.api import teams as teams_api
 from storyboard.db.api import users as users_api
 from storyboard.db import models
-from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 def story_get_simple(story_id, session=None, current_user=None,

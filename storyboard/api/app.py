@@ -21,6 +21,7 @@ from oslo_log import log
 import pecan
 from wsgiref import simple_server
 
+from storyboard._i18n import _LI
 from storyboard.api import config as api_config
 from storyboard.api.middleware.cors_middleware import CORSMiddleware
 from storyboard.api.middleware import session_hook
@@ -30,7 +31,6 @@ from storyboard.api.middleware import validation_hook
 from storyboard.api.v1.search import impls as search_engine_impls
 from storyboard.api.v1.search import search_engine
 from storyboard.notifications.notification_hook import NotificationHook
-from storyboard.openstack.common.gettextutils import _LI  # noqa
 from storyboard.plugin.scheduler import initialize_scheduler
 from storyboard.plugin.user_preferences import initialize_user_preferences
 

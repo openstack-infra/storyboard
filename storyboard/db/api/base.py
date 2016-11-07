@@ -28,9 +28,9 @@ from sqlalchemy.orm import aliased
 from sqlalchemy.sql.expression import false, true
 import sqlalchemy.types as sqltypes
 
+from storyboard._i18n import _
 from storyboard.common import exception as exc
 from storyboard.db import models
-from storyboard.openstack.common.gettextutils import _  # noqa
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)

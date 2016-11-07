@@ -18,7 +18,7 @@ from six.moves import http_client
 from six.moves.urllib.parse import urlparse
 from wsme.exc import ClientSideError
 
-from storyboard.openstack.common.gettextutils import _  # noqa
+from storyboard._i18n import _
 
 LOG = log.getLogger(__name__)
 

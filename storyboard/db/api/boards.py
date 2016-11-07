@@ -16,10 +16,10 @@
 from sqlalchemy.orm import aliased, subqueryload
 from wsme.exc import ClientSideError
 
+from storyboard._i18n import _
 from storyboard.db.api import base as api_base
 from storyboard.db.api import users as users_api
 from storyboard.db import models
-from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 def _board_get(id, session=None):

@@ -17,7 +17,7 @@ import abc
 from oslo_log import log
 import six
 
-from storyboard.openstack.common.gettextutils import _LE  # noqa
+from storyboard._i18n import _LE
 from storyboard.plugin.base import PluginBase
 from storyboard.plugin.base import StoryboardPluginLoader
 

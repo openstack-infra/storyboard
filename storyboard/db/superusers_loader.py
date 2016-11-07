@@ -18,9 +18,9 @@ import yaml
 
 from sqlalchemy.exc import SADeprecationWarning
 
+from storyboard._i18n import _
 from storyboard.db.api import base as db_api
 from storyboard.db.models import User
-from storyboard.openstack.common.gettextutils import _  # noqa
 
 warnings.simplefilter("ignore", SADeprecationWarning)
 

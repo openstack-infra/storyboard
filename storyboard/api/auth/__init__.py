@@ -14,7 +14,7 @@
 
 from oslo_config import cfg
 
-from storyboard.openstack.common.gettextutils import _  # noqa
+from storyboard._i18n import _
 
 CONF = cfg.CONF
 

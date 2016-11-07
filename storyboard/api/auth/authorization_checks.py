@@ -16,9 +16,9 @@
 from pecan import abort
 from pecan import request
 
+from storyboard._i18n import _
 from storyboard.db.api import access_tokens as token_api
 from storyboard.db.api import users as user_api
-from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 def _get_token():

@@ -22,6 +22,7 @@ from pecan.secure import secure
 import wsme.types as wtypes
 import wsmeext.pecan as wsme_pecan
 
+from storyboard._i18n import _
 import storyboard.api.auth.authorization_checks as checks
 from storyboard.api.v1 import validations
 from storyboard.api.v1 import wmodels
@@ -29,7 +30,6 @@ from storyboard.common import decorators
 import storyboard.common.exception as exc
 from storyboard.db.api import project_groups
 from storyboard.db.api import projects
-from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 CONF = cfg.CONF

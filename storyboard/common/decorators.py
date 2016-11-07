@@ -21,8 +21,8 @@ from six.moves.urllib.parse import urlencode
 from six.moves.urllib.parse import urlparse
 from six.moves.urllib.parse import urlunparse
 
+from storyboard._i18n import _
 from storyboard.common import exception as exc
-from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 def db_exceptions(func):

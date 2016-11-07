@@ -20,7 +20,7 @@ import pika
 from oslo_config import cfg
 from oslo_log import log
 
-from storyboard.openstack.common.gettextutils import _, _LI  # noqa
+from storyboard._i18n import _, _LI
 
 
 CONF = cfg.CONF

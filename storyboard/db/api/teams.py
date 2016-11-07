@@ -16,11 +16,11 @@
 from sqlalchemy.orm import subqueryload
 from wsme.exc import ClientSideError
 
+from storyboard._i18n import _
 from storyboard.common import exception as exc
 from storyboard.db.api import base as api_base
 from storyboard.db.api import users
 from storyboard.db import models
-from storyboard.openstack.common.gettextutils import _  # noqa
 
 
 def _entity_get(id, session=None):
