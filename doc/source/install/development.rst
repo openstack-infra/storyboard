@@ -23,7 +23,7 @@ NOTE: If you are using a Virtual Machine (VM), all commands that begin with
 
     sudo apt-get update
     sudo apt-get install libpq-dev libmysqlclient-dev python-dev
-    sudo apt-get mysql-server-5.7    #Here you will be asked to set a password
+    sudo apt-get install mysql-server-5.7    #Here you will be asked to set a password
     mysql --version
 
 
