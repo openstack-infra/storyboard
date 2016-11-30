@@ -598,7 +598,8 @@ def filter_tasks(worklist, filters):
         query = api_base.model_query(models.Task)
         query = query.outerjoin(models.Project,
                                 models.project_group_mapping,
-                                models.ProjectGroup)
+                                models.ProjectGroup,
+                                models.StorySummary)
         for criterion in filter.criteria:
             attr = translate_criterion_to_field(criterion)
             if hasattr(models.Task, attr):
@@ -606,6 +607,16 @@ def filter_tasks(worklist, filters):
             elif attr == 'project_group_id':
                 model = models.ProjectGroup
                 attr = 'id'
+            elif attr == 'tags':
+                if criterion.negative:
+                    query = query.filter(
+                        ~models.StorySummary.tags.any(
+                            models.StoryTag.name.in_([criterion.value])))
+                else:
+                    query = query.filter(
+                        models.StorySummary.tags.any(
+                            models.StoryTag.name.in_([criterion.value])))
+                continue
             else:
                 continue
             if criterion.negative:
