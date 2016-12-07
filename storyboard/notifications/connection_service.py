@@ -56,7 +56,9 @@ class ConnectionService(object):
             conf.rabbit_host,
             conf.rabbit_port,
             conf.rabbit_virtual_host,
-            self._connection_credentials)
+            self._connection_credentials,
+            connection_attempts=conf.rabbit_connection_attempts,
+            retry_delay=conf.rabbit_retry_delay)
 
     def _connect(self):
         """This method connects to RabbitMQ, establishes a channel, declares

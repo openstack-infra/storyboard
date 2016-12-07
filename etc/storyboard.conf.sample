@@ -107,6 +107,12 @@ lock_path = $state_path/lock
 # The name of the queue that will be created for API events.
 # rabbit_event_queue_name=storyboard_events
 
+# The number of connection attempts before giving-up
+# rabbit_connection_attempts = 6
+
+# The interval between connection attempts (in seconds)
+# rabbit_retry_delay = 10
+
 [database]
 # This line MUST be changed to actually run storyboard
 # Example:

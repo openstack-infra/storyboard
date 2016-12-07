@@ -40,4 +40,8 @@ NOTIFICATION_OPTS = [
     cfg.StrOpt("rabbit_virtual_host", default="/",
                help="The virtual host within which our queues and exchanges "
                     "live."),
+    cfg.IntOpt("rabbit_connection_attempts", default=6,
+               help="The number of connection attempts before giving-up"),
+    cfg.IntOpt("rabbit_retry_delay", default=10,
+               help="The interval between connection attempts (in seconds)")
 ]
