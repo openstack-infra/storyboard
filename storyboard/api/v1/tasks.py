@@ -444,25 +444,49 @@ class TasksPrimaryController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.Task], wtypes.text, wtypes.text, int,
-                         int, int)
-    def search(self, q="", marker=None, offset=None, limit=None):
-        """The search endpoint for tasks.
+    @wsme_pecan.wsexpose([wmodels.Task], wtypes.text, int, int, int, int, int,
+                         int, [wtypes.text], int, int, wtypes.text,
+                         wtypes.text)
+    def search(self, q="", story_id=None, assignee_id=None,
+               project_id=None, project_group_id=None, branch_id=None,
+               milestone_id=None, status=None, offset=None, limit=None,
+               sort_field='id', sort_dir='asc'):
+        """Search and filter the tasks.
 
         Example::
 
           curl https://my.example.org/api/v1/tasks/search?q=mary
 
-        :param q: The query string.
+        :param q: Fulltext search query parameter.
+        :param story_id: Filter tasks by story ID.
+        :param assignee_id: Filter tasks by who they are assigned to.
+        :param project_id: Filter the tasks based on project.
+        :param project_group_id: Filter tasks based on project group.
+        :param branch_id: Filter tasks based on branch_id.
+        :param milestone_id: Filter tasks based on milestone.
+        :param status: Filter tasks by status.
+        :param offset: The offset to start the results at.
+        :param limit: The number of tasks to retrieve.
+        :param sort_field: The name of the field to sort on.
+        :param sort_dir: Sort direction for results (asc, desc).
         :return: List of Tasks matching the query.
         """
 
         user = request.current_user_id
-        tasks = SEARCH_ENGINE.tasks_query(q=q,
-                                          marker=marker,
-                                          offset=offset,
-                                          limit=limit,
-                                          current_user=user)
+        tasks = SEARCH_ENGINE.tasks_query(
+            q=q,
+            story_id=story_id,
+            assignee_id=assignee_id,
+            project_id=project_id,
+            project_group_id=project_group_id,
+            branch_id=branch_id,
+            milestone_id=milestone_id,
+            status=status,
+            sort_field=sort_field,
+            sort_dir=sort_dir,
+            offset=offset,
+            limit=limit,
+            current_user=user)
 
         return [wmodels.Task.from_db_model(task) for task in tasks]
 

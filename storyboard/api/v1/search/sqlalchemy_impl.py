@@ -20,6 +20,7 @@ import sqlalchemy_fulltext.modes as FullTextMode
 from storyboard.api.v1.search import search_engine
 from storyboard.db.api import base as api_base
 from storyboard.db.api import stories as stories_api
+from storyboard.db.api import tasks as tasks_api
 from storyboard.db import models
 
 
@@ -45,9 +46,10 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
         return api_base.paginate_query(query=query,
                                        model=model_cls,
                                        limit=limit,
-                                       sort_key="id",
+                                       sort_key=sort_field,
                                        marker=marker_entity,
-                                       offset=offset)
+                                       offset=offset,
+                                       sort_dir=sort_dir)
 
     def projects_query(self, q, sort_dir=None, marker=None,
                        offset=None, limit=None):
@@ -112,19 +114,35 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
 
         return query.all()
 
-    def tasks_query(self, q, marker=None, offset=None, limit=None,
-                    current_user=None, **kwargs):
+    def tasks_query(self, q, story_id=None, assignee_id=None, project_id=None,
+                    project_group_id=None, branch_id=None, milestone_id=None,
+                    status=None, offset=None, limit=None, current_user=None,
+                    sort_field='id', sort_dir='asc'):
         session = api_base.get_session()
-        query = api_base.model_query(models.Task, session)
+
+        query = tasks_api.task_build_query(
+            project_group_id=project_group_id,
+            story_id=story_id,
+            assignee_id=assignee_id,
+            project_id=project_id,
+            branch_id=branch_id,
+            milestone_id=milestone_id,
+            status=status,
+            session=session)
 
         query = self._build_fulltext_search(models.Task, query, q)
 
-        # Filter out tasks or stories that the current user can't see
+        # Filter out stories that the current user can't see
         query = query.outerjoin(models.Story)
         query = api_base.filter_private_stories(query, current_user)
 
         query = self._apply_pagination(
-            models.Task, query, marker, offset, limit)
+            models.Task,
+            query,
+            offset=offset,
+            limit=limit,
+            sort_field=sort_field,
+            sort_dir=sort_dir)
 
         return query.all()
 
