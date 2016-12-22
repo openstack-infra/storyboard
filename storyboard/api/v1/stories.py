@@ -305,9 +305,9 @@ class StoriesController(rest.RestController):
             valid = True
             if users == [] and teams == []:
                 valid = False
-            elif users == [] and original_teams == []:
+            elif users == [] and (original_teams == [] and not teams):
                 valid = False
-            elif teams == [] and original_users == []:
+            elif teams == [] and (original_users == [] and not users):
                 valid = False
             if not valid and original_story.private:
                 abort(400,
