@@ -256,7 +256,7 @@ class TestNotificationHook(base.BaseDbTestCase):
         mock_state.request.headers = {'Referer': 'http://localhost/'}
         mock_state.request.query_string = ''
         mock_state.request.path = '/v1/tasks/1'
-        mock_state.response.status_code = '200'
+        mock_state.response.status_code = 200
         mock_state.old_entity_values = sot_json
         mock_get_original_resource.return_value = smt_json
 

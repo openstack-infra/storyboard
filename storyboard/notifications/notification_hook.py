@@ -68,6 +68,10 @@ class NotificationHook(hooks.PecanHook):
         if state.request.method not in ['POST', 'PUT', 'DELETE']:
             return
 
+        # Ignore requests that failed
+        if state.response.status_code >= 400:
+            return
+
         request = state.request
         response = state.response
 
