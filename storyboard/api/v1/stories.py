@@ -217,14 +217,18 @@ class StoriesController(rest.RestController):
 
         users = None
         teams = None
-        if "users" in story_dict:
-            users = story_dict.pop("users")
-        if users is None:
-            users = [wmodels.User.from_db_model(users_api.user_get(user_id))]
+        # We make sure that a user cannot remove all users and teams
+        # from the permissions list for a story
+        # This should be reworked so that users can be removed if there
+        # are teams, and vice versa
         if "teams" in story_dict:
             teams = story_dict.pop("teams")
         if teams is None:
             teams = []
+        if "users" in story_dict:
+            users = story_dict.pop("users")
+        if users is None or (users == [] and teams == []):
+            users = [wmodels.User.from_db_model(users_api.user_get(user_id))]
 
         created_story = stories_api.story_create(story_dict)
         events_api.story_created_event(created_story.id, user_id, story.title)
