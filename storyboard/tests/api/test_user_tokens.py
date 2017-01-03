@@ -104,7 +104,7 @@ class TestUserTokensAsUser(base.FunctionalTest):
         }
 
         response = self.post_json(self.resource, token, expect_errors=True)
-        self.assertEquals(409, response.status_code)
+        self.assertEqual(409, response.status_code)
 
     def test_update_expiration_date(self):
         """Assert that a user may ONLY update the expiration time on their
@@ -155,12 +155,12 @@ class TestUserTokensAsUser(base.FunctionalTest):
         }
 
         response = self.post_json('/users/3/tokens', token, expect_errors=True)
-        self.assertEquals(403, response.status_code)
+        self.assertEqual(403, response.status_code)
 
     def test_get_unauthorized(self):
         """Assert that a user cannot retrieve a token for someone else."""
         response = self.get_json('/users/1/tokens/1', expect_errors=True)
-        self.assertEquals(403, response.status_code)
+        self.assertEqual(403, response.status_code)
 
     def test_update_unauthorized(self):
         """Assert that a user cannot update a token for someone else."""
@@ -171,13 +171,13 @@ class TestUserTokensAsUser(base.FunctionalTest):
 
         response = self.put_json('/users/1/tokens/1', token,
                                  expect_errors=True)
-        self.assertEquals(403, response.status_code)
+        self.assertEqual(403, response.status_code)
 
     def test_delete_unauthorized(self):
         """Assert that a user cannot delete a token for someone else."""
 
         response = self.delete('/users/1/tokens/1', expect_errors=True)
-        self.assertEquals(403, response.status_code)
+        self.assertEqual(403, response.status_code)
 
     def test_funny_business(self):
         """Assert that a user cannot create a token for someone else by
@@ -190,7 +190,7 @@ class TestUserTokensAsUser(base.FunctionalTest):
         }
 
         response = self.post_json(self.resource, token, expect_errors=True)
-        self.assertEquals(403, response.status_code)
+        self.assertEqual(403, response.status_code)
 
 
 class TestUserTokensAsNoUser(base.FunctionalTest):
@@ -212,12 +212,12 @@ class TestUserTokensAsNoUser(base.FunctionalTest):
         }
 
         response = self.post_json('/users/3/tokens', token, expect_errors=True)
-        self.assertEquals(401, response.status_code)
+        self.assertEqual(401, response.status_code)
 
     def test_get_unauthorized(self):
         """Assert that a user cannot retrieve a token for someone else."""
         response = self.get_json('/users/1/tokens/1', expect_errors=True)
-        self.assertEquals(401, response.status_code)
+        self.assertEqual(401, response.status_code)
 
     def test_update_unauthorized(self):
         """Assert that a user cannot update a token for someone else."""
@@ -228,13 +228,13 @@ class TestUserTokensAsNoUser(base.FunctionalTest):
 
         response = self.put_json('/users/1/tokens/1', token,
                                  expect_errors=True)
-        self.assertEquals(401, response.status_code)
+        self.assertEqual(401, response.status_code)
 
     def test_delete_unauthorized(self):
         """Assert that a user cannot delete a token for someone else."""
 
         response = self.delete('/users/1/tokens/1', expect_errors=True)
-        self.assertEquals(401, response.status_code)
+        self.assertEqual(401, response.status_code)
 
 
 class TestUserTokensAsSuperuser(base.FunctionalTest):
@@ -291,4 +291,4 @@ class TestUserTokensAsSuperuser(base.FunctionalTest):
         self.assertEqual(204, response.status_code)
 
         response = self.get_json('/users/2/tokens/3', expect_errors=True)
-        self.assertEquals(404, response.status_code)
+        self.assertEqual(404, response.status_code)

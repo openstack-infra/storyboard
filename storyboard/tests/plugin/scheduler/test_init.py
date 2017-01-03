@@ -154,7 +154,7 @@ class TestSchedulerCoreMethods(base.DbTestCase):
 
         # make sure the plugin is only loaded once.
         self.assertTrue(test_list.index(mock_plugin_name) == 0)
-        self.assertEquals(len(test_list), 1)
+        self.assertEqual(len(test_list), 1)
 
         # Get the job.
         second_run_job = scheduler.SCHEDULER.get_job(mock_plugin_name)

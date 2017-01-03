@@ -46,9 +46,9 @@ class TestSubscriptionsAsUser(base.FunctionalTest):
         })
         subscription = response.json
 
-        self.assertEquals('project', subscription['target_type'])
-        self.assertEquals(1, subscription['target_id'])
-        self.assertEquals(2, subscription['user_id'])
+        self.assertEqual('project', subscription['target_type'])
+        self.assertEqual(1, subscription['target_id'])
+        self.assertEqual(2, subscription['user_id'])
         self.assertIsNotNone(subscription['id'])
 
         response2 = self.post_json(self.resource, {
@@ -58,9 +58,9 @@ class TestSubscriptionsAsUser(base.FunctionalTest):
         })
         subscription2 = response2.json
 
-        self.assertEquals('project', subscription2['target_type'])
-        self.assertEquals(2, subscription2['target_id'])
-        self.assertEquals(2, subscription2['user_id'])
+        self.assertEqual('project', subscription2['target_type'])
+        self.assertEqual(2, subscription2['target_id'])
+        self.assertEqual(2, subscription2['user_id'])
         self.assertIsNotNone(subscription2['id'])
 
     def test_delete_subscriptions(self):
@@ -104,7 +104,7 @@ class TestSubscriptionsAsUser(base.FunctionalTest):
         })
 
         response = self.get_json(self.resource)
-        self.assertEquals(1, len(response))
+        self.assertEqual(1, len(response))
 
         response = self.get_json(self.resource +
                                  '?target_type=project')
@@ -126,25 +126,25 @@ class TestSubscriptionsAsUser(base.FunctionalTest):
             'target_id': 100,
             'target_type': 'project'
         }, expect_errors=True)
-        self.assertEquals(400, response.status_code)
+        self.assertEqual(400, response.status_code)
 
         response = self.post_json(self.resource, {
             'target_id': 100,
             'target_type': 'story'
         }, expect_errors=True)
-        self.assertEquals(400, response.status_code)
+        self.assertEqual(400, response.status_code)
 
         response = self.post_json(self.resource, {
             'target_id': 100,
             'target_type': 'task'
         }, expect_errors=True)
-        self.assertEquals(400, response.status_code)
+        self.assertEqual(400, response.status_code)
 
         response = self.post_json(self.resource, {
             'target_id': 100,
             'target_type': 'notarealresource'
         }, expect_errors=True)
-        self.assertEquals(400, response.status_code)
+        self.assertEqual(400, response.status_code)
 
     def test_cannot_create_duplicates(self):
         """Assert that we cannot create duplicate subscriptions."""
@@ -152,7 +152,7 @@ class TestSubscriptionsAsUser(base.FunctionalTest):
             'target_id': 1,
             'target_type': 'project'
         })
-        self.assertEquals(200, response1.status_code)
+        self.assertEqual(200, response1.status_code)
         response2 = self.post_json(self.resource, {
             'target_id': 1,
             'target_type': 'project'
@@ -187,17 +187,17 @@ class TestSubscriptionsAsSuperuser(base.FunctionalTest):
         })
         subscription = response.json
 
-        self.assertEquals('project', subscription['target_type'])
-        self.assertEquals(1, subscription['target_id'])
-        self.assertEquals(3, subscription['user_id'])
+        self.assertEqual('project', subscription['target_type'])
+        self.assertEqual(1, subscription['target_id'])
+        self.assertEqual(3, subscription['user_id'])
         self.assertIsNotNone(subscription['id'])
 
     def test_get_subscription(self):
         """Assert that we can read subscriptions for others.
         """
         response = self.get_json(self.resource + '/3')
-        self.assertEquals(3, response['id'])
-        self.assertEquals(3, response['user_id'])
+        self.assertEqual(3, response['id'])
+        self.assertEqual(3, response['user_id'])
 
     def test_can_search_for_not_self(self):
         """Assert that we can search other people's subscriptions."""

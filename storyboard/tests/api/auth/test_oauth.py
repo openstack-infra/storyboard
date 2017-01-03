@@ -551,8 +551,8 @@ class TestOAuthAccessToken(BaseOAuthTest):
         self.assertIsNotNone(access_token)
 
         # Assert that system configured values is owned by the correct user.
-        self.assertEquals(2, access_token.user_id)
-        self.assertEquals(token['id_token'], access_token.user_id)
+        self.assertEqual(2, access_token.user_id)
+        self.assertEqual(token['id_token'], access_token.user_id)
         self.assertEqual(token['expires_in'], CONF.oauth.access_token_ttl)
         self.assertEqual(token['expires_in'], access_token.expires_in)
         self.assertEqual(token['access_token'], access_token.access_token)
@@ -566,7 +566,7 @@ class TestOAuthAccessToken(BaseOAuthTest):
         self.assertIsNotNone(refresh_token)
 
         # Assert that system configured values is owned by the correct user.
-        self.assertEquals(2, refresh_token.user_id)
+        self.assertEqual(2, refresh_token.user_id)
         self.assertEqual(CONF.oauth.refresh_token_ttl,
                          refresh_token.expires_in)
         self.assertEqual(token['refresh_token'], refresh_token.refresh_token)
@@ -791,8 +791,8 @@ class TestOAuthAccessToken(BaseOAuthTest):
         self.assertIsNotNone(new_access_token)
 
         # Assert that system configured values is owned by the correct user.
-        self.assertEquals(2, new_access_token.user_id)
-        self.assertEquals(t2['id_token'], new_access_token.user_id)
+        self.assertEqual(2, new_access_token.user_id)
+        self.assertEqual(t2['id_token'], new_access_token.user_id)
         self.assertEqual(t2['expires_in'], CONF.oauth.access_token_ttl)
         self.assertEqual(t2['expires_in'], new_access_token.expires_in)
         self.assertEqual(t2['access_token'],
@@ -807,7 +807,7 @@ class TestOAuthAccessToken(BaseOAuthTest):
         self.assertIsNotNone(new_refresh_token)
 
         # Assert that system configured values is owned by the correct user.
-        self.assertEquals(2, new_refresh_token.user_id)
+        self.assertEqual(2, new_refresh_token.user_id)
         self.assertEqual(CONF.oauth.refresh_token_ttl,
                          new_refresh_token.expires_in)
         self.assertEqual(t2['refresh_token'],
