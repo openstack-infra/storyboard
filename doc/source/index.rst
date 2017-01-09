@@ -36,7 +36,6 @@ Installation guides
 .. toctree::
    :maxdepth: 1
 
-   install/manual
    install/development
 
 
