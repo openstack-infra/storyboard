@@ -35,12 +35,13 @@ NOTE: If you are using a Virtual Machine (VM), all commands that begin with
 
 3. Add MySQL user and create database:
 
-  NOTE: You will need to replace the ``$DB_USER`` with ``root`` and the
-  ``$DB_PASSWORD`` with the password you set when you ran
+  NOTE: You will need to replace the ``$DB_USER`` with ``root``.
+  It will prompt for a password; this is
+  the password you set when you ran
   ``sudo apt-get mysql-server-5.6`` in step 1::
 
-    mysql -u $DB_USER -p$DB_PASSWORD -e 'DROP DATABASE IF EXISTS storyboard;'
-    mysql -u $DB_USER -p$DB_PASSWORD -e 'CREATE DATABASE storyboard;'
+    mysql -u $DB_USER -p -e 'DROP DATABASE IF EXISTS storyboard;'
+    mysql -u $DB_USER -p -e 'CREATE DATABASE storyboard;'
 
 
 4. Copy the sample configuration file::
