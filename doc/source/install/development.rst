@@ -2,8 +2,17 @@
  Installing and Running for Developers
 =======================================
 
-Storyboard has two components: this API server, and the
-Javascript-based web client.
+StoryBoard has two main components: the API server, and the
+Javascript-based web client. The API server is essential, but
+the webclient can be swapped out for an alternative if an
+alternative is available. This means it is possible to use
+a different user interface with the StoryBoard API;
+install instructions for those are detailed in their own repos
+(eg: boartty, a commandline interface, is available here:
+https://git.openstack.org/cgit/openstack/boartty/).
+
+This install guide will cover the API and the most widely-used
+StoryBoard webclient.
 
 
 Installing and Upgrading the API server
@@ -27,7 +36,7 @@ NOTE: If you are using a Virtual Machine (VM), all commands that begin with
     mysql --version
 
 
-2. Clone the storyboard repository::
+2. Clone the StoryBoard repository::
 
     git clone https://git.openstack.org/openstack-infra/storyboard
     cd storyboard
@@ -81,14 +90,14 @@ Installing the Javascript-based web client
    installed locally:
 
      * Python 2.6 or 2.7
-     * NodeJS v0.10.29 or newer
-     * NPM v1.3.10 or newer
+     * Node.js v0.10.29 or newer (see https://nodejs.org/en/download/package-manager/ for more information on getting the right package for your distribution)
+     * npm v1.3.10 or newer (this will be bundled with Node.js)
 
      (Ubuntu Trusty packages are sufficient, even though they indicate an older
      version. MySQL must be >= 5.6.)
 
 
-2. Clone storyboard::
+2. Clone the StoryBoard webclient::
 
     git clone https://git.openstack.org/openstack-infra/storyboard-webclient
     cd storyboard-webclient
