@@ -22,6 +22,7 @@ from openid import cryptutil
 
 import storyboard.common.event_types as event_types
 from storyboard.db.api import base as db_api
+from storyboard.db.models import Branch
 from storyboard.db.models import Comment
 from storyboard.db.models import Project
 from storyboard.db.models import Story
@@ -52,6 +53,14 @@ class LaunchpadWriter(object):
         if not self.project:
             print "Local project %s not found in storyboard, please create " \
                   "it first." % (project_name)
+            sys.exit(1)
+
+        self.branch = db_api.model_query(Branch, self.session) \
+            .filter_by(project_id=self.project.id, name='master') \
+            .first()
+        if not self.branch:
+            print "No master branch found for project %s, please create " \
+                  "one first." % (project_name)
             sys.exit(1)
 
     def write_tags(self, bug):
@@ -219,6 +228,7 @@ class LaunchpadWriter(object):
                 'title': title,
                 'assignee_id': assignee.id if assignee else None,
                 'project_id': self.project.id,
+                'branch_id': self.branch.id,
                 'story_id': launchpad_id,
                 'created_at': created_at,
                 'updated_at': updated_at,
