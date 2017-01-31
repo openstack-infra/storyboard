@@ -33,6 +33,9 @@ LOG = log.getLogger(__name__)
 def upgrade(active_plugins=None, options=None):
 
     version_info = op.get_bind().engine.dialect.server_version_info
+    if version_info[-1] == "MariaDB":
+        # Removes fake mysql prefix
+        version_info = version_info[-4:]
     if version_info[0] < 5 or version_info[0] == 5 and version_info[1] < 6:
         LOG.warning(
             "MySQL version is lower than 5.6. Skipping full-text indexes")
@@ -60,6 +63,9 @@ def upgrade(active_plugins=None, options=None):
 def downgrade(active_plugins=None, options=None):
 
     version_info = op.get_bind().engine.dialect.server_version_info
+    if version_info[-1] == "MariaDB":
+        # Removes fake mysql prefix
+        version_info = version_info[-4:]
     if version_info[0] < 5 or version_info[0] == 5 and version_info[1] < 6:
         LOG.warning(
             "MySQL version is lower than 5.6. Skipping full-text indexes")
