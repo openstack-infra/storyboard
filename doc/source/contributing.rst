@@ -14,6 +14,9 @@ For MySQL you can use the following commands::
  mysql> GRANT ALL PRIVILEGES ON * . * TO 'openstack_citest'@'localhost';
  mysql> FLUSH PRIVILEGES;
 
+Note that the script tools/test-setup.sh can be used for the step
+above.
+
 Storyboard uses tox_ to manage its unit and functional tests. After
 installing tox and downloading the storyboard source, run the tests
 with::
