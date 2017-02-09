@@ -6,7 +6,7 @@ mock>=1.0
 python-subunit
 oslo.sphinx
 oslotest>=1.2.0
-tempest-lib
+os-testr>=0.4.1
 testrepository>=0.0.18
 testscenarios>=0.4,<0.5
 testtools>=0.9.34
