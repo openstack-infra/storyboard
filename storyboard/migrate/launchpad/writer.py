@@ -52,16 +52,16 @@ class LaunchpadWriter(object):
             .filter_by(name=project_name) \
             .first()
         if not self.project:
-            print "Local project %s not found in storyboard, please create " \
-                  "it first." % (project_name)
+            print("Local project %s not found in storyboard, please create \
+                  it first." % (project_name))
             sys.exit(1)
 
         self.branch = db_api.model_query(Branch, self.session) \
             .filter_by(project_id=self.project.id, name='master') \
             .first()
         if not self.branch:
-            print "No master branch found for project %s, please create " \
-                  "one first." % (project_name)
+            print("No master branch found for project %s, please create \
+                  one first." % (project_name))
             sys.exit(1)
 
     def write_tags(self, bug):
@@ -93,7 +93,7 @@ class LaunchpadWriter(object):
 
             if not tag:
                 # Go ahead and create it.
-                print "Importing tag '%s'" % (tag_name)
+                print("Importing tag '%s'" % tag_name)
                 tag = db_api.entity_create(StoryTag, {
                     'name': tag_name
                 }, session=self.session)
@@ -129,8 +129,8 @@ class LaunchpadWriter(object):
             except DiscoveryFailure:
                 # If we encounter a launchpad maintenance user,
                 # give it an invalid openid.
-                print "WARNING: Invalid OpenID for user \'%s\'" \
-                      % (display_name,)
+                print("WARNING: Invalid OpenID for user \'%s\'"
+                      % (display_name,))
                 self._openid_map[user_link] = \
                     'http://example.com/invalid/~%s' % (display_name,)
 
@@ -144,7 +144,7 @@ class LaunchpadWriter(object):
                 .filter_by(openid=openid) \
                 .first()
             if not user:
-                print "Importing user '%s'" % (user_link)
+                print("Importing user '%s'" % (user_link))
 
                 # Use a temporary email address, since LP won't give this to
                 # us and it'll be updated on first login anyway.
@@ -158,13 +158,39 @@ class LaunchpadWriter(object):
 
         return self._user_map[openid]
 
-    def write_bug(self, owner, assignee, priority, status, tags, bug):
+    def check_branch(self, branch):
+
+        #Look in db for branches that are in project
+        #if branch is in project return True
+        exists = (db_api.model_query(Branch, self.session)
+                  .filter_by(project_id=self.project.id)
+                  .filter_by(name=branch).all())
+        return exists
+
+    def get_branch(self, branch):
+        result = (db_api.model_query(Branch, self.session)
+                  .filter_by(project_id=self.project.id)
+                  .filter_by(name=branch)
+                  .first())
+        return result
+
+    def write_bug(self, owner, assignee, priority, status, tags, bug,
+                  branches):
         """Writes the story, task, task history, and conversation.
 
         :param owner: The bug owner SQLAlchemy entity.
         :param tags: The tag SQLAlchemy entities.
         :param bug: The Launchpad Bug record.
         """
+        #Checks to make sure that the branch for the bug exists
+        for branch in branches:
+            if not self.check_branch(branch):
+                print('No %s branch found for %s project. Creating one now.' %
+                      (branch, self.project.name))
+                db_api.entity_create(Branch, {
+                    'name': branch,
+                    'project_id': self.project.id
+                }, session=self.session)
 
         if hasattr(bug, 'date_created'):
             created_at = bug.date_created
@@ -180,9 +206,9 @@ class LaunchpadWriter(object):
         # example url: https://api.launchpad.net/1.0/bugs/1057477
         url_match = re.search("([0-9]+)$", str(bug.self_link))
         if not url_match:
-            print 'ERROR: Unable to extract launchpad ID from %s.' \
-                  % (bug.self_link,)
-            print 'ERROR: Please file a ticket.'
+            print('ERROR: Unable to extract launchpad ID from %s.'
+                  % (bug.self_link,))
+            print('ERROR: Please file a ticket.')
             return
         launchpad_id = int(url_match.groups()[0])
 
@@ -209,10 +235,10 @@ class LaunchpadWriter(object):
         duplicate = db_api.entity_get(Story, launchpad_id,
                                       session=self.session)
         if not duplicate:
-            print "Importing Story: %s" % (bug.self_link,)
+            print("Importing Story: %s" % (bug.self_link,))
             story = db_api.entity_create(Story, story, session=self.session)
         else:
-            print "Existing Story: %s" % (bug.self_link,)
+            print("Existing Story: %s" % (bug.self_link,))
             story = duplicate
 
         # Duplicate check- launchpad import creates one task per story,
@@ -224,20 +250,22 @@ class LaunchpadWriter(object):
             .filter(Task.project_id == self.project.id) \
             .first()
         if not existing_task:
-            print "- Adding task in project %s" % (self.project.name,)
-            task = db_api.entity_create(Task, {
-                'title': title,
-                'assignee_id': assignee.id if assignee else None,
-                'project_id': self.project.id,
-                'branch_id': self.branch.id,
-                'story_id': launchpad_id,
-                'created_at': created_at,
-                'updated_at': updated_at,
-                'priority': priority,
-                'status': status
-            }, session=self.session)
+            print("- Adding task in project %s" % (self.project.name,))
+
+            for branch in branches:
+                task = db_api.entity_create(Task, {
+                    'title': title,
+                    'assignee_id': assignee.id if assignee else None,
+                    'project_id': self.project.id,
+                    'branch_id': self.get_branch(branch).id,
+                    'story_id': launchpad_id,
+                    'created_at': created_at,
+                    'updated_at': updated_at,
+                    'priority': priority,
+                    'status': status
+                }, session=self.session)
         else:
-            print "- Existing task in %s" % (self.project.name,)
+            print("- Existing task in %s" % (self.project.name,))
             task = existing_task
 
         # Duplication Check - If this story already has a creation event,
@@ -249,7 +277,7 @@ class LaunchpadWriter(object):
             .filter(TimeLineEvent.event_type == event_types.STORY_CREATED) \
             .first()
         if not story_created_event:
-            print "- Generating story creation event"
+            print("- Generating story creation event")
             db_api.entity_create(TimeLineEvent, {
                 'story_id': launchpad_id,
                 'author_id': owner.id,
@@ -260,7 +288,7 @@ class LaunchpadWriter(object):
         # Create the creation event for the task, but only if we just created
         # a new task.
         if not existing_task:
-            print "- Generating task creation event"
+            print("- Generating task creation event")
             db_api.entity_create(TimeLineEvent, {
                 'story_id': launchpad_id,
                 'author_id': owner.id,
@@ -279,10 +307,10 @@ class LaunchpadWriter(object):
             .filter(TimeLineEvent.event_type == event_types.USER_COMMENT) \
             .count()
         desired_count = len(bug.messages)
-        print "- %s of %s comments already imported." % (current_count,
-                                                         desired_count)
+        print("- %s of %s comments already imported." % (current_count,
+                                                         desired_count))
         for i in range(current_count, desired_count):
-            print '- Importing comment %s of %s' % (i + 1, desired_count)
+            print('- Importing comment %s of %s' % (i + 1, desired_count))
             message = bug.messages[i]
             message_created_at = message.date_created
             message_owner = self.write_user(message.owner)
