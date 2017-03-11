@@ -15,6 +15,7 @@
 import json
 import re
 import sys
+import uuid
 
 from openid.consumer import consumer
 from openid.consumer.discover import DiscoveryFailure
@@ -150,7 +151,7 @@ class LaunchpadWriter(object):
                 user = db_api.entity_create(User, {
                     'openid': openid,
                     'full_name': display_name,
-                    'email': "%s@example.com" % (display_name)
+                    'email': "%s-%s@example.com" % (display_name, uuid.uuid4())
                 }, session=self.session)
 
             self._user_map[openid] = user
