@@ -727,7 +727,7 @@ class WorklistItem(base.APIBase):
         self.resolved_due_date = resolved
 
     @nodoc
-    def resolve_item(self, item, story_cache, task_cache):
+    def resolve_item(self, item, story_cache, task_cache, due_dates=True):
         user_id = request.current_user_id
         if item.item_type == 'story':
             story = story_cache.get(item.item_id) or stories_api.story_get(
@@ -735,18 +735,22 @@ class WorklistItem(base.APIBase):
             if story is None:
                 return False
             self.story = Story.from_db_model(story)
-            due_dates = [date.id for date in story.due_dates
-                         if due_dates_api.visible(date, user_id)]
-            self.story.due_dates = due_dates
+            if due_dates:
+                self.story.due_dates = [
+                    date.id for date in story.due_dates
+                    if due_dates_api.visible(date, user_id)
+                ]
         elif item.item_type == 'task':
             task = task_cache.get(item.item_id) or tasks_api.task_get(
                 item.item_id, current_user=request.current_user_id)
             if task is None or task.story is None:
                 return False
             self.task = Task.from_db_model(task)
-            due_dates = [date.id for date in task.due_dates
-                         if due_dates_api.visible(date, user_id)]
-            self.task.due_dates = due_dates
+            if due_dates:
+                self.task.due_dates = [
+                    date.id for date in task.due_dates
+                    if due_dates_api.visible(date, user_id)
+                ]
         return True
 
 
@@ -813,14 +817,17 @@ class Worklist(base.APIBase):
 
     @nodoc
     def _resolve_automatic_items(self, worklist, user_id):
-        for item in worklists_api.filter_items(worklist):
+        items, stories, tasks = worklists_api.filter_items(worklist)
+        story_cache = {story.id: story for story in stories}
+        task_cache = {task.id: task for task in tasks}
+        for item in items:
             item_model = WorklistItem(**item)
-            valid = item_model.resolve_item(item_model, {}, {})
+            valid = item_model.resolve_item(item_model, story_cache,
+                                            task_cache, due_dates=False)
             if not valid:
                 continue
-            item_model.resolve_due_date(item_model)
+            item_model.resolved_due_date = None
             self.items.append(item_model)
-        self.items.sort(key=lambda x: x.list_position)
 
     @nodoc
     def _resolve_set_items(self, worklist, user_id, story_cache, task_cache):

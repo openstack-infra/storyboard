@@ -664,4 +664,4 @@ def filter_items(worklist):
             'display_due_date': None
         })
 
-    return items
+    return items, filtered_stories, filtered_tasks
