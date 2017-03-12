@@ -409,7 +409,7 @@ def filter_private_stories(query, current_user, story_model=models.Story):
         )
 
     # Now filter based on membership of teams with permissions
-    users = aliased(models.User)
+    users = aliased(models.User, name="story_users")
     query = query.outerjoin(models.team_permissions,
                             models.Team,
                             models.team_membership,
@@ -448,13 +448,17 @@ def filter_private_worklists(query, current_user, hide_lanes=True):
     """
     # Alias all the things we're joining, in case they've been
     # joined already.
-    board_worklists = aliased(models.BoardWorklist)
-    boards = aliased(models.Board)
-    board_permissions = aliased(models.board_permissions)
-    worklist_permissions = aliased(models.worklist_permissions)
-    permissions = aliased(models.Permission)
-    user_permissions = aliased(models.user_permissions)
-    users = aliased(models.User)
+    board_worklists = aliased(models.BoardWorklist,
+                              name="worklist_boardworklists")
+    boards = aliased(models.Board, name="worklist_boards")
+    board_permissions = aliased(models.board_permissions,
+                                name="worklist_boardpermissions")
+    worklist_permissions = aliased(models.worklist_permissions,
+                                   name="worklist_worklistpermissions")
+    permissions = aliased(models.Permission, name="worklist_permissions")
+    user_permissions = aliased(models.user_permissions,
+                               name="worklist_userpermissions")
+    users = aliased(models.User, name="worklist_users")
 
     # Worklists permissions must be inherited from the board which
     # contains the list (if any). To handle this we split the query
@@ -527,10 +531,12 @@ def filter_private_boards(query, current_user):
     :param current_user: The ID of the user requesting the result.
 
     """
-    board_permissions = aliased(models.board_permissions)
-    permissions = aliased(models.Permission)
-    user_permissions = aliased(models.user_permissions)
-    users = aliased(models.User)
+    board_permissions = aliased(models.board_permissions,
+                                name="board_boardpermissions")
+    permissions = aliased(models.Permission, name="board_permissions")
+    user_permissions = aliased(models.user_permissions,
+                               name="board_userpermissions")
+    users = aliased(models.User, name="board_users")
 
     query = (query
         .outerjoin((board_permissions,

@@ -69,7 +69,7 @@ def story_get(story_id, session=None, current_user=None):
 def story_get_all(title=None, description=None, status=None, assignee_id=None,
                   creator_id=None, project_group_id=None, project_id=None,
                   subscriber_id=None, tags=None, updated_since=None,
-                  marker=None, offset=None,
+                  board_id=None, worklist_id=None, marker=None, offset=None,
                   limit=None, tags_filter_type="all", sort_field='id',
                   sort_dir='asc', current_user=None):
     # Sanity checks, in case someone accidentally explicitly passes in 'None'
@@ -90,10 +90,10 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
                                   project_id=project_id,
                                   tags=tags,
                                   updated_since=updated_since,
+                                  board_id=board_id,
+                                  worklist_id=worklist_id,
+                                  current_user=current_user,
                                   tags_filter_type=tags_filter_type)
-
-    # Filter out stories that the current user can't see
-    subquery = api_base.filter_private_stories(subquery, current_user)
 
     # Filter by subscriber ID
     if subscriber_id is not None:
@@ -111,8 +111,9 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
     # Return the story summary.
     query = api_base.model_query(models.StorySummary)\
         .options(subqueryload(models.StorySummary.tags))
+    id_col = tuple(subquery.c)[0]
     query = query.join(subquery,
-                       models.StorySummary.id == subquery.c.stories_id)
+                       models.StorySummary.id == id_col)
 
     if status:
         query = query.filter(models.StorySummary.status.in_(status))
@@ -143,10 +144,8 @@ def story_get_count(title=None, description=None, status=None,
                                project_id=project_id,
                                updated_since=updated_since,
                                tags=tags,
-                               tags_filter_type=tags_filter_type)
-
-    # Filter out stories that the current user can't see
-    query = api_base.filter_private_stories(query, current_user)
+                               tags_filter_type=tags_filter_type,
+                               current_user=current_user)
 
     # Filter by subscriber ID
     if subscriber_id is not None:
@@ -158,14 +157,18 @@ def story_get_count(title=None, description=None, status=None,
         subs = subs.subquery()
         query = query.join(subs, subs.c.target_id == models.Story.id)
 
-    # If we're also asking for status, we have to attach storysummary here,
-    # since story status is derived.
+    # Turn the whole shebang into a subquery.
+    subquery = query.subquery('filtered_stories')
+
+    # Return the story summary.
+    query = api_base.model_query(models.StorySummary)\
+        .options(subqueryload(models.StorySummary.tags))
+    id_col = tuple(subquery.c)[0]
+    query = query.join(subquery,
+                       models.StorySummary.id == id_col)
+
     if status:
-        query = query.subquery()
-        summary_query = api_base.model_query(models.StorySummary)
-        summary_query = summary_query \
-            .join(query, models.StorySummary.id == query.c.stories_id)
-        query = summary_query.filter(models.StorySummary.status.in_(status))
+        query = query.filter(models.StorySummary.status.in_(status))
 
     return query.count()
 
@@ -173,7 +176,8 @@ def story_get_count(title=None, description=None, status=None,
 def _story_build_query(title=None, description=None, assignee_id=None,
                        creator_id=None, project_group_id=None,
                        project_id=None, updated_since=None, tags=None,
-                       tags_filter_type='all', session=None):
+                       board_id=None, worklist_id=None, tags_filter_type='all',
+                       current_user=None, session=None):
     # First build a standard story query.
     query = api_base.model_query(models.Story.id, session=session).distinct()
 
@@ -185,6 +189,9 @@ def _story_build_query(title=None, description=None, assignee_id=None,
                                          creator_id=creator_id)
     if updated_since:
         query = query.filter(models.Story.updated_at > updated_since)
+
+    # Filter out stories that the current user can't see
+    query = api_base.filter_private_stories(query, current_user)
 
     # Filtering by tags
     if tags:
@@ -215,6 +222,27 @@ def _story_build_query(title=None, description=None, assignee_id=None,
             query = query.filter(models.Task.assignee_id == assignee_id)
         if project_id:
             query = query.filter(models.Task.project_id == project_id)
+
+    if worklist_id or board_id:
+        query = query.outerjoin(
+            (models.WorklistItem,
+             models.WorklistItem.item_id == models.Story.id))
+        query = query.filter(models.WorklistItem.item_type == "story")
+        query = query.outerjoin(models.Worklist)
+
+    # Filter by worklist
+    if worklist_id:
+        query = query.filter(models.Worklist.id == worklist_id)
+        query = api_base.filter_private_worklists(
+            query, current_user, hide_lanes=False)
+
+    # Filter by board
+    if board_id:
+        query = query.outerjoin(models.BoardWorklist, models.Board)
+        query = api_base.filter_private_boards(query, current_user)
+        query = query.filter(models.Board.id == board_id)
+        query = api_base.filter_private_worklists(
+            query, current_user, hide_lanes=False)
 
     return query.distinct()
 
