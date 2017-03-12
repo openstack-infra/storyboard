@@ -717,6 +717,9 @@ class WorklistItem(base.APIBase):
 
     @nodoc
     def resolve_due_date(self, worklist_item):
+        if not worklist_item.display_due_date:
+            self.resolved_due_date = None
+            return
         due_date = due_dates_api.get(worklist_item.display_due_date)
         resolved = None
         if due_dates_api.visible(due_date, request.current_user_id):
@@ -724,10 +727,10 @@ class WorklistItem(base.APIBase):
         self.resolved_due_date = resolved
 
     @nodoc
-    def resolve_item(self, item):
+    def resolve_item(self, item, story_cache, task_cache):
         user_id = request.current_user_id
         if item.item_type == 'story':
-            story = stories_api.story_get(
+            story = story_cache.get(item.item_id) or stories_api.story_get(
                 item.item_id, current_user=request.current_user_id)
             if story is None:
                 return False
@@ -736,7 +739,7 @@ class WorklistItem(base.APIBase):
                          if due_dates_api.visible(date, user_id)]
             self.story.due_dates = due_dates
         elif item.item_type == 'task':
-            task = tasks_api.task_get(
+            task = task_cache.get(item.item_id) or tasks_api.task_get(
                 item.item_id, current_user=request.current_user_id)
             if task is None or task.story is None:
                 return False
@@ -799,20 +802,20 @@ class Worklist(base.APIBase):
             items=[])
 
     @nodoc
-    def resolve_items(self, worklist):
+    def resolve_items(self, worklist, story_cache={}, task_cache={}):
         """Resolve the contents of this worklist."""
         self.items = []
         user_id = request.current_user_id
         if worklist.automatic:
             self._resolve_automatic_items(worklist, user_id)
         else:
-            self._resolve_set_items(worklist, user_id)
+            self._resolve_set_items(worklist, user_id, story_cache, task_cache)
 
     @nodoc
     def _resolve_automatic_items(self, worklist, user_id):
         for item in worklists_api.filter_items(worklist):
             item_model = WorklistItem(**item)
-            valid = item_model.resolve_item(item_model)
+            valid = item_model.resolve_item(item_model, {}, {})
             if not valid:
                 continue
             item_model.resolve_due_date(item_model)
@@ -820,12 +823,12 @@ class Worklist(base.APIBase):
         self.items.sort(key=lambda x: x.list_position)
 
     @nodoc
-    def _resolve_set_items(self, worklist, user_id):
+    def _resolve_set_items(self, worklist, user_id, story_cache, task_cache):
         for item in worklist.items:
             if item.archived:
                 continue
             item_model = WorklistItem.from_db_model(item)
-            valid = item_model.resolve_item(item)
+            valid = item_model.resolve_item(item, story_cache, task_cache)
             if not valid:
                 continue
             item_model.resolve_due_date(item)
@@ -881,13 +884,14 @@ class Lane(base.APIBase):
                 items=[]))
 
     @nodoc
-    def resolve_list(self, lane, resolve_items=True):
+    def resolve_list(self, lane, story_cache, task_cache, resolve_items=True):
         """Resolve the worklist which represents the lane."""
         self.worklist = Worklist.from_db_model(lane.worklist)
         self.worklist.resolve_permissions(lane.worklist)
         self.worklist.resolve_filters(lane.worklist)
         if resolve_items:
-            self.worklist.resolve_items(lane.worklist)
+            self.worklist.resolve_items(
+                lane.worklist, story_cache, task_cache)
         else:
             items = worklists_api.get_visible_items(
                 lane.worklist, current_user=request.current_user_id)
@@ -961,12 +965,14 @@ class Board(base.APIBase):
             users=[])
 
     @nodoc
-    def resolve_lanes(self, board, resolve_items=True):
+    def resolve_lanes(self, board, story_cache={}, task_cache={},
+                      resolve_items=True):
         """Resolve the lanes of the board."""
         self.lanes = []
         for lane in board.lanes:
             lane_model = Lane.from_db_model(lane)
-            lane_model.resolve_list(lane, resolve_items)
+            lane_model.resolve_list(
+                lane, story_cache, task_cache, resolve_items)
             self.lanes.append(lane_model)
         self.lanes.sort(key=lambda x: x.position)
 

@@ -600,9 +600,13 @@ class WorklistsController(rest.RestController):
         worklist = worklists_api.get(worklist_id)
 
         user_id = request.current_user_id
+        story_cache = {story.id: story for story in stories_api.story_get_all(
+                       worklist_id=worklist_id, current_user=user_id)}
+        task_cache = {task.id: task for task in tasks_api.task_get_all(
+                      worklist_id=worklist_id, current_user=user_id)}
         if worklist and worklists_api.visible(worklist, user_id):
             worklist_model = wmodels.Worklist.from_db_model(worklist)
-            worklist_model.resolve_items(worklist)
+            worklist_model.resolve_items(worklist, story_cache, task_cache)
             worklist_model.resolve_permissions(worklist)
             worklist_model.resolve_filters(worklist)
             return worklist_model
@@ -811,6 +815,11 @@ class WorklistsController(rest.RestController):
         if not worklists_api.editable(worklists_api.get(id), user_id):
             raise exc.NotFound(_("Worklist %s not found") % id)
 
+        story_cache = {story.id: story for story in stories_api.story_get_all(
+                       worklist_id=id, current_user=user_id)}
+        task_cache = {task.id: task for task in tasks_api.task_get_all(
+                      worklist_id=id, current_user=user_id)}
+
         # We don't use this endpoint to update the worklist's contents
         if worklist.items != wtypes.Unset:
             del worklist.items
@@ -827,7 +836,8 @@ class WorklistsController(rest.RestController):
         post_timeline_events(original, updated_worklist)
         if worklists_api.visible(updated_worklist, user_id):
             worklist_model = wmodels.Worklist.from_db_model(updated_worklist)
-            worklist_model.resolve_items(updated_worklist)
+            worklist_model.resolve_items(
+                updated_worklist, story_cache, task_cache)
             worklist_model.resolve_permissions(updated_worklist)
             return worklist_model
         else:

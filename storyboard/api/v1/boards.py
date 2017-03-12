@@ -31,6 +31,8 @@ from storyboard.api.v1 import wmodels
 from storyboard.common import decorators
 from storyboard.common import exception as exc
 from storyboard.db.api import boards as boards_api
+from storyboard.db.api import stories as stories_api
+from storyboard.db.api import tasks as tasks_api
 from storyboard.db.api import timeline_events as events_api
 from storyboard.db.api import users as users_api
 from storyboard.db.api import worklists as worklists_api
@@ -227,9 +229,13 @@ class BoardsController(rest.RestController):
         board = boards_api.get(id)
 
         user_id = request.current_user_id
+        story_cache = {story.id: story for story in stories_api.story_get_all(
+                       board_id=id, current_user=user_id)}
+        task_cache = {task.id: task for task in tasks_api.task_get_all(
+                      board_id=id, current_user=user_id)}
         if boards_api.visible(board, user_id):
             board_model = wmodels.Board.from_db_model(board)
-            board_model.resolve_lanes(board)
+            board_model.resolve_lanes(board, story_cache, task_cache)
             board_model.resolve_due_dates(board)
             board_model.resolve_permissions(board)
             return board_model
@@ -384,6 +390,11 @@ class BoardsController(rest.RestController):
         if not boards_api.editable(original, user_id):
             raise exc.NotFound(_("Board %s not found") % id)
 
+        story_cache = {story.id: story for story in stories_api.story_get_all(
+                       board_id=id, current_user=user_id)}
+        task_cache = {task.id: task for task in tasks_api.task_get_all(
+                      board_id=id, current_user=user_id)}
+
         # We use copy here because we only need to check changes
         # to the related objects, just the board's own attributes.
         # Also, deepcopy trips up on the lanes' backrefs.
@@ -402,7 +413,7 @@ class BoardsController(rest.RestController):
 
         if boards_api.visible(updated_board, user_id):
             board_model = wmodels.Board.from_db_model(updated_board)
-            board_model.resolve_lanes(updated_board)
+            board_model.resolve_lanes(updated_board, story_cache, task_cache)
             board_model.resolve_permissions(updated_board)
             return board_model
         else:
