@@ -264,7 +264,7 @@ class Project(FullText, ModelBuilder, Base):
 
     __fulltext_columns__ = ['name', 'description']
 
-    name = Column(String(CommonLength.top_short_length))
+    name = Column(String(CommonLength.top_middle_length))
     description = Column(UnicodeText())
     team_id = Column(Integer, ForeignKey('teams.id'))
     team = relationship(Team, primaryjoin=team_id == Team.id)
@@ -286,7 +286,7 @@ class ProjectGroup(ModelBuilder, Base):
         schema.UniqueConstraint('name', name='uniq_group_name'),
     )
 
-    name = Column(String(CommonLength.top_short_length))
+    name = Column(String(CommonLength.top_middle_length))
     title = Column(Unicode(CommonLength.top_large_length))
     projects = relationship("Project", secondary="project_group_mapping")
 

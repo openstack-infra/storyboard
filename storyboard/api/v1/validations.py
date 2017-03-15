@@ -99,7 +99,7 @@ PROJECTS_PUT_SCHEMA = {
         "name": {
             "type": "string",
             "minLength": CommonLength.lower_large_length,
-            "maxLength": CommonLength.top_short_length
+            "maxLength": CommonLength.top_middle_length
         },
         "repo_url": {
             "type": ["string", "null"],
@@ -118,7 +118,7 @@ PROJECT_GROUPS_PUT_SCHEMA = {
         "name": {
             "type": "string",
             "minLength": CommonLength.lower_large_length,
-            "maxLength": CommonLength.top_short_length
+            "maxLength": CommonLength.top_middle_length
         },
         "title": {
             "type": "string",
