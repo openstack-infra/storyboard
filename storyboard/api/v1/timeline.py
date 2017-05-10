@@ -406,7 +406,7 @@ class CommentsController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.superuser)
-    @wsme_pecan.wsexpose(wmodels.Comment, int, int, status_code=204)
+    @wsme_pecan.wsexpose(None, int, int, status_code=204)
     def delete(self, story_id, comment_id):
         """Delete an existing comment. This command is disabled by default.
 
