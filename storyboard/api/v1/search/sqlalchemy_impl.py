@@ -77,6 +77,7 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
             tags=tags,
             updated_since=updated_since,
             tags_filter_type=tags_filter_type,
+            current_user=current_user,
             session=session)
 
         # Filter by subscriber ID
@@ -89,17 +90,24 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
             subs = subs.subquery()
             subquery = subquery.join(subs, subs.c.target_id == models.Story.id)
 
-        subquery = self._build_fulltext_search(models.Story, subquery, q)
+        # Make a query that isn't full of aliases so that fulltext works
+        query = api_base.model_query(models.Story)
+        query = api_base.apply_query_filters(
+            query=query,
+            model=models.Story,
+            id=[story.id for story in subquery.all()])
 
-        # Filter out stories that the current user can't see
-        subquery = api_base.filter_private_stories(subquery, current_user)
+        clean_query = self._build_fulltext_search(models.Story, query, q)
 
-        subquery = subquery.subquery('stories_with_idx')
+        # Turn the whole shebang into a subquery.
+        clean_query = clean_query.subquery('filtered_stories')
 
+        # Return the story summary.
         query = api_base.model_query(models.StorySummary)\
             .options(subqueryload(models.StorySummary.tags))
-        query = query.join(subquery,
-                           models.StorySummary.id == subquery.c.stories_id)
+        id_col = tuple(clean_query.c)[0]
+        query = query.join(clean_query,
+                           models.StorySummary.id == id_col)
 
         if status:
             query = query.filter(models.StorySummary.status.in_(status))
@@ -120,7 +128,7 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
                     sort_field='id', sort_dir='asc'):
         session = api_base.get_session()
 
-        query = tasks_api.task_build_query(
+        subquery = tasks_api.task_build_query(
             project_group_id=project_group_id,
             story_id=story_id,
             assignee_id=assignee_id,
@@ -128,13 +136,17 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
             branch_id=branch_id,
             milestone_id=milestone_id,
             status=status,
+            current_user=current_user,
             session=session)
 
-        query = self._build_fulltext_search(models.Task, query, q)
+        # Make a query that isn't full of aliases so that fulltext works
+        clean_query = api_base.model_query(models.Task)
+        clean_query = api_base.apply_query_filters(
+            query=clean_query,
+            model=models.Task,
+            id=[task.id for task in subquery.all()])
 
-        # Filter out stories that the current user can't see
-        query = query.outerjoin(models.Story)
-        query = api_base.filter_private_stories(query, current_user)
+        query = self._build_fulltext_search(models.Task, clean_query, q)
 
         query = self._apply_pagination(
             models.Task,
