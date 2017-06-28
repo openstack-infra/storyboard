@@ -214,7 +214,7 @@ class UserTokensController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose(wmodels.AccessToken, int, int, status_code=204)
+    @wsme_pecan.wsexpose(None, int, int, status_code=204)
     def delete(self, user_id, access_token_id):
         """Deletes an access token with assigned refresh token for the given
         user. Admin users can delete any access tokens, regular users can only

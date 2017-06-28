@@ -336,7 +336,7 @@ class StoriesController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.superuser)
-    @wsme_pecan.wsexpose(wmodels.Story, int, status_code=204)
+    @wsme_pecan.wsexpose(None, int, status_code=204)
     def delete(self, story_id):
         """Delete this story. This command is only available to Admin users.
 

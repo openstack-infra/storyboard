@@ -417,7 +417,7 @@ class TasksPrimaryController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose(wmodels.Task, int, status_code=204)
+    @wsme_pecan.wsexpose(None, int, status_code=204)
     def delete(self, task_id):
         """Delete this task.
 
@@ -674,7 +674,7 @@ class TasksNestedController(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
-    @wsme_pecan.wsexpose(wmodels.Task, int, int, status_code=204)
+    @wsme_pecan.wsexpose(None, int, int, status_code=204)
     def delete(self, story_id, task_id):
         """Delete this task.
 
