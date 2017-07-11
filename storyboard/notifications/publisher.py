@@ -103,7 +103,7 @@ class Publisher(ConnectionService):
             if payload in self._pending:
                 self._pending.remove(payload)
             return True
-        except ConnectionClosed as cc:
+        except (ConnectionClosed, AttributeError) as cc:
             LOG.warning(_LW("Attempted to send message on closed connection."))
             LOG.debug(cc)
             self._open = False
