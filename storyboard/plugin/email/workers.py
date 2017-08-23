@@ -282,6 +282,10 @@ class SubscriptionEmailWorker(EmailWorkerBase):
         if email_config.reply_to:
             factory.add_header('Reply-To', email_config.reply_to)
 
+        # If there is a fallback URL configured, use it if needed
+        if email_config.default_url and url is None:
+            url = email_config.default_url
+
         # Resolve the resource instance
         resource_instance = self.resolve_resource_by_name(session, resource,
                                                           resource_id)

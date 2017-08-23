@@ -168,6 +168,9 @@ lock_path = $state_path/lock
 # The email address of the Reply-To header (optional).
 # reply_to =
 
+# The default url base to use in emails, if Referer is not set.
+# default_url = https://storyboard.openstack.org/
+
 # The SMTP server to use.
 # smtp_host = localhost
 
