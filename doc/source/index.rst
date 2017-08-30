@@ -38,7 +38,13 @@ Installation guides
 
    install/development
 
+Migration guides
+----------------
+.. toctree::
+   :maxdepth 1
 
+   migration
+   
 Developer docs
 --------------
 
