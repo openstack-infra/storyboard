@@ -17,7 +17,149 @@ So you want to migrate...
 - Once it's been decided that you can migrate cleanly, pick a date
   to make the change and in the interim, try to close as many bugs
   as possible
+- If you want to run your own test migration, those directions can
+  be found below in the 'Test Migration' Section
 
+
+Test Migration
+--------------
+
+1. Obtain a StoryBoard instance
+
+First you'll need superuser permissions on a StoryBoard instance. Unless
+you are infra-core or Zara or SotK, the best way to do this is to spin
+up your own test instance in a VM or somewhere.
+
+There are instructions on how to do that [here][0]. I won't go into detail
+here on the ins and outs of getting set up. When you have an up-to-date
+database you'll need to log in via the webclient. Upon successfully logging
+in, connect to your database with the mysql command line client, providing
+your password as prompted:
+
+    mysql -u $YOUR_DB_USER -p
+
+Then run the following:
+
+    connect $YOUR_DB_NAME;
+    update users set is_superuser=1;
+
+This will make every user that has so far logged in to have superuser
+permissions.
+
+[0]: https://docs.openstack.org/infra/storyboard/install/development.html
+
+1.1 (optional) Obtain a sanitised dump of the production database
+
+If you want to test migrating against production data, you'll need that
+data. The way to obtain this is to ask an infra core nicely.
+
+You can use the provided .sql file to recreate the production database
+in your local instance:
+
+    mysql -u $YOUR_DB_USER -p < /path/to/db/dump.sql
+
+> WARNING: This database will have the name `storyboard`, and will
+> obliterate the contents of any database you already have with the
+> same name.
+
+2. Create the StoryBoard project
+
+Log in to the webclient for your StoryBoard instance. When logged in,
+click the "Create New..." button, and pick "Project". Give the project
+a name (in storyboard.o.o this will match the git repository name, so
+you may as well use that) and a description.
+
+When you are happy with the name and description, and both are outlined
+in green, click "Create Project".
+
+3. Migrate!
+
+3.1 Check branches
+
+If there isn't yet support in the migration script for projects with
+multiple branches, then you will want to check that only the master
+branch has bugs filed against it. To make your script populate a file
+with a list of all branches used, simply add this somewhere in
+`LaunchpadWriter.write_bug()`:
+
+    with open('branches', 'a') as f:
+        for task in bug.bug_tasks:
+            f.write('%s\n' % task.target_link)
+
+Once your migration has run, this will leave a "branches" file in the
+current directory, and you can find useful information on branches by
+doing
+
+    cat branches | grep $TEST_PROJECT | sort | uniq
+
+where `$TEST_PROJECT` is the name of the project you are testing in
+Launchpad. If there are results other than
+
+    https://api.launchpad.net/1.0/$TEST_PROJECT
+
+or maybe
+
+    https://api.launchpad.net/1.0/python-$TEST_PROJECTclient
+
+then the migration test has FAILED.
+
+The next step is to actually run the migration script. You can do
+this with the following command:
+
+    tox -e venv "storyboard-migrate
+      --config-file etc/storyboard.conf
+      --from-project $PROJECT_IN_LAUNCHPAD
+      --to-project $PROJECT_IN_STORYBOARD"
+
+Here, `$PROJECT_IN_LAUNCHPAD` should be replaced by the name of the
+project in Launchpad, for example `monasca`. Similarly,
+`$PROJECT_IN_STORYBOARD` should be replaced the name of the project
+you are importing into in StoryBoard, for example `openstack/monasca`.
+
+Then you must wait for some time to pass whilst the project is
+migrated. You can watch the output if you like. Sometimes it will
+crash with a traceback saying the database object already exists.
+
+If this happens, then your migration test has FAILED and you need
+to go shout at SotK to fix this bug (or fix it yourself if you have
+the spare time to help).
+
+Sometimes it might break in other ways for some reason. If this
+happens, then your migration test has FAILED and you have found a
+new and exciting bug. Report it in #storyboard and maybe on
+StoryBoard somewhere and try to fix it if you like.
+
+4. Check everything went smoothly
+
+At this point you have successfully run a migration. You now need to
+check that you haven't triggered any of the migration issues we know
+about currently.
+
+Check branches as described in 3.1, and also check that you can view
+the project page in the webclient. Page through the stories to make
+sure that none of them have content that breaks the webclient.
+
+Check that you can view
+
+    http://localhost:9000/api/v1/stories?project_id=$YOUR_PROJECT_ID_HERE
+
+in a web browser. If there is trouble for your browser in rendering
+that then one of the stories has a non-unicode character in it which
+will ruin StoryBoard's day.
+
+If any of these checks don't succeed, then your migration test has
+FAILED.
+
+If they all succeed, then maybe so has your migration. Test everything
+you feel like testing, check some of the stories to make sure they look
+sane. Beware of things that look like a huge mess but are actually just
+our markdown parser mangling logs that weren't indented by the bug
+submitter. These aren't an issue but will probably make someone sad.
+
+Assuming you tested against production data and everything checked out,
+the project should be ready to migrate for real. If it wasn't tested
+against production data, now would be the time test against it as you may
+discover other bugs. 
 
 The Migration Process
 ---------------------
