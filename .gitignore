@@ -32,6 +32,7 @@ pip-log.txt
 nosetests.xml
 .coverage
 .tox
+.stestr/
 .testrepository
 .venv
 
