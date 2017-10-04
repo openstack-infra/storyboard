@@ -817,7 +817,7 @@ class Worklist(base.APIBase):
 
     @nodoc
     def _resolve_automatic_items(self, worklist, user_id):
-        items, stories, tasks = worklists_api.filter_items(worklist)
+        items, stories, tasks = worklists_api.filter_items(worklist, user_id)
         story_cache = {story.id: story for story in stories}
         task_cache = {task.id: task for task in tasks}
         for item in items:
