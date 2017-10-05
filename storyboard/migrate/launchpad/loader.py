@@ -43,7 +43,25 @@ class LaunchpadLoader(object):
             for message in bug.messages:
                 self.writer.write_user(message.owner)
 
-            # Write the bug.
+            links = [task.target_link for task in bug.bug_tasks]
+            releases = ['kilo', 'liberty', 'mitaka', 'newton', 'ocata',
+                        'pike', 'queens']
+            branches = []
+
+            #Strip ugliness off of links to bugs
+            for branch in links:
+                split_branch = branch.split('launchpad.net')
+                url_parts = split_branch[1].split('/')
+                branch_name = url_parts[-1].lower()
+                project_name = url_parts[-2]
+
+                if (branch_name in releases and
+                   project_name == self.reader.project_name):
+                    branches.append(branch_name)
+                elif branch_name == self.reader.project_name:
+                    branches.append('master')
+
+            # Write the bug
             priority = map_lp_priority(lp_bug.importance)
             status = map_lp_status(lp_bug.status)
             self.writer.write_bug(bug=bug,
@@ -51,7 +69,8 @@ class LaunchpadLoader(object):
                                   assignee=assignee,
                                   priority=priority,
                                   status=status,
-                                  tags=tags)
+                                  tags=tags,
+                                  branches=branches)
 
 
 def map_lp_priority(lp_priority):

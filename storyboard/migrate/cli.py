@@ -52,7 +52,7 @@ def main():
     # requested one.
     auto_increment = CONF.auto_increment
     if auto_increment:
-        print 'Setting stories.AUTO_INCREMENT to %d' % (auto_increment,)
+        print('Setting stories.AUTO_INCREMENT to %d' % (auto_increment,))
         session = db_api.get_session(in_request=False)
         session.execute('ALTER TABLE stories AUTO_INCREMENT = %d;'
                         % (auto_increment,))
@@ -61,5 +61,5 @@ def main():
         loader = LaunchpadLoader(CONF.from_project, CONF.to_project)
         loader.run()
     else:
-        print 'Unsupported import origin: %s' % CONF.origin
+        print('Unsupported import origin: %s' % CONF.origin)
         return
