@@ -1,4 +1,5 @@
 # Copyright (c) 2015-2016 Codethink Limited
+# Copyright (c) 2017 Adam Coldrick
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -540,7 +541,7 @@ def translate_criterion_to_field(criterion):
     return criterion_fields[criterion.field]
 
 
-def filter_stories(worklist, filters):
+def filter_stories(worklist, filters, user_id):
     filter_queries = []
     for filter in filters:
         subquery = api_base.model_query(models.Story.id).distinct().subquery()
@@ -585,14 +586,19 @@ def filter_stories(worklist, filters):
     if len(filter_queries) > 1:
         query = filter_queries[0]
         query = query.union(*filter_queries[1:])
+        query = api_base.filter_private_stories(
+            query, user_id, models.StorySummary)
         return query.all()
     elif len(filter_queries) == 1:
-        return filter_queries[0].all()
+        query = filter_queries[0]
+        query = api_base.filter_private_stories(
+            query, user_id, models.StorySummary)
+        return query.all()
     else:
         return []
 
 
-def filter_tasks(worklist, filters):
+def filter_tasks(worklist, filters, user_id):
     filter_queries = []
     for filter in filters:
         query = api_base.model_query(models.Task)
@@ -628,23 +634,28 @@ def filter_tasks(worklist, filters):
     if len(filter_queries) > 1:
         query = filter_queries[0]
         query = query.union(*filter_queries[1:])
+        query = api_base.filter_private_stories(
+            query, user_id, models.StorySummary)
         return query.all()
     elif len(filter_queries) == 1:
-        return filter_queries[0].all()
+        query = filter_queries[0]
+        query = api_base.filter_private_stories(
+            query, user_id, models.StorySummary)
+        return query.all()
     else:
         return []
 
 
-def filter_items(worklist):
+def filter_items(worklist, user_id):
     story_filters = [f for f in worklist.filters if f.type == 'Story']
     task_filters = [f for f in worklist.filters if f.type == 'Task']
 
     filtered_stories = []
     filtered_tasks = []
     if story_filters:
-        filtered_stories = filter_stories(worklist, story_filters)
+        filtered_stories = filter_stories(worklist, story_filters, user_id)
     if task_filters:
-        filtered_tasks = filter_tasks(worklist, task_filters)
+        filtered_tasks = filter_tasks(worklist, task_filters, user_id)
 
     items = []
     for story in filtered_stories:
