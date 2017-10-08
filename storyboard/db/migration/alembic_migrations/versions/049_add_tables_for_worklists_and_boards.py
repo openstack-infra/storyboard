@@ -14,14 +14,14 @@
 """Add tables for worklists and boards
 
 Revision ID: 049
-Revises: 048
+Revises: 001
 Create Date: 2015-08-17 12:17:35.629353
 
 """
 
 # revision identifiers, used by Alembic.
 revision = '049'
-down_revision = '048'
+down_revision = '001'
 
 
 from alembic import op
