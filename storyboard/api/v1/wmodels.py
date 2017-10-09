@@ -896,14 +896,21 @@ class Lane(base.APIBase):
         self.worklist = Worklist.from_db_model(lane.worklist)
         self.worklist.resolve_permissions(lane.worklist)
         self.worklist.resolve_filters(lane.worklist)
+        user_id = request.current_user_id
         if resolve_items:
             self.worklist.resolve_items(
                 lane.worklist, story_cache, task_cache)
-        else:
+        elif not lane.worklist.automatic:
             items = worklists_api.get_visible_items(
-                lane.worklist, current_user=request.current_user_id)
+                lane.worklist, current_user=user_id)
             self.worklist.items = [WorklistItem.from_db_model(item)
                                    for item in items]
+        else:
+            self.worklist.items = [
+                WorklistItem(**item)
+                for item in worklists_api.filter_items(
+                    lane.worklist, user_id)[0]
+            ]
 
 
 class Board(base.APIBase):
