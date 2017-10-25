@@ -20,6 +20,10 @@ can run sequentially to update the database. The scripts are executed by
 storyboard's migration wrapper which uses the Alembic library to manage the
 migration.
 
+If your existing database version is currently < 049, you are advised to
+run the upgrade command using commit `acce431b30a32497064ad6d1ab3872358e1e60dc`
+of this repository, since after that the migrations were consolidated and
+will no longer work with existing databases older than version 049.
 
 You can upgrade to the latest database version via:
 $ storyboard-db-manage --config-file /path/to/storyboard.conf upgrade head
