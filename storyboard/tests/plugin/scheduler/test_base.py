@@ -22,8 +22,9 @@ class TestSchedulerBasePlugin(base.TestCase):
     def test_plugin_name(self):
         plugin = TestPlugin(dict())
 
-        self.assertEqual("plugin.scheduler.test_base:TestPlugin",
-                         plugin.get_name())
+        self.assertEqual(
+            "storyboard.tests.plugin.scheduler.test_base:TestPlugin",
+            plugin.get_name())
 
 
 class TestPlugin(SchedulerPluginBase):

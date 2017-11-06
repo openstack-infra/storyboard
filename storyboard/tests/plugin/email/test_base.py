@@ -19,9 +19,9 @@ import stat
 
 from oslo_config import cfg
 
-import mock_smtp as mock
 from storyboard.plugin.email.base import EmailPluginBase
 from storyboard.tests import base
+from storyboard.tests import mock_smtp as mock
 
 
 CONF = cfg.CONF

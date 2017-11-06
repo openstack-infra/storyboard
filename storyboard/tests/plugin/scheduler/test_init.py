@@ -20,11 +20,10 @@ from apscheduler.triggers.interval import IntervalTrigger
 from oslo_config import cfg
 from stevedore.extension import Extension
 
-from plugin.scheduler.mock_plugin import MockPlugin
-
 from storyboard.plugin.base import StoryboardPluginLoader
 import storyboard.plugin.scheduler as scheduler
 import storyboard.tests.base as base
+from storyboard.tests.plugin.scheduler.mock_plugin import MockPlugin
 
 
 CONF = cfg.CONF

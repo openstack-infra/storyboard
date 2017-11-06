@@ -28,7 +28,7 @@ class TestEmailFactory(base.TestCase):
         factory = EmailFactory('test@example.org',
                                'test_subject.txt',
                                'test.txt',
-                               'plugin.email')
+                               'storyboard.tests.plugin.email')
 
         msg = factory.build('test_recipient@example.org',
                             test_parameter='value')
@@ -60,7 +60,7 @@ class TestEmailFactory(base.TestCase):
         factory = EmailFactory('test@example.org',
                                'test_subject.txt',
                                'test.txt',
-                               'plugin.email')
+                               'storyboard.tests.plugin.email')
         custom_headers = {
             'X-Custom-Header': 'test-header-value'
         }
@@ -85,7 +85,7 @@ class TestEmailFactory(base.TestCase):
         factory = EmailFactory('test@example.org',
                                'test_subject.txt',
                                'test.txt',
-                               'plugin.email')
+                               'storyboard.tests.plugin.email')
         msg = factory.build('test_recipient@example.org',
                             test_parameter='value')
         self.assertEqual('value', msg.get('Subject'))
@@ -94,7 +94,7 @@ class TestEmailFactory(base.TestCase):
         factory = EmailFactory('test@example.org',
                                'test_long_subject.txt',
                                'test.txt',
-                               'plugin.email')
+                               'storyboard.tests.plugin.email')
         msg = factory.build('test_recipient@example.org',
                             test_parameter='value')
         self.assertEqual(78, len(msg.get('Subject')))
@@ -104,7 +104,7 @@ class TestEmailFactory(base.TestCase):
         factory = EmailFactory('test@example.org',
                                'test_subject_newline.txt',
                                'test.txt',
-                               'plugin.email')
+                               'storyboard.tests.plugin.email')
         msg = factory.build('test_recipient@example.org',
                             test_parameter='value')
         self.assertEqual('with newline', msg.get('Subject'))
@@ -117,7 +117,7 @@ class TestEmailFactory(base.TestCase):
         factory = EmailFactory('test@example.org',
                                'test_subject.txt',
                                'test.txt',
-                               'plugin.email')
+                               'storyboard.tests.plugin.email')
         factory.add_text_template('test.html', 'html')
 
         msg = factory.build('test_recipient@example.org',
@@ -147,7 +147,7 @@ class TestEmailFactory(base.TestCase):
             EmailFactory('test@example.org',
                          'invalid_subject.txt',
                          'invalid.txt',
-                         'plugin.email')
+                         'storyboard.tests.plugin.email')
             self.assertFalse(True)
         except TemplateNotFound:
             self.assertFalse(False)
@@ -156,7 +156,7 @@ class TestEmailFactory(base.TestCase):
             factory = EmailFactory('test@example.org',
                                    'test_subject.txt',
                                    'test.txt',
-                                   'plugin.email')
+                                   'storyboard.tests.plugin.email')
             factory.add_text_template('invalid.html', 'html')
             self.assertFalse(True)
         except TemplateNotFound:
