@@ -89,11 +89,11 @@ def map_lp_status(lp_status):
     """
     # ('todo', 'inprogress', 'invalid', 'review', 'merged')
 
-    if lp_status in ('Unknown', 'New', 'Confirmed', 'Triaged'):
+    if lp_status in ('Unknown', 'New', 'Confirmed', 'Triaged',
+                     "Incomplete (with response)",
+                     "Incomplete (without response)"):
         return 'todo'
-    elif lp_status in (
-            "Incomplete (with response)", "Incomplete (without response)",
-            "Opinion", "Invalid", "Won't Fix", "Expired"):
+    elif lp_status in ("Opinion", "Invalid", "Won't Fix", "Expired"):
         return 'invalid'
     elif lp_status == 'In Progress':
         return 'inprogress'
