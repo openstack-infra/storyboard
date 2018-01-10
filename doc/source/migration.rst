@@ -73,38 +73,7 @@ When you are happy with the name and description, and both are outlined
 in green, click "Create Project".
 
 3. Migrate!
-
-3.1 Check branches
-
-If there isn't yet support in the migration script for projects with
-multiple branches, then you will want to check that only the master
-branch has bugs filed against it. To make your script populate a file
-with a list of all branches used, simply add this somewhere in
-`LaunchpadWriter.write_bug()`:
-
-    with open('branches', 'a') as f:
-        for task in bug.bug_tasks:
-            f.write('%s\n' % task.target_link)
-
-Once your migration has run, this will leave a "branches" file in the
-current directory, and you can find useful information on branches by
-doing
-
-    cat branches | grep $TEST_PROJECT | sort | uniq
-
-where `$TEST_PROJECT` is the name of the project you are testing in
-Launchpad. If there are results other than
-
-    https://api.launchpad.net/1.0/$TEST_PROJECT
-
-or maybe
-
-    https://api.launchpad.net/1.0/python-$TEST_PROJECTclient
-
-then the migration test has FAILED.
-
-The next step is to actually run the migration script. You can do
-this with the following command:
+   You can do this with the following command:
 
     tox -e venv "storyboard-migrate
       --config-file etc/storyboard.conf
