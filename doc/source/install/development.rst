@@ -65,13 +65,11 @@ NOTE: If you are using a Virtual Machine (VM), all commands that begin with
    replace the ``pass`` with your password (the same as used in the above
    steps). On both of these lines you will need to remove the ``#``.
 
+6. Install tox::
 
-6. Install the correct version of tox. Latest tox has a bug.
-   https://bugs.launchpad.net/openstack-ci/+bug/1274135::
-
-    pip install --upgrade "tox>=1.6,<1.7"
-
-
+     sudo apt-get install python-pip
+     pip install tox
+   
 7. Upgrade DB schema to the latest version::
 
     tox -e venv "storyboard-db-manage --config-file ./etc/storyboard.conf upgrade head"
