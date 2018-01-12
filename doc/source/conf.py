@@ -27,7 +27,7 @@ extensions = [
     'sphinxcontrib.httpdomain',
     'sphinxcontrib.pecanwsme.rest',
     'wsmeext.sphinxext',
-    'oslo.sphinx'
+    'openstackdocstheme'
 ]
 
 wsme_protocols = ['restjson', 'restxml']
@@ -63,6 +63,11 @@ pygments_style = 'sphinx'
 # html_theme_path = ["."]
 # html_theme = '_theme'
 # html_static_path = ['static']
+html_theme = 'openstackdocs'
+
+repository_name = 'openstack-infra/storyboard'
+bug_project = '456'
+html_last_updated_fmt = '%Y-%m-%d %H:%M'
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = '%sdoc' % project
