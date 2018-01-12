@@ -18,8 +18,10 @@ StoryBoard webclient.
 Installing and Upgrading the API server
 =======================================
 
-NOTE: If you are using a Virtual Machine (VM), all commands that begin with
-``tox`` will need to be preceeded by ``sudo``.
+.. note::
+
+   If you are using a Virtual Machine (VM), all commands that begin with
+   ``tox`` will need to be preceeded by ``sudo``.
 
 1. To start the API server, make sure you have the following packages installed
    locally:
@@ -27,13 +29,16 @@ NOTE: If you are using a Virtual Machine (VM), all commands that begin with
    * libpq-dev
    * libmysqlclient-dev
    * python-dev
+   * MySQL
 
-  NOTE: MySQL must be >= 5.6::
+     ::
 
-    sudo apt-get update
-    sudo apt-get install libpq-dev libmysqlclient-dev python-dev
-    sudo apt-get install mysql-server-5.7    #Here you will be asked to set a password
-    mysql --version
+       sudo apt-get update
+       sudo apt-get install libpq-dev libmysqlclient-dev python-dev
+       sudo apt-get install mysql-server-5.7    #Here you will be asked to set a password
+       mysql --version
+
+   .. note:: MySQL must be >= 5.6
 
 
 2. Clone the StoryBoard repository::
@@ -44,13 +49,16 @@ NOTE: If you are using a Virtual Machine (VM), all commands that begin with
 
 3. Add MySQL user and create database:
 
-  NOTE: You will need to replace the ``$DB_USER`` with ``root``.
-  It will prompt for a password; this is
-  the password you set when you ran
-  ``sudo apt-get mysql-server-5.6`` in step 1::
+   .. note::
 
-    mysql -u $DB_USER -p -e 'DROP DATABASE IF EXISTS storyboard;'
-    mysql -u $DB_USER -p -e 'CREATE DATABASE storyboard;'
+      You will need to replace the ``$DB_USER`` with ``root``.  It
+      will prompt for a password; this is the password you set when
+      you ran ``sudo apt-get mysql-server-5.6`` in step 1.
+
+   ::
+
+     mysql -u $DB_USER -p -e 'DROP DATABASE IF EXISTS storyboard;'
+     mysql -u $DB_USER -p -e 'CREATE DATABASE storyboard;'
 
 
 4. Copy the sample configuration file::
@@ -69,7 +77,7 @@ NOTE: If you are using a Virtual Machine (VM), all commands that begin with
 
      sudo apt-get install python-pip
      pip install tox
-   
+
 7. Upgrade DB schema to the latest version::
 
     tox -e venv "storyboard-db-manage --config-file ./etc/storyboard.conf upgrade head"
@@ -87,12 +95,12 @@ Installing the Javascript-based web client
 1. To build and start the web client, you will need this dependency set
    installed locally:
 
-     * Python 2.6 or 2.7
-     * Node.js v0.10.29 or newer (see https://nodejs.org/en/download/package-manager/ for more information on getting the right package for your distribution)
-     * npm v1.3.10 or newer (this will be bundled with Node.js)
+   * Python 2.6 or 2.7
+   * Node.js v0.10.29 or newer (see https://nodejs.org/en/download/package-manager/ for more information on getting the right package for your distribution)
+   * npm v1.3.10 or newer (this will be bundled with Node.js)
 
-     (Ubuntu Trusty packages are sufficient, even though they indicate an older
-     version. MySQL must be >= 5.6.)
+   (Ubuntu Trusty packages are sufficient, even though they indicate an older
+   version. MySQL must be >= 5.6.)
 
 
 2. Clone the StoryBoard webclient::
@@ -101,24 +109,20 @@ Installing the Javascript-based web client
     cd storyboard-webclient
 
 
-Do one of the following that applies to you:
+3. Do **one** of the following that applies to you.
 
- 3a. Run a local development server, which uses the localhost API::
+   a. Run a local development server, which uses the localhost API::
 
-    tox -egrunt_no_api -- serve
+      tox -egrunt_no_api -- serve
 
-or...
+   b. Run a local development server, which binds to a specific IP and
+      consumes the localhost API::
 
- 3b. Run a local development server, which binds to a specific IP and
-   consumes the localhost API::
+      tox -egrunt_no_api -- serve --hostname 0.0.0.0
 
-    tox -egrunt_no_api -- serve --hostname 0.0.0.0
+   c. Run a local development server, which uses the production API::
 
-or...
-
- 3c. Run a local development server, which uses the production API::
-
-    tox -egrunt_no_api -- serve:prod
+      tox -egrunt_no_api -- serve:prod
 
 
 Make user an admin - current bug
@@ -208,8 +212,10 @@ Optional steps: Seed database with base data
 Optional steps: Set up the notifications daemon
 ===============================================
 
-NOTE: If you followed the "Launch the development VM" instuctions
-above, this step is unnecessary.
+.. note::
+
+   If you followed the "Launch the development VM" instuctions above,
+   this step is unnecessary.
 
 1. Install rabbitmq on your development machine::
 
