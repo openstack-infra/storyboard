@@ -1,5 +1,8 @@
 .. include:: ../../CONTRIBUTING.rst
 
+.. NOTE(dhellmann): The title underline style just below relies on the
+   existing format of the file included just above.
+
 Running the Tests
 -----------------
 

@@ -1,11 +1,14 @@
-Migrating to Storyboard
------------------------
+=========================
+ Migrating to Storyboard
+=========================
+
 If your project is thinking about migrating to Storyboard
 or has recently migrated to Storyboard, the following will
 help you get started.
 
 Planning to Migrate
 -------------------
+
 So you want to migrate...
 
 - Talk to the storyboard team to see if your project is ready i.e.
