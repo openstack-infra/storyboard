@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo_db.exception import DBError
 from sqlalchemy.orm import subqueryload
 from sqlalchemy_fulltext import FullTextSearch
 import sqlalchemy_fulltext.modes as FullTextMode
@@ -25,11 +26,10 @@ from storyboard.db import models
 
 
 class SqlAlchemySearchImpl(search_engine.SearchEngine):
-    def _build_fulltext_search(self, model_cls, query, q):
-        query = query.filter(FullTextSearch(q, model_cls,
-                                            mode=FullTextMode.BOOLEAN))
 
-        return query
+    def _build_fulltext_search(self, model_cls, query, q,
+                               mode=FullTextMode.BOOLEAN):
+        return query.filter(FullTextSearch(q, model_cls, mode=mode))
 
     def _apply_pagination(self, model_cls, query, marker=None,
                           offset=None, limit=None, sort_field='id',
@@ -54,10 +54,46 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
     def projects_query(self, q, sort_dir=None, marker=None,
                        offset=None, limit=None):
         session = api_base.get_session()
-        query = api_base.model_query(models.Project, session)
-        query = self._build_fulltext_search(models.Project, query, q)
-        query = self._apply_pagination(
-            models.Project, query, marker, offset, limit)
+        base_query = api_base.model_query(models.Project, session)
+        try:
+            query = self._build_fulltext_search(models.Project, base_query, q)
+            query = self._apply_pagination(
+                models.Project, query, marker, offset, limit)
+
+            return query.all()
+        except DBError:
+            query = self._build_fulltext_search(models.Project, base_query, q,
+                                                mode=FullTextMode.NATURAL)
+            query = self._apply_pagination(
+                models.Project, query, marker, offset, limit)
+
+            return query.all()
+
+    def _story_fulltext_query(self, query, q, status, marker, offset,
+                              limit, mode, sort_field, sort_dir):
+        clean_query = self._build_fulltext_search(
+            models.Story, query, q, mode=mode)
+
+        # Turn the whole shebang into a subquery.
+        clean_query = clean_query.subquery('filtered_stories')
+
+        # Return the story summary.
+        query = api_base.model_query(models.StorySummary)\
+            .options(subqueryload(models.StorySummary.tags))
+        id_col = tuple(clean_query.c)[0]
+        query = query.join(clean_query,
+                           models.StorySummary.id == id_col)
+
+        if status:
+            query = query.filter(models.StorySummary.status.in_(status))
+
+        query = self._apply_pagination(models.StorySummary,
+                                       query,
+                                       marker,
+                                       offset,
+                                       limit,
+                                       sort_field=sort_field,
+                                       sort_dir=sort_dir)
 
         return query.all()
 
@@ -97,30 +133,14 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
             model=models.Story,
             id=[story.id for story in subquery.all()])
 
-        clean_query = self._build_fulltext_search(models.Story, query, q)
-
-        # Turn the whole shebang into a subquery.
-        clean_query = clean_query.subquery('filtered_stories')
-
-        # Return the story summary.
-        query = api_base.model_query(models.StorySummary)\
-            .options(subqueryload(models.StorySummary.tags))
-        id_col = tuple(clean_query.c)[0]
-        query = query.join(clean_query,
-                           models.StorySummary.id == id_col)
-
-        if status:
-            query = query.filter(models.StorySummary.status.in_(status))
-
-        query = self._apply_pagination(models.StorySummary,
-                                       query,
-                                       marker,
-                                       offset,
-                                       limit,
-                                       sort_field=sort_field,
-                                       sort_dir=sort_dir)
-
-        return query.all()
+        try:
+            return self._story_fulltext_query(
+                query, q, status, marker, offset, limit, FullTextMode.BOOLEAN,
+                sort_field, sort_dir)
+        except DBError:
+            return self._story_fulltext_query(
+                query, q, status, marker, offset, limit, FullTextMode.NATURAL,
+                sort_field, sort_dir)
 
     def tasks_query(self, q, story_id=None, assignee_id=None, project_id=None,
                     project_group_id=None, branch_id=None, milestone_id=None,
@@ -146,40 +166,73 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
             model=models.Task,
             id=[task.id for task in subquery.all()])
 
-        query = self._build_fulltext_search(models.Task, clean_query, q)
+        try:
+            query = self._build_fulltext_search(models.Task, clean_query, q)
 
-        query = self._apply_pagination(
-            models.Task,
-            query,
-            offset=offset,
-            limit=limit,
-            sort_field=sort_field,
-            sort_dir=sort_dir)
+            query = self._apply_pagination(
+                models.Task,
+                query,
+                offset=offset,
+                limit=limit,
+                sort_field=sort_field,
+                sort_dir=sort_dir)
 
-        return query.all()
+            return query.all()
+        except DBError:
+            query = self._build_fulltext_search(models.Task, clean_query, q,
+                                                mode=FullTextMode.NATURAL)
+
+            query = self._apply_pagination(
+                models.Task,
+                query,
+                offset=offset,
+                limit=limit,
+                sort_field=sort_field,
+                sort_dir=sort_dir)
+
+            return query.all()
 
     def comments_query(self, q, marker=None, offset=None, limit=None,
                        current_user=None, **kwargs):
         session = api_base.get_session()
-        query = api_base.model_query(models.Comment, session)
-        query = query.outerjoin(models.Story)
-        query = api_base.filter_private_stories(query, current_user)
+        clean_query = api_base.model_query(models.Comment, session)
+        clean_query = clean_query.outerjoin(models.Story)
+        clean_query = api_base.filter_private_stories(
+            clean_query, current_user)
 
-        query = self._build_fulltext_search(models.Comment, query, q)
-        query = self._apply_pagination(
-            models.Comment, query, marker, offset, limit)
+        try:
+            query = self._build_fulltext_search(
+                models.Comment, clean_query, q)
+            query = self._apply_pagination(
+                models.Comment, query, marker, offset, limit)
 
-        return query.all()
+            return query.all()
+        except DBError:
+            query = self._build_fulltext_search(
+                models.Comment, clean_query, q, mode=FullTextMode.NATURAL)
+            query = self._apply_pagination(
+                models.Comment, query, marker, offset, limit)
+
+            return query.all()
 
     def users_query(self, q, marker=None, offset=None, limit=None,
                     filter_non_public=False, **kwargs):
         session = api_base.get_session()
-        query = api_base.model_query(models.User, session)
-        query = self._build_fulltext_search(models.User, query, q)
-        query = self._apply_pagination(
-            models.User, query, marker, offset, limit)
+        clean_query = api_base.model_query(models.User, session)
+        try:
+            query = self._build_fulltext_search(models.User, clean_query, q)
+            query = self._apply_pagination(
+                models.User, query, marker, offset, limit)
 
-        users = query.all()
+            users = query.all()
+        except DBError:
+            query = self._build_fulltext_search(models.User, clean_query, q,
+                                                mode=FullTextMode.NATURAL)
+            query = self._apply_pagination(
+                models.User, query, marker, offset, limit)
+
+            users = query.all()
+
         if filter_non_public:
             users = [
                 api_base._filter_non_public_fields(user, user._public_fields)
