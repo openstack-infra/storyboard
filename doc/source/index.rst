@@ -56,7 +56,7 @@ User guide
 Launchpad Migration guides
 --------------------------
 .. toctree::
-   :maxdepth 1
+   :maxdepth: 1
 
    migration
 
@@ -64,29 +64,29 @@ Developer docs
 --------------
 
 .. toctree::
-    :maxdepth: 1
+   :maxdepth: 1
 
-    contributing
-    webclient
+   contributing
+   webclient
 
 Extending StoryBoard
 --------------------
 
 .. toctree::
-    :maxdepth: 1
+   :maxdepth: 1
 
-    Overview <extending/index>
-    Plugins: Cron Workers <extending/plugin_cron>
-    Plugins: Event Workers <extending/plugin_worker>
+   Overview <extending/index>
+   Plugins: Cron Workers <extending/plugin_cron>
+   Plugins: Event Workers <extending/plugin_worker>
 
 
 Client API Reference
 --------------------
 
 .. toctree::
-  :maxdepth: 1
+   :maxdepth: 1
 
-  webapi/v1
+   webapi/v1
 
 Indices and tables
 ==================
