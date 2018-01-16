@@ -259,11 +259,13 @@ class BoardsController(rest.RestController):
         :param archived: Filter boards by whether they are archived or not.
         :param story_id: Filter boards by whether they contain a story.
         :param task_id: Filter boards by whether they contain a task.
-        :param item_type: Used when filtering by story_id. If item_type is
-        'story' then only return worklists that contain the story, if
-        item_type is 'task' then only return worklists that contain tasks from
-        the story, otherwise return worklists that contain the story or tasks
-        from the story.
+        :param item_type: Used when filtering by story_id. If
+                          item_type is 'story' then only return
+                          worklists that contain the story, if
+                          item_type is 'task' then only return
+                          worklists that contain tasks from the story,
+                          otherwise return worklists that contain the
+                          story or tasks from the story.
         :param offset: Value to offset results by.
         :param limit: Maximum number of results to return.
         :param sort_field: The name of the field to sort on.

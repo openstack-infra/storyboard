@@ -637,16 +637,18 @@ class WorklistsController(rest.RestController):
         :param story_id: Filter worklists by whether they contain a story.
         :param task_id: Filter worklists by whether they contain a task.
         :param hide_lanes: If true, don't return worklists which are lanes in
-        a board.
+                           a board.
         :param sort_field: The name of the field to sort on.
         :param sort_dir: Sort direction for results (asc, desc).
-        :param item_type: Used when filtering by story_id. If item_type is
-        'story' then only return worklists that contain the story, if
-        item_type is 'task' then only return worklists that contain tasks from
-        the story, otherwise return worklists that contain the story or tasks
-        from the story.
+        :param item_type: Used when filtering by story_id. If
+                          item_type is 'story' then only return
+                          worklists that contain the story, if
+                          item_type is 'task' then only return
+                          worklists that contain tasks from the story,
+                          otherwise return worklists that contain the
+                          story or tasks from the story.
         :param board_id: Get all worklists in the board with this id. Other
-        filters are not applied.
+                         filters are not applied.
         :param subscriber_id: Filter worklists by whether a user is subscribed.
         :param offset: Offset at which to begin the results.
         :param limit: Maximum number of results to return.
