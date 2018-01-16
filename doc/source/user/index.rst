@@ -1,0 +1,7 @@
+============
+ User Guide
+============
+
+.. toctree::
+
+   theory
