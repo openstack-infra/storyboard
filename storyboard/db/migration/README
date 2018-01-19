@@ -20,32 +20,6 @@ can run sequentially to update the database. The scripts are executed by
 storyboard's migration wrapper which uses the Alembic library to manage the
 migration.
 
-If your existing database version is currently < 049, you are advised to
-run the upgrade command using commit `acce431b30a32497064ad6d1ab3872358e1e60dc`
-of this repository, since after that the migrations were consolidated and
-will no longer work with existing databases older than version 049.
-
-You can upgrade to the latest database version via:
-$ storyboard-db-manage --config-file /path/to/storyboard.conf upgrade head
-
-To check the current database version:
-$ storyboard-db-manage --config-file /path/to/storyboard.conf current
-
-To create a script to run the migration offline:
-$ storyboard-db-manage --config-file /path/to/storyboard.conf upgrade head --sql
-
-To run the offline migration between specific migration versions:
-$ storyboard-db-manage --config-file /path/to/storyboard.conf \
-    upgrade <start version>:<end version> --sql
-
-Upgrade the database incrementally:
-$ storyboard-db-manage --config-file /path/to/storyboard.conf \
-    upgrade --delta <# of revs>
-
-Downgrade the database by a certain number of revisions:
-$ storyboard-db-manage --config-file /path/to/storyboard.conf \
-    downgrade --delta <# of revs>
-
 This utility should be also used to load Project Groups and Projects form a .yaml
 file description. The description sample is provided in etc/projects.yaml.
 $ storyboard-db-manage --config-file /path/to/storyboard.conf \

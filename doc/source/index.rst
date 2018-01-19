@@ -38,13 +38,20 @@ Installation guides
 
    install/development
 
-Migration guides
-----------------
+Maintenance guides
+------------------
+.. toctree::
+   :maxdepth: 1
+
+   maintenance/upgrading
+
+Launchpad Migration guides
+--------------------------
 .. toctree::
    :maxdepth 1
 
    migration
-   
+
 Developer docs
 --------------
 
