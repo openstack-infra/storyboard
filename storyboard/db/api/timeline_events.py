@@ -26,7 +26,7 @@ from storyboard.db.api import base as api_base
 from storyboard.db.api import stories as stories_api
 from storyboard.db.api import tasks as tasks_api
 from storyboard.db import models
-from storyboard.notifications.publisher import publish
+from storyboard.notifications import publisher
 
 CONF = cfg.CONF
 
@@ -112,15 +112,15 @@ def event_create(values):
         event_dict = tojson(TimeLineEvent,
                             TimeLineEvent.from_db_model(new_event))
 
-        publish(author_id=request.current_user_id or None,
-                method="POST",
-                url=request.headers.get('Referer') or None,
-                path=request.path or None,
-                query_string=request.query_string or None,
-                status=response.status_code or None,
-                resource="timeline_event",
-                resource_id=new_event.id or None,
-                resource_after=event_dict or None)
+        publisher.publish(author_id=request.current_user_id or None,
+                          method="POST",
+                          url=request.headers.get('Referer') or None,
+                          path=request.path or None,
+                          query_string=request.query_string or None,
+                          status=response.status_code or None,
+                          resource="timeline_event",
+                          resource_id=new_event.id or None,
+                          resource_after=event_dict or None)
 
     return new_event
 

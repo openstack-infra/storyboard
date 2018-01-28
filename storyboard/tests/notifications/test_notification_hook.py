@@ -221,7 +221,7 @@ class TestNotificationHook(base.BaseDbTestCase):
         self.assertEqual(mock_state.old_entity_values['priority'],
                          sample_task_wmodel.priority)
 
-    @patch('storyboard.notifications.notification_hook.publish')
+    @patch('storyboard.notifications.notification_hook.publisher')
     @patch.object(NotificationHook, 'get_original_resource')
     def test_after_publishes_payload(self, mock_get_original_resource,
                                      mock_publish):
@@ -261,7 +261,7 @@ class TestNotificationHook(base.BaseDbTestCase):
         mock_get_original_resource.return_value = smt_json
 
         n.after(mock_state)
-        mock_publish.assert_called_with(
+        mock_publish.publish.assert_called_with(
             author_id=mock_state.request.current_user_id,
             method=mock_state.request.method,
             url=mock_state.request.headers['Referer'],
