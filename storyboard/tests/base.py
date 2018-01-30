@@ -44,6 +44,7 @@ _DB_CACHE = None
 
 logging.register_options(CONF)
 logging.setup(CONF, 'storyboard')
+LOG = logging.getLogger(__name__)
 
 
 class TestCase(testtools.TestCase):
@@ -143,6 +144,7 @@ class DbTestCase(WorkingDirTestCase):
     def setup_db(self):
         self.db_name = "storyboard_test_db_%s" % uuid.uuid4()
         self.db_name = self.db_name.replace("-", "_")
+        LOG.info('creating database %s', self.db_name)
 
         # The engine w/o db name
         engine = sqlalchemy.create_engine(
@@ -163,7 +165,11 @@ class DbTestCase(WorkingDirTestCase):
     def _drop_db(self):
         engine = sqlalchemy.create_engine(
             self.test_connection)
-        engine.execute("DROP DATABASE %s" % self.db_name)
+        try:
+            engine.execute("DROP DATABASE %s" % self.db_name)
+        except Exception as err:
+            LOG.error('failed to drop database %s: %s',
+                      self.db_name, err)
         db_api_base.cleanup()
 
 PATH_PREFIX = '/v1'
