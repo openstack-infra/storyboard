@@ -46,12 +46,16 @@ def upgrade(active_plugins=None, options=None):
         sa.ForeignKeyConstraint(['permission_id'], ['permissions.id'], ),
         sa.ForeignKeyConstraint(['story_id'], ['stories.id'], )
     )
-    op.add_column(
-        u'stories',
-        sa.Column('private', sa.Boolean(), default=False, nullable=False))
-    op.alter_column('worklist_items', 'list_id',
-               existing_type=mysql.INTEGER(display_width=11),
-               nullable=True)
+    dialect = op.get_bind().engine.dialect
+    if dialect.name == 'sqlite':
+        col = sa.Column('private', sa.Boolean(), default=False)
+    else:
+        col = sa.Column('private', sa.Boolean(), default=False, nullable=False)
+    op.add_column(u'stories', col)
+    if dialect.supports_alter:
+        op.alter_column('worklist_items', 'list_id',
+                        existing_type=mysql.INTEGER(display_width=11),
+                        nullable=True)
 
 
 def downgrade(active_plugins=None, options=None):

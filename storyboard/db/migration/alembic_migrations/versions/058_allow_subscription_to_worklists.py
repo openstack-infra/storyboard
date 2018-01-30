@@ -33,10 +33,12 @@ new_type_enum = sa.Enum(
 
 
 def upgrade(active_plugins=None, options=None):
-    op.alter_column('subscriptions',
-                    'target_type',
-                    existing_type=old_type_enum,
-                    type_=new_type_enum)
+    dialect = op.get_bind().engine.dialect
+    if dialect.supports_alter:
+        op.alter_column('subscriptions',
+                        'target_type',
+                        existing_type=old_type_enum,
+                        type_=new_type_enum)
 
 
 def downgrade(active_plugins=None, options=None):

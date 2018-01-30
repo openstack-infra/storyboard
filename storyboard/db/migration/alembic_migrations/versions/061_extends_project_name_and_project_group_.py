@@ -29,9 +29,10 @@ import sqlalchemy as sa
 
 
 def upgrade(active_plugins=None, options=None):
-
-    op.alter_column('project_groups', 'name', type_=sa.Unicode(100))
-    op.alter_column('projects', 'name', type_=sa.Unicode(100))
+    dialect = op.get_bind().engine.dialect
+    if dialect.supports_alter:
+        op.alter_column('project_groups', 'name', type_=sa.Unicode(100))
+        op.alter_column('projects', 'name', type_=sa.Unicode(100))
 
 
 def downgrade(active_plugins=None, options=None):

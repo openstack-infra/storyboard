@@ -30,6 +30,11 @@ or for Python 3::
 
   $ tox -e py35
 
+For faster versions of the integration tests using only Python 3,
+run::
+
+  $ tox -e sqlite
+
 And to run the style-checker and static analysis tool::
 
   $ tox -e pep8

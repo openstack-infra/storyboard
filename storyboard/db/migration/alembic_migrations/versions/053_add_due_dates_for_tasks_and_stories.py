@@ -82,8 +82,10 @@ def upgrade(active_plugins=None, options=None):
         'worklist_items',
         sa.Column('display_due_date', sa.Integer(), nullable=True)
     )
-    op.create_foreign_key(
-        None, 'worklist_items', 'due_dates', ['display_due_date'], ['id'])
+    dialect = op.get_bind().engine.dialect
+    if dialect.supports_alter:
+        op.create_foreign_key(
+            None, 'worklist_items', 'due_dates', ['display_due_date'], ['id'])
 
 
 def downgrade(active_plugins=None, options=None):

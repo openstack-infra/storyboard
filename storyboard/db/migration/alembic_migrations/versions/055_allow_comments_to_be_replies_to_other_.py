@@ -31,8 +31,10 @@ import sqlalchemy as sa
 def upgrade(active_plugins=None, options=None):
     op.add_column(
         'comments', sa.Column('in_reply_to', sa.Integer(), nullable=True))
-    op.create_foreign_key(
-        'comments_ibfk_1', 'comments', 'comments', ['in_reply_to'], ['id'])
+    dialect = op.get_bind().engine.dialect
+    if dialect.supports_alter:
+        op.create_foreign_key(
+            'comments_ibfk_1', 'comments', 'comments', ['in_reply_to'], ['id'])
 
 
 def downgrade(active_plugins=None, options=None):
