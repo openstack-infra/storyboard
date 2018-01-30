@@ -20,6 +20,10 @@ from storyboard.db import models
 def authorization_code_get(code):
     query = api_base.model_query(models.AuthorizationCode,
                                  api_base.get_session())
+    # The query string parser always gives a list, but the database
+    # wants a single value.
+    if isinstance(code, list):
+        code = code[0]
     return query.filter_by(code=code).first()
 
 
