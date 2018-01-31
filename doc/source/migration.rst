@@ -79,10 +79,10 @@ Test Migration
 
    You can do this with the following command::
 
-    tox -e venv "storyboard-migrate
+    tox -e venv -- storyboard-migrate
       --config-file etc/storyboard.conf
       --from-project $PROJECT_IN_LAUNCHPAD
-      --to-project $PROJECT_IN_STORYBOARD"
+      --to-project $PROJECT_IN_STORYBOARD
 
    Here, `$PROJECT_IN_LAUNCHPAD` should be replaced by the name of the
    project in Launchpad, for example `monasca`. Similarly,

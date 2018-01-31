@@ -80,12 +80,12 @@ Installing and Upgrading the API server
 
 7. Upgrade DB schema to the latest version::
 
-    tox -e venv "storyboard-db-manage --config-file ./etc/storyboard.conf upgrade head"
+    tox -e venv -- storyboard-db-manage --config-file ./etc/storyboard.conf upgrade head
 
 
 8. Start the API server::
 
-    tox -e venv "storyboard-api --config-file ./etc/storyboard.conf"
+    tox -e venv -- storyboard-api --config-file ./etc/storyboard.conf
 
 
 Installing the Javascript-based web client
@@ -157,7 +157,7 @@ Optional steps: Seed database with base data
 
 2. Enable the superusers in the database::
 
-    tox -e venv "storyboard-db-manage --config-file ./etc/storyboard.conf load_superusers ./etc/superusers.yaml"
+    tox -e venv -- storyboard-db-manage --config-file ./etc/storyboard.conf load_superusers ./etc/superusers.yaml
 
 
 3. If you want to quickly set up a set of projects and project groups in the
@@ -167,7 +167,7 @@ Optional steps: Seed database with base data
 
 4. Create the projects and projectgroups in the DB::
 
-    tox -e venv "storyboard-db-manage --config-file ./etc/storyboard.conf load_projects ./etc/projects.yaml"
+    tox -e venv -- storyboard-db-manage --config-file ./etc/storyboard.conf load_projects ./etc/projects.yaml
 
 
 Optional steps: Set up the notifications daemon
