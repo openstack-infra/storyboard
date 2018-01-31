@@ -2,8 +2,6 @@
 
 # Remove any lingering storyboard_test_db_% databases.
 
-DB_ROOT_PW=${MYSQL_ROOT_PW:-insecure_slave}
-
 # The 'show databases' output looks like:
 #
 # +---------------------------------------------------------+
