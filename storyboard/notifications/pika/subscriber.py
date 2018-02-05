@@ -30,7 +30,7 @@ CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
 
-def subscribe():
+def subscribe(topic=None):
     try:
         log.register_options(CONF)
     except cfg.ArgsAlreadyParsedError:
@@ -39,6 +39,9 @@ def subscribe():
     log.setup(CONF, 'storyboard')
     CONF(project='storyboard')
     CONF.register_opts(NOTIFICATION_OPTS, "notifications")
+    if topic:
+        LOG.warning("A subscription topic was specified, but the pika driver"
+                    "doesn't use topics")
 
     subscriber = Subscriber(CONF.notifications)
     subscriber.start()
