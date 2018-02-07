@@ -36,6 +36,11 @@ wsme_protocols = ['restjson', 'restxml']
 # text edit cycles.
 # execute "export SPHINX_DEBUG=1" in your terminal to disable
 
+# Ignore the following warning: WARNING: while setting up extension
+# wsmeext.sphinxext: directive 'autoattribute' is already registered,
+# it will be overridden.
+suppress_warnings = ['app.add_directive']
+
 # The suffix of source filenames.
 source_suffix = '.rst'
 
