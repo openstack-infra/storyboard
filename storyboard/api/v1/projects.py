@@ -145,7 +145,8 @@ class ProjectsController(rest.RestController):
     @wsme_pecan.wsexpose(wmodels.Project, body=wmodels.Project)
     def post(self, project):
         """Create a new project.
-           This command is only available to Admin users.
+
+        .. note:: This command is only available to Admin users.
 
         Example::
 
@@ -166,7 +167,8 @@ class ProjectsController(rest.RestController):
     @wsme_pecan.wsexpose(wmodels.Project, int, body=wmodels.Project)
     def put(self, project_id, project):
         """Modify this project.
-           This command is only available to Admin users.
+
+        .. note:: This command is only available to Admin users.
 
         Example::
 
