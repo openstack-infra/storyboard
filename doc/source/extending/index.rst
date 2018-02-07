@@ -77,7 +77,7 @@ plugin, StoryBoard will manage and maintain your crontab registration for you::
     storyboard.plugin.cron =
          my-plugin-cron = my.namespace.plugin:CronWorker
 
-To learn how to write a cron plugin, `read more here <./plugin_cron.html>`_.
+To learn how to write a cron plugin see :doc:`plugin_cron`.
 
 Event Workers
 `````````````
