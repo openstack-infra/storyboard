@@ -45,6 +45,14 @@ Maintenance guides
 
    maintenance/upgrading
 
+User guide
+----------
+
+.. toctree::
+   :maxdepth: 2
+
+   user/index
+
 Launchpad Migration guides
 --------------------------
 .. toctree::
