@@ -49,8 +49,26 @@ class TestDBReferenceError(base.BaseDbTestCase):
             'story_id': 100
         }
 
-        self.assertRaises(exc.DBReferenceError,
-                          lambda: tasks.task_create(task))
+        # TODO(dhellmann): The SQLite database doesn't use foreign key
+        # constraints instead of getting an error from the database
+        # when we try to insert the task we get the error later when
+        # we try to update the story. The behavior difference doesn't
+        # seem all that important since it only affects this test, but
+        # at some point we should probably ensure that all database
+        # reference errors are turned into the same exception class
+        # for consistency. For now we just test slightly differently.
+        if self.using_sqlite:
+            self.assertRaises(
+                exc.NotFound,
+                tasks.task_create,
+                task,
+            )
+        else:
+            self.assertRaises(
+                exc.DBReferenceError,
+                tasks.task_create,
+                task,
+            )
 
 
 class TestDbInvalidSortKey(base.BaseDbTestCase):

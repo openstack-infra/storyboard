@@ -1,0 +1,16 @@
+- job:
+    name: storyboard-tox-sqlite
+    parent: openstack-tox
+    description: |
+      Run tests using sqlite instead of mysql.
+    vars:
+      tox_envlist: sqlite
+
+- project:
+    name: openstack-infra/storyboard
+    check:
+      jobs:
+        - storyboard-tox-sqlite
+    gate:
+      jobs:
+        - storyboard-tox-sqlite

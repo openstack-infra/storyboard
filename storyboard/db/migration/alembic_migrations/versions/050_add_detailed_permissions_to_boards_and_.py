@@ -82,10 +82,13 @@ def upgrade(active_plugins=None, options=None):
             worklist.id, move_permission, session=session)
         session.flush()
 
-    op.drop_constraint(u'boards_ibfk_2', 'boards', type_='foreignkey')
-    op.drop_column(u'boards', 'permission_id')
-    op.drop_constraint(u'worklists_ibfk_2', 'worklists', type_='foreignkey')
-    op.drop_column(u'worklists', 'permission_id')
+    dialect = op.get_bind().engine.dialect
+    if dialect.supports_alter:
+        op.drop_constraint(u'boards_ibfk_2', 'boards', type_='foreignkey')
+        op.drop_column(u'boards', 'permission_id')
+        op.drop_constraint(u'worklists_ibfk_2', 'worklists',
+                           type_='foreignkey')
+        op.drop_column(u'worklists', 'permission_id')
 
 
 def downgrade(active_plugins=None, options=None):

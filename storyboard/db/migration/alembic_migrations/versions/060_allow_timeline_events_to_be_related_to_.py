@@ -33,10 +33,13 @@ def upgrade(active_plugins=None, options=None):
         'events', sa.Column('board_id', sa.Integer(), nullable=True))
     op.add_column(
         'events', sa.Column('worklist_id', sa.Integer(), nullable=True))
-    op.create_foreign_key(
-        'fk_event_worklist', 'events', 'worklists', ['worklist_id'], ['id'])
-    op.create_foreign_key(
-        'fk_event_board', 'events', 'boards', ['board_id'], ['id'])
+    dialect = op.get_bind().engine.dialect
+    if dialect.supports_alter:
+        op.create_foreign_key(
+            'fk_event_worklist', 'events', 'worklists',
+            ['worklist_id'], ['id'])
+        op.create_foreign_key(
+            'fk_event_board', 'events', 'boards', ['board_id'], ['id'])
 
 
 def downgrade(active_plugins=None, options=None):

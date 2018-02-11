@@ -16,6 +16,7 @@
 # under the License.
 
 import os
+import os.path
 import shutil
 import stat
 import uuid
@@ -142,34 +143,52 @@ class DbTestCase(WorkingDirTestCase):
         self.setup_db()
 
     def setup_db(self):
+
         self.db_name = "storyboard_test_db_%s" % uuid.uuid4()
         self.db_name = self.db_name.replace("-", "_")
-        LOG.info('creating database %s', self.db_name)
-
-        # The engine w/o db name
-        engine = sqlalchemy.create_engine(
-            self.test_connection)
-        engine.execute("CREATE DATABASE %s" % self.db_name)
-
-        alembic_config = get_alembic_config()
-        alembic_config.storyboard_config = CONF
         CONF.set_override(
             "connection",
             self.test_connection + "/%s"
             % self.db_name,
             group="database")
+        self._full_db_name = self.test_connection + '/' + self.db_name
+        LOG.info('using database %s', CONF.database.connection)
+
+        if self.test_connection.startswith('sqlite://'):
+            self.using_sqlite = True
+        else:
+            self.using_sqlite = False
+            # The engine w/o db name
+            engine = sqlalchemy.create_engine(
+                self.test_connection)
+            engine.execute("CREATE DATABASE %s" % self.db_name)
+
+        alembic_config = get_alembic_config()
+        alembic_config.storyboard_config = CONF
 
         command.upgrade(alembic_config, "head")
         self.addCleanup(self._drop_db)
 
     def _drop_db(self):
-        engine = sqlalchemy.create_engine(
-            self.test_connection)
-        try:
-            engine.execute("DROP DATABASE %s" % self.db_name)
-        except Exception as err:
-            LOG.error('failed to drop database %s: %s',
-                      self.db_name, err)
+        if self.test_connection.startswith('sqlite://'):
+            filename = self._full_db_name[9:]
+            if filename[:2] == '//':
+                filename = filename[1:]
+            if os.path.exists(filename):
+                LOG.info('removing database file %s', filename)
+                try:
+                    os.unlink(filename)
+                except OSError as err:
+                    LOG.error('could not remove %s: %s',
+                              filename, err)
+        else:
+            engine = sqlalchemy.create_engine(
+                self.test_connection)
+            try:
+                engine.execute("DROP DATABASE %s" % self.db_name)
+            except Exception as err:
+                LOG.error('failed to drop database %s: %s',
+                          self.db_name, err)
         db_api_base.cleanup()
 
 PATH_PREFIX = '/v1'
