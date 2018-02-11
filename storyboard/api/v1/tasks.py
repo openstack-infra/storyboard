@@ -664,6 +664,12 @@ class TasksNestedController(rest.RestController):
         if original_task.story_id != story_id:
             abort(400, _("URL story_id and task.story_id do not match"))
 
+        if task.story_id and original_task.story_id != task.story_id:
+            abort(
+                400,
+                _("the story_id of a task cannot be changed through this API"),
+            )
+
         task = task_is_valid_put(task, original_task)
 
         updated_task = tasks_api.task_update(task_id, task.as_dict(
