@@ -558,7 +558,8 @@ class WorklistFilter(base.APIBase):
     list_id = int
     """The ID of the Worklist this filter is for."""
 
-    filter_criteria = wtypes.ArrayType(FilterCriterion)
+    filter_criteria = wtypes.wsattr(wtypes.ArrayType(FilterCriterion),
+                                    mandatory=True)
     """The list of criteria to apply."""
 
     @nodoc
