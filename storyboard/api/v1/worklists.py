@@ -744,7 +744,7 @@ class WorklistsController(rest.RestController):
         if 'items' in worklist_dict:
             del worklist_dict['items']
 
-        filters = worklist_dict.pop('filters')
+        filters = worklist_dict.pop('filters') or []
         owners = worklist_dict.pop('owners')
         users = worklist_dict.pop('users')
         if not owners:
