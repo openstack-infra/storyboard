@@ -325,7 +325,7 @@ class BoardsController(rest.RestController):
         if board.creator_id and board.creator_id != user_id:
             abort(400, _("You can't select the creator of a board."))
         board_dict.update({"creator_id": user_id})
-        lanes = board_dict.pop('lanes')
+        lanes = board_dict.pop('lanes') or []
         owners = board_dict.pop('owners')
         users = board_dict.pop('users')
         if not owners:
