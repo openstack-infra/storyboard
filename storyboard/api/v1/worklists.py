@@ -704,17 +704,10 @@ class WorklistsController(rest.RestController):
             worklist_model.resolve_permissions(worklist)
             visible_items = worklists_api.get_visible_items(
                 worklist, request.current_user_id)
-            if not worklist.automatic:
-                worklist_model.items = [
-                    wmodels.WorklistItem.from_db_model(item)
-                    for item in visible_items
-                ]
-            else:
-                worklist_model.items = [
-                    wmodels.WorklistItem(**item)
-                    for item in worklists_api.filter_items(
-                        worklist, request.current_user_id)[0]
-                ]
+            worklist_model.items = [
+                wmodels.WorklistItem.from_db_model(item)
+                for item in visible_items
+            ]
             visible_worklists.append(worklist_model)
 
         # Apply the query response headers
