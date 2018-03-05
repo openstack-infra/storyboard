@@ -133,7 +133,11 @@ class OpenIdClient(object):
 
         verify_response = requests.post(CONF.oauth.openid_url,
                                         data=verify_params)
-        verify_data_tokens = verify_response.content.split()
+        content = verify_response.content
+        if isinstance(content, bytes):
+            content = content.decode('utf-8')
+        verify_data_tokens = content.split()
+
         verify_dict = dict((token.split(":")[0], token.split(":")[1])
                            for token in verify_data_tokens)
 
