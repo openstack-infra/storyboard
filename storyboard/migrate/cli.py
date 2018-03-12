@@ -12,6 +12,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from __future__ import print_function
+import sys
+
 from oslo_config import cfg
 from oslo_log import log
 
@@ -30,7 +33,13 @@ IMPORT_OPTS = [
                help="The origin system from which to import."),
     cfg.IntOpt("auto-increment",
                default=None,
-               help="Optionally set the auto-increment on the stories table.")
+               help="Optionally set the auto-increment on the stories table."),
+    cfg.ListOpt("only-tags",
+                default=[],
+                help="Include only the bugs with specified tags."),
+    cfg.ListOpt("exclude-tags",
+                default=[],
+                help="Exclude the bugs with the specified tags.")
 ]
 
 CONF = cfg.CONF
@@ -46,6 +55,12 @@ def main():
     log.setup(CONF, 'storyboard')
     CONF(project='storyboard')
 
+    # only_tags and exclude_tags are mutually exclusive
+    if CONF.only_tags and CONF.exclude_tags:
+        print('ERROR: only-tags and exclude-tags are mutually exclusive',
+              file=sys.stderr)
+        exit(1)
+
     # If the user requested an autoincrement value, set that before we start
     # importing things. Note that mysql will automatically set the
     # autoincrement to the next-available id equal to or larger than the
@@ -58,7 +73,8 @@ def main():
                         % (auto_increment,))
 
     if CONF.origin is 'launchpad':
-        loader = LaunchpadLoader(CONF.from_project, CONF.to_project)
+        loader = LaunchpadLoader(CONF.from_project, CONF.to_project,
+                                 set(CONF.only_tags), set(CONF.exclude_tags))
         loader.run()
     else:
         print('Unsupported import origin: %s' % CONF.origin)

@@ -17,15 +17,39 @@ from storyboard.migrate.launchpad.writer import LaunchpadWriter
 
 
 class LaunchpadLoader(object):
-    def __init__(self, from_project, to_project):
+    def __init__(self, from_project, to_project, only_tags=None,
+                 excluded_tags=None):
         """Create a new loader instance from launchpad.org
         """
         self.writer = LaunchpadWriter(to_project)
         self.reader = LaunchpadReader(from_project)
+        self.only_tags = only_tags
+        self.excluded_tags = excluded_tags
+
+    def bug_matches_requested_tags(self, tags):
+        """Check whether the set of tag matches the requirement:
+           - the tag is in the set of the requested tags
+             if the inclusion list is specified;
+           - the tag is not in the set of the excluded tags
+             if the inclusion list is specified.
+        """
+        if self.only_tags:
+            return (tags.intersection(self.only_tags) == self.only_tags)
+        if self.excluded_tags:
+            return not tags.intersection(self.excluded_tags)
+        return True
 
     def run(self):
         for lp_bug in self.reader:
             bug = lp_bug.bug
+
+            tags_set = set()
+            if hasattr(bug, 'tags') and bug.tags:
+                tags_set = set(bug.tags)
+            if not self.bug_matches_requested_tags(tags_set):
+                print("WARNING: Skipping bug %s due to tag rules" %
+                      (bug.self_link))
+                continue
 
             # Preload the tags.
             tags = self.writer.write_tags(bug)

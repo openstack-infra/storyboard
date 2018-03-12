@@ -89,6 +89,16 @@ Test Migration
    `$PROJECT_IN_STORYBOARD` should be replaced the name of the project
    you are importing into in StoryBoard, for example `openstack/monasca`.
 
+   Two parameters of the `storyboard-migrate` command
+   allows for filtering by the tags associated to the bug.
+   Both parameters accept a comma-separated lists of tags
+   and they are mutually exclusive.
+
+   --only-tags=tags      select only the bugs which have all
+                         the specified tag(s)
+   --exclude-tags=tags   exclude the bugs which have any
+                         of the specified tag(s)
+
    Then you must wait for some time to pass whilst the project is
    migrated. You can watch the output if you like. Sometimes it will
    crash with a traceback saying the database object already exists.
