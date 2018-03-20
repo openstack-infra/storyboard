@@ -17,6 +17,8 @@ import re
 import sys
 import uuid
 
+from lazr.restfulclient import errors
+
 from openid.consumer import consumer
 from openid.consumer.discover import DiscoveryFailure
 from openid import cryptutil
@@ -110,11 +112,13 @@ class LaunchpadWriter(object):
         :param lp_user: The launchpad user record.
         :return: The SQLAlchemy entity for the user record.
         """
-        if lp_user is None:
-            return lp_user
 
-        display_name = lp_user.display_name
-        user_link = lp_user.web_link
+        try:
+            display_name = lp_user.display_name
+            user_link = lp_user.web_link
+        except errors.HTTPError:
+            display_name = "Disabled Launchpad User"
+            user_link = "000000000000000000000"
 
         # Resolve the openid.
         if user_link not in self._openid_map:
