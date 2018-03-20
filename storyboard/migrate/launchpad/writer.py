@@ -116,6 +116,8 @@ class LaunchpadWriter(object):
         display_name = lp_user.display_name
         user_link = lp_user.web_link
 
+        user_link.replace('login.launchpad.net', 'login.ubuntu.com')
+
         # Resolve the openid.
         if user_link not in self._openid_map:
             try:
