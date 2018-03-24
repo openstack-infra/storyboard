@@ -120,8 +120,6 @@ class LaunchpadWriter(object):
             display_name = "Disabled Launchpad User"
             user_link = "000000000000000000000"
 
-        user_link.replace('login.launchpad.net', 'login.ubuntu.com')
-
         # Resolve the openid.
         if user_link not in self._openid_map:
             try:
@@ -130,6 +128,8 @@ class LaunchpadWriter(object):
                     None)
                 openid_request = openid_consumer.begin(user_link)
                 openid = openid_request.endpoint.getLocalID()
+                openid = openid.replace(
+                    'login.launchpad.net', 'login.ubuntu.com')
 
                 self._openid_map[user_link] = openid
             except DiscoveryFailure:
