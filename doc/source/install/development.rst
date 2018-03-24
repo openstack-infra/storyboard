@@ -131,6 +131,26 @@ Installing the Javascript-based web client
         tox -egrunt_no_api -- serve:prod
 
 
+Using your development StoryBoard
+=================================
+
+Once the API and the webclient development server are running, you can
+use your development instance of StoryBoard in a few ways.
+
+By default, the webclient development server uses port 9000, and so
+can be accessed by navigating to `http://localhost:9000/` in a web browser.
+In order to log in, the hostname or IP address being used here will need to
+be in the `valid_oauth_clients` key of `./etc/storyboard.conf` for the API.
+
+By default, the API server uses port 8080, and so the API can be accessed
+at `http://localhost:8080/`. That will produce a 404 as the API doesn't
+actually serve anything on the `/` endpoint. The API endpoints that are
+available are documented on the :doc:`../webapi/v1` page.
+
+The webclient server also forwards `/api` to the API server, so it is also
+possible to use the API by sending requests to `http://localhost:9000/api/`.
+
+
 Make user an admin - current bug
 ================================
 
