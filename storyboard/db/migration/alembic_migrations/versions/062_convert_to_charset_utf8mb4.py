@@ -11,7 +11,7 @@
 # under the License.
 #
 
-"""convert to charset utf8mb4
+"""convert to charset utf8mb4 shortening teams.name and users.email
 
 Revision ID: 062
 Revises: 061
@@ -25,20 +25,28 @@ down_revision = '061'
 
 
 from alembic import op
-from sqlalchemy import inspect
+import sqlalchemy as sa
 
 
 def upgrade(active_plugins=None, options=None):
     dialect = op.get_bind().engine.dialect
-    if dialect.name == 'mysql' and dialect.supports_alter:
-        for table in inspect(op.get_bind()).get_table_names():
-            op.execute('ALTER TABLE %s CONVERT TO CHARACTER SET utf8mb4' %
-                       table)
+    if dialect.supports_alter:
+        op.alter_column('teams', 'name', type_=sa.Unicode(100))
+        op.alter_column('users', 'email', type_=sa.String(100))
+        if dialect.name == 'mysql':
+            op.execute('ALTER DATABASE CHARACTER SET utf8mb4')
+            for table in sa.inspect(op.get_bind()).get_table_names():
+                op.execute('ALTER TABLE %s CONVERT TO CHARACTER SET utf8mb4' %
+                           table)
 
 
 def downgrade(active_plugins=None, options=None):
     dialect = op.get_bind().engine.dialect
-    if dialect.name == 'mysql' and dialect.supports_alter:
-        for table in inspect(op.get_bind()).get_table_names():
-            op.execute('ALTER TABLE %s CONVERT TO CHARACTER SET utf8' %
-                       table)
+    if dialect.supports_alter:
+        op.alter_column('teams', 'name', type_=sa.Unicode(255))
+        op.alter_column('users', 'email', type_=sa.String(255))
+        if dialect.name == 'mysql':
+            op.execute('ALTER DATABASE CHARACTER SET utf8')
+            for table in sa.inspect(op.get_bind()).get_table_names():
+                op.execute('ALTER TABLE %s CONVERT TO CHARACTER SET utf8' %
+                           table)
