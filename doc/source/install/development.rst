@@ -69,7 +69,7 @@ Installing and Upgrading the API server
 5. Edit ``./etc/storyboard.conf`` and in the ``oauth`` section, add your IP
    Adress to the list of ``valid_oauth_clients``. Then in the ``database``
    section, on the line which reads
-   ``# connection = mysql+pymysql://root:pass@127.0.0.1:3306/storyboard``,
+   ``# connection = mysql+pymysql://root:pass@127.0.0.1:3306/storyboard?charset=utf8mb4``,
    replace the ``pass`` with your password (the same as used in the above
    steps). On both of these lines you will need to remove the ``#``.
 
