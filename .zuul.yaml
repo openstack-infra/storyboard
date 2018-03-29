@@ -11,6 +11,19 @@
     check:
       jobs:
         - storyboard-tox-sqlite
+        - tox-pep8
+        - tox-py27:
+            timeout: 6000
+        - tox-py35:
+            timeout: 6000
     gate:
       jobs:
         - storyboard-tox-sqlite
+        - tox-pep8
+        - tox-py27:
+            timeout: 6000
+        - tox-py35:
+            timeout: 6000
+    post:
+      jobs:
+        - publish-openstack-python-branch-tarball
