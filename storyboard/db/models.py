@@ -145,7 +145,7 @@ class User(FullText, ModelBuilder, Base):
     __fulltext_columns__ = ['full_name', 'email']
 
     full_name = Column(Unicode(CommonLength.top_large_length), nullable=True)
-    email = Column(String(CommonLength.top_large_length))
+    email = Column(String(CommonLength.top_middle_length))
     openid = Column(String(CommonLength.top_large_length))
     is_staff = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
@@ -210,7 +210,7 @@ class Team(ModelBuilder, Base):
     __table_args__ = (
         schema.UniqueConstraint('name', name='uniq_team_name'),
     )
-    name = Column(Unicode(CommonLength.top_large_length))
+    name = Column(Unicode(CommonLength.top_middle_length))
     users = relationship("User", secondary="team_membership")
     permissions = relationship("Permission", secondary="team_permissions",
                                backref="teams")
