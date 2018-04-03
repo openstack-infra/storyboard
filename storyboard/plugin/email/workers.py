@@ -49,8 +49,6 @@ class EmailWorkerBase(EmailPluginBase, WorkerTaskBase):
     building emails off of our event queue.
     """
 
-    __metaclass__ = abc.ABCMeta
-
     def handle(self, session, author, method, url, path, query_string, status,
                resource, resource_id, sub_resource=None, sub_resource_id=None,
                resource_before=None, resource_after=None):

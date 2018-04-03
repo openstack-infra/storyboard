@@ -19,6 +19,7 @@ from threading import Timer
 
 from oslo_config import cfg
 from oslo_log import log
+import six
 
 import storyboard.db.api.base as db_api
 from storyboard.notifications.notification_hook import class_mappings
@@ -157,10 +158,9 @@ class PerpetualTimer(object):
             self.thread.cancel()
 
 
+@six.add_metaclass(abc.ABCMeta)
 class WorkerTaskBase(PluginBase):
     """Base class for a worker that listens to API Events."""
-
-    __metaclass__ = abc.ABCMeta
 
     def event(self, author_id, method, url, path, query_string, status,
               resource, resource_id, sub_resource=None, sub_resource_id=None,
