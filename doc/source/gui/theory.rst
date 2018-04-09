@@ -52,7 +52,7 @@ There is also a much more fully-featured and interactive commandline
 StoryBoard interface named boartty in progress over here, that jeblair
 wrote on a plane:
 
-.. image:: boartty-3.png
+.. image:: _assets/boartty-3.png
 
 The long and short of it is, if you know how to display data from a
 REST API, you can display data from a StoryBoard instance.
@@ -74,7 +74,7 @@ Worklists are arbitrary groupings of stories and/or tasks with
 whatever title the user wants. Each 'item' (story or task) is placed
 on a 'card' on the worklist. Here is an example:
 
-.. image:: example-worklist.png
+.. image:: _assets/example-worklist.png
 
 A worklist can be handy as a personal todo list. Anyone can make a
 worklist, and the creator can decide who (if anyone) else can view and
@@ -83,12 +83,12 @@ automatically populate it with stories or tasks that fulfil some
 criteria (eg: 'assigned to Alice'. Here are some example filter
 criterai for an automatic worklist:
 
-.. image:: example-automatic-worklist-filters.png
+.. image:: _assets/example-automatic-worklist-filters.png
 
 We also have boards, which are akin to collections of
 worklists. Here's an example:
 
-.. image:: example-board.png
+.. image:: _assets/example-board.png
 
 You can name 'lanes' (lists) in the board what you want, and either
 populate them as a visualisation of some data by making them
