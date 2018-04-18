@@ -9,4 +9,4 @@
 lock_path = $state_path/lock
 
 [database]
-connection = mysql+pymysql://#DB_USER#:#DB_PASSWORD#@127.0.0.1:3306/#DB_TEST#
+connection = mysql+pymysql://#DB_USER#:#DB_PASSWORD#@127.0.0.1:3306/#DB_TEST#?charset=utf8mb4

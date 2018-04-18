@@ -146,11 +146,10 @@ class DbTestCase(WorkingDirTestCase):
 
         self.db_name = "storyboard_test_db_%s" % uuid.uuid4()
         self.db_name = self.db_name.replace("-", "_")
-        CONF.set_override(
-            "connection",
-            self.test_connection + "/%s"
-            % self.db_name,
-            group="database")
+        dburi = self.test_connection + "/%s" % self.db_name
+        if dburi.startswith('mysql+pymysql://'):
+            dburi += "?charset=utf8mb4"
+        CONF.set_override("connection", dburi, group="database")
         self._full_db_name = self.test_connection + '/' + self.db_name
         LOG.info('using database %s', CONF.database.connection)
 
