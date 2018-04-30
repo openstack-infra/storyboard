@@ -36,7 +36,9 @@ Using StoryBoard
 .. toctree::
    :maxdepth: 1
 
-   gui/manual
+   How it Works <gui/theory>
+   Tasks, Stories, & Tags <gui/tasks_stories_tags>
+   Worklists <gui/worklists>
 
 Installation guides
 -------------------
@@ -52,13 +54,6 @@ Maintenance guides
 
    maintenance/upgrading
 
-User guide
-----------
-
-.. toctree::
-   :maxdepth: 2
-
-   user/index
 
 Launchpad Migration guides
 --------------------------
