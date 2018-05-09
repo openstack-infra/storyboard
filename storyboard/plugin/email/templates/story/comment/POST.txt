@@ -1,4 +1,4 @@
-{{author.full_name}} added comment to story "{{resource.title}}":
+{{author.full_name}} added a comment to the story "{{resource.title}}":
 
 "{{sub_resource.content}}"
 
