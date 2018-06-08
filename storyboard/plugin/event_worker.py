@@ -23,7 +23,7 @@ import six
 
 import storyboard.db.api.base as db_api
 from storyboard.notifications.notification_hook import class_mappings
-from storyboard.notifications.subscriber import subscribe
+from storyboard.notifications.pika.subscriber import subscribe
 from storyboard._i18n import _LI, _LW
 from storyboard.plugin.base import PluginBase
 
