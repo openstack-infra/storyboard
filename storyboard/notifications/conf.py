@@ -18,6 +18,6 @@ from oslo_config import cfg
 CONF = cfg.CONF
 
 OPTS = [
-    cfg.StrOpt('driver', choices=['pika', 'mqtt'],
+    cfg.StrOpt('driver', choices=['pika'],
                help='The notification driver to use', default='pika')
 ]
