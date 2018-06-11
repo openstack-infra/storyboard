@@ -23,7 +23,7 @@ import six
 
 import storyboard.db.api.base as db_api
 from storyboard.notifications.notification_hook import class_mappings
-from storyboard.notifications import subscriber
+from storyboard.notifications.pika.subscriber import subscribe
 from storyboard._i18n import _LI, _LW
 from storyboard.plugin.base import PluginBase
 
@@ -56,7 +56,7 @@ def run_daemon():
     signal.signal(signal.SIGTERM, terminate)
     signal.signal(signal.SIGINT, terminate)
 
-    MANAGER = DaemonManager(daemon_method=subscriber.subscribe,
+    MANAGER = DaemonManager(daemon_method=subscribe,
                             child_process_count=CONF.worker_count)
     MANAGER.start()
 
