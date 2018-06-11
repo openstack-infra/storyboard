@@ -23,7 +23,7 @@ from storyboard.api.v1 import wmodels
 import storyboard.common.hook_priorities as priority
 from storyboard.db.api import base as api_base
 from storyboard.db import models
-from storyboard.notifications import publisher
+from storyboard.notifications.publisher import publish
 
 
 class_mappings = {'task': [models.Task, wmodels.Task],
@@ -110,18 +110,18 @@ class NotificationHook(hooks.PecanHook):
         # Build the payload. Use of None is included to ensure that we don't
         # accidentally blow up the API call, but we don't anticipate it
         # happening.
-        publisher.publish(author_id=request.current_user_id,
-                          method=request.method,
-                          url=request.headers.get('Referer'),
-                          path=request.path,
-                          query_string=request.query_string,
-                          status=response.status_code,
-                          resource=resource,
-                          resource_id=resource_id,
-                          sub_resource=subresource,
-                          sub_resource_id=subresource_id,
-                          resource_before=old_resource,
-                          resource_after=new_resource)
+        publish(author_id=request.current_user_id,
+                method=request.method,
+                url=request.headers.get('Referer'),
+                path=request.path,
+                query_string=request.query_string,
+                status=response.status_code,
+                resource=resource,
+                resource_id=resource_id,
+                sub_resource=subresource,
+                sub_resource_id=subresource_id,
+                resource_before=old_resource,
+                resource_after=new_resource)
 
     def get_original_resource(self, resource, resource_id):
         """Given a resource name and ID, will load that resource and map it

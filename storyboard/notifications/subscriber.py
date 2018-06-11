@@ -21,8 +21,8 @@ from oslo_log import log
 from pika.exceptions import ConnectionClosed
 from stevedore import enabled
 
-from storyboard.notifications.pika.conf import NOTIFICATION_OPTS
-from storyboard.notifications.pika.connection_service import ConnectionService
+from storyboard.notifications.conf import NOTIFICATION_OPTS
+from storyboard.notifications.connection_service import ConnectionService
 from storyboard._i18n import _, _LW
 
 
