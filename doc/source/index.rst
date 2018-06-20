@@ -37,8 +37,10 @@ Using StoryBoard
    :maxdepth: 1
 
    How it Works <gui/theory>
-   Tasks, Stories, & Tags <gui/tasks_stories_tags>
+   Boards <gui/boards>
    Worklists <gui/worklists>
+   Tasks, Stories, & Tags <gui/tasks_stories_tags>
+   Organizing Your Work: Best Practices <gui/best_practices>
 
 Installation guides
 -------------------
