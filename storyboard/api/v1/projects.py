@@ -18,6 +18,7 @@ from pecan.decorators import expose
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
+from six.moves.urllib.parse import unquote
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
@@ -221,7 +222,7 @@ class ProjectsController(rest.RestController):
     def _route(self, args, request):
         if request.method == 'GET' and len(args) > 0:
             # It's a request by a name or id
-            something = args[0]
+            something = unquote(args[0])
 
             if something == "search":
                 # Request to a search endpoint

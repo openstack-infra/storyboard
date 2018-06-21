@@ -124,7 +124,7 @@ def load():
             description='Project 2 Description - bar'),
         Project(
             id=3,
-            name='project3',
+            name='tests/project3',
             description='Project 1 Description - foo')
     ])
 

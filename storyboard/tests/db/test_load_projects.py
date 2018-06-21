@@ -45,7 +45,7 @@ class TestLoadProjects(base.BaseDbTestCase):
 
             # Loaded + mock_data
             project_names = ["Test-Project", "Test-Project-Two",
-                             "project1", "project2", "project3"]
+                             "project1", "project2", "tests/project3"]
             project_ids = []
             for project in projects:
                 self.assertIn(project.name, project_names)

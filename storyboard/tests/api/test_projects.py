@@ -26,7 +26,7 @@ class TestProjects(base.FunctionalTest):
         self.resource = '/projects'
 
         self.project_01 = {
-            'name': 'test-project',
+            'name': 'tests/test-project',
             'description': 'some description'
         }
 
@@ -42,6 +42,22 @@ class TestProjects(base.FunctionalTest):
         self.assertEqual('project1', response['name'])
         self.assertEqual('Project 3 Description - foo',
                          response['description'])
+
+    def test_get_by_name(self):
+        project = self.get_json(
+            path=self.resource + '/tests/project3')
+
+        self.assertEqual('tests/project3', project['name'])
+        self.assertEqual('Project 1 Description - foo',
+                         project['description'])
+
+    def test_get_by_name_quoted(self):
+        project = self.get_json(
+            path=self.resource + '/tests%2Fproject3')
+
+        self.assertEqual('tests/project3', project['name'])
+        self.assertEqual('Project 1 Description - foo',
+                         project['description'])
 
     def test_get_nonexistent(self):
         response = self.get_json(path=self.resource + "/999",
