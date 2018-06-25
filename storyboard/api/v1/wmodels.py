@@ -521,9 +521,6 @@ class TaskStatus(base.APIBase):
 class FilterCriterion(base.APIBase):
     """Represents a filter used to construct an automatic worklist."""
 
-    type = wtypes.text
-    """The type of objects to filter, Story or Task."""
-
     title = wtypes.text
     """The title of the criterion, as displayed in the UI."""
 
@@ -549,10 +546,13 @@ class FilterCriterion(base.APIBase):
             field='status')
 
 
+WorklistFilterType = wtypes.Enum(wtypes.text, 'Story', 'Task')
+
+
 class WorklistFilter(base.APIBase):
     """Represents a set of criteria to filter items using AND."""
 
-    type = wtypes.text
+    type = wtypes.wsattr(WorklistFilterType, mandatory=True)
     """The type of objects to filter, Story or Task."""
 
     list_id = int
