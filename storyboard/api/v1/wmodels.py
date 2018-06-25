@@ -521,7 +521,7 @@ class TaskStatus(base.APIBase):
 class FilterCriterion(base.APIBase):
     """Represents a filter used to construct an automatic worklist."""
 
-    title = wtypes.text
+    title = wtypes.wsattr(wtypes.text, mandatory=True)
     """The title of the criterion, as displayed in the UI."""
 
     filter_id = int
