@@ -57,7 +57,7 @@ Using grunt directly within virtual environment
 
 * Bootstrap your database::
 
-  ./bin/api.sh create-db`
+  ./bin/api.sh create-db
 
 
 * Migrate the database::

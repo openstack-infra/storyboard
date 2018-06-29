@@ -39,7 +39,7 @@ the commandline on the fly with a tool like curl.
 
 There are some docs to illustrate usage here:
 
-http://docs.openstack.org/infra/storyboard/webapi/v1.html
+https://docs.openstack.org/infra/storyboard/webapi/v1.html
 
 Moreover, as our API is generally RESTful, it's straightforward to
 guess how to do things, and compatible with a lot of other tools with

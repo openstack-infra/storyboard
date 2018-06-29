@@ -209,7 +209,7 @@ Optional steps: Set up the notifications daemon
     sudo rabbitmqctl add_user storyboard storyboard
     sudo rabbitmqctl set_permissions -p / storyboard ".*" ".*" ".*"
 
-.. _rabbitmq manpages: https://www.rabbitmq.com/man/rabbitmqctl.1.man.html#User%20management
+.. _rabbitmq manpages: https://www.rabbitmq.com/rabbitmqctl.8.html#User_Management
 
 3. Set up your storyboard.conf file for notifications using rabbitmq::
 

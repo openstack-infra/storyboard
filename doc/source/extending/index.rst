@@ -4,7 +4,7 @@ Extending StoryBoard: Overview
 
 StoryBoard provides many extension points that allow you to customize its
 functionality to your own needs. All of these are implemented using
-`stevedore <http://stevedore.readthedocs.org>`_, so that installing them is
+`stevedore <https://docs.openstack.org/stevedore/latest/>`_, so that installing them is
 simple, straightforward, and independent of the storyboard core libraries.
 StoryBoard itself makes use of these extension points,
 providing several 'in-branch' plugins that you may use as a template for your

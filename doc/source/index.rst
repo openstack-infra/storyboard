@@ -15,8 +15,8 @@ StoryBoard consists of two components:
       Storyboard API
 
 
-.. _Pecan: http://pecan.readthedocs.org/en/latest/
-.. _WSME: http://wsme.readthedocs.org/en/latest/
+.. _Pecan: https://pecan.readthedocs.io/en/latest/
+.. _WSME: https://wsme.readthedocs.io/en/latest/
 .. _Storyboard API service: https://git.openstack.org/cgit/openstack-infra/storyboard/
 .. _Storyboard Web Client: https://git.openstack.org/cgit/openstack-infra/storyboard-webclient
 .. _Storyboard Python Client: https://git.openstack.org/cgit/openstack-infra/python-storyboardclient

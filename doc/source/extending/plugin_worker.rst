@@ -40,7 +40,7 @@ reasonably unique::
 
 Then, implement your plugin by extending `WorkerTaskBase`. You may register
 your own configuration groups, please see
-`oslo.config <http://docs.openstack.org/developer/oslo.config/api/oslo.config.cfg.html>`_
+`oslo.config <https://docs.openstack.org/oslo.config/latest/reference/cfg.html>`_
 for more details.::
 
     from storyboard.plugin.event_worker import WorkerTaskBase

@@ -18,14 +18,14 @@ signed OpenStack's contributor's agreement.
 
 .. seealso::
 
-   * http://docs.openstack.org/infra/manual/developers.html
-   * http://wiki.openstack.org/CLA
+   * https://docs.openstack.org/infra/manual/developers.html
+   * https://wiki.openstack.org/wiki/CLA
 
 Project Hosting Details
 -------------------------
 
 Bug tracker
-    http://storyboard.openstack.org
+    https://storyboard.openstack.org
 
 Mailing list (prefix subjects with ``[storyboard]`` for faster responses)
     http://lists.openstack.org/cgi-bin/mailman/listinfo/openstack-infra
@@ -45,4 +45,4 @@ Code Review
 
     Please read `GerritWorkflow`_ before sending your first patch for review.
 
-.. _GerritWorkflow: http://docs.openstack.org/infra/manual/developers.html#development-workflow
+.. _GerritWorkflow: https://docs.openstack.org/infra/manual/developers.html#development-workflow

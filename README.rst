@@ -14,7 +14,7 @@ Project Resources
 
 Project status, bugs, and blueprints are tracked at:
 
-  http://storyboard.openstack.org
+  https://storyboard.openstack.org
 
 Source code can be found at:
 
@@ -22,7 +22,7 @@ Source code can be found at:
 
 Documentation can be found here:
 
-  http://docs.openstack.org/infra/storyboard/
+  https://docs.openstack.org/infra/storyboard/
 
 Additional resources are linked from the project wiki page:
 
@@ -31,9 +31,9 @@ Additional resources are linked from the project wiki page:
 Anyone wishing to contribute to an OpenStack project should
 find plenty of helpful resources here:
 
-  http://docs.openstack.org/infra/manual/developers.html
+  https://docs.openstack.org/infra/manual/developers.html
 
 All OpenStack projects use Gerrit for code reviews.
 A good reference for that is here:
 
-  http://docs.openstack.org/infra/manual/developers.html#development-workflow
+  https://docs.openstack.org/infra/manual/developers.html#development-workflow

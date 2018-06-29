@@ -4,7 +4,7 @@ Tasks, Stories, & Tags
 
 This manual is a guide for StoryBoard users to navigate the usage of tasks, stories, and tags in the webclient.
 
-The OpenStack StoryBoard webclient can be accessed 'here <https://storyboard.openstack.org/>'_.
+The OpenStack StoryBoard webclient can be accessed here: https://storyboard.openstack.org.
 
 StoryBoard is a task tracking application. It encourages anyone
 to sign in and create a story.
