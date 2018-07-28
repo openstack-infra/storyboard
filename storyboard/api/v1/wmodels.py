@@ -136,10 +136,13 @@ class ProjectGroup(base.APIBase):
             name="Infra",
             title="Awesome projects")
 
+TaskStatuses = wtypes.Enum(wtypes.text, 'todo', 'inprogress',
+    'invalid', 'review', 'merged')
+
 
 class TaskStatusCount(base.APIBase):
     """Represents a task status and number of occurrences within a story."""
-    key = wtypes.text
+    key = wtypes.wsattr(TaskStatuses)
     count = int
 
     @classmethod
@@ -300,11 +303,9 @@ class Task(base.APIBase):
     title = wtypes.text
     """An optional short label for the task, to show in listings."""
 
-    # TODO(ruhe): replace with enum
-    status = wtypes.text
-    """Status.
-    Allowed values: ['todo', 'inprogress', 'invalid', 'review', 'merged'].
-    Human readable versions are left to the UI.
+    status = wtypes.wsattr(TaskStatuses)
+    """The type of statuses allowed ['todo', 'inprogress',
+    'invalid', 'review', 'merged'].
     """
 
     creator_id = int
