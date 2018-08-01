@@ -94,6 +94,21 @@ Once you have a team worklist, you can link the worklist on irc or on
 the mailing list, etc, wherever it's most visible, and invite people
 to subscribe!
 
+Automatic Worklists
+===================
+
+You can make standalone automatic worklists or automatic worklists that
+exist in a board. You set up criteria when you create the worklist to
+funnel the relevant stories in the worklist. Criteria can be set up to
+filter tasks or stories into an automatic worklist.  
+
+.. image:: _assets/automatic_worklist_criteria.png
+
+If you have a board of automatic worklists, you can't manually move
+the stories around from list to list, the criteria that makes it
+appear in a certain worklist has to change for it to move. 
+
+
 Worklist Notifications
 ======================
 
