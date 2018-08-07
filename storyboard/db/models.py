@@ -162,7 +162,7 @@ class User(FullText, ModelBuilder, Base):
                                ),
                                cascade="all, delete-orphan")
 
-    _public_fields = ["id", "openid", "full_name", "last_login",
+    _public_fields = ["id", "openid", "full_name", "email", "last_login",
                       "enable_login", "is_superuser"]
 
 
