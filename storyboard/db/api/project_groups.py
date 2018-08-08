@@ -23,18 +23,27 @@ from storyboard.db.api import projects
 from storyboard.db import models
 
 
-def _entity_get(id, session=None):
+def _entity_get_query(session=None):
     if not session:
         session = api_base.get_session()
     query = session.query(models.ProjectGroup)\
-        .options(subqueryload(models.ProjectGroup.projects))\
-        .filter_by(id=id)
+        .options(subqueryload(models.ProjectGroup.projects))
 
+    return query
+
+
+def _entity_get(id, session=None):
+    query = _entity_get_query(session).filter_by(id=id)
     return query.first()
 
 
 def project_group_get(project_group_id):
     return _entity_get(project_group_id)
+
+
+def project_group_get_by_name(name):
+    query = _entity_get_query().filter_by(name=name)
+    return query.first()
 
 
 def project_group_get_all(marker=None, limit=None, offset=None,
