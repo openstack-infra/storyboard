@@ -216,16 +216,19 @@ def add_item(worklist_id, item_id, item_type, list_position,
     if worklist is None:
         raise exc.NotFound(_("Worklist %s not found") % worklist_id)
 
+    # If the target position is "outside" the list, override it
+    if list_position > worklist.items.count():
+        list_position = worklist.items.count()
+
     # Check if this item has an archived card in this worklist to restore
     archived = get_item_by_item_id(
         worklist, item_type, item_id, archived=True)
     if archived:
-        update = {
-            'archived': False,
-            'list_position': list_position
-        }
-        api_base.entity_update(models.WorklistItem, archived.id, update)
-        return worklist
+        update_item(archived.id, {'archived': False})
+        # Move the newly unarchived card into position, and move other cards
+        # to compensate for the move
+        move_item(archived.id, list_position)
+        return archived
 
     # If this worklist is a lane, check if the item has an archived card
     # somewhere in the board to restore
@@ -233,13 +236,11 @@ def add_item(worklist_id, item_id, item_type, list_position,
         board = boards.get_from_lane(worklist)
         archived = boards.get_card(board, item_type, item_id, archived=True)
         if archived:
-            update = {
-                'archived': False,
-                'list_id': worklist_id,
-                'list_position': list_position
-            }
-            api_base.entity_update(models.WorklistItem, archived.id, update)
-            return worklist
+            update_item(archived.id, {'archived': False})
+            # Move the newly unarchived card into position, and move other
+            # cards to compensate for the move
+            move_item(archived.id, list_position, new_list_id=worklist_id)
+            return archived
 
     # Create a new card
     if item_type == 'story':
@@ -254,20 +255,23 @@ def add_item(worklist_id, item_id, item_type, list_position,
         raise exc.NotFound(_("%(type)s %(id)s not found") %
                            {'type': item_type, 'id': item_id})
 
-    item_dict = {
+    card_dict = {
         'list_id': worklist_id,
         'item_id': item_id,
         'item_type': item_type,
-        'list_position': list_position
+        'list_position': 99999  # Initialise the card "outside" the list
     }
-    worklist_item = api_base.entity_create(models.WorklistItem, item_dict)
+    card = api_base.entity_create(models.WorklistItem, card_dict)
+
+    # Move the card into position, and move other cards to compensate
+    card = move_item(card.id, list_position)
 
     if worklist.items is None:
-        worklist.items = [worklist_item]
+        worklist.items = [card]
     else:
-        worklist.items.append(worklist_item)
+        worklist.items.append(card)
 
-    return worklist
+    return card
 
 
 def get_item_by_id(item_id, session=None):
@@ -295,67 +299,58 @@ def get_item_by_item_id(worklist, item_type, item_id, archived):
     return query.first()
 
 
-def normalize_positions(worklist):
-    for item in worklist.items:
-        if item.archived:
-            item.list_position = 99999
-    items = worklist.items.order_by(
-        models.WorklistItem.list_position)
-    for position, item in enumerate(items):
-        if not item.archived:
-            item.list_position = position
-
-
-def move_item(worklist_id, item_id, list_position, list_id=None):
+def move_item(item_id, new_pos, new_list_id=None):
     session = api_base.get_session()
 
     with session.begin(subtransactions=True):
-        item = get_item_by_id(item_id, session)
-        old_pos = item.list_position
-        item.list_position = list_position
+        modified_card = get_item_by_id(item_id, session)
+        old_pos = modified_card.list_position
 
-        if old_pos == list_position and list_id == item.list_id:
-            return
+        # If the item hasn't actually moved, we don't need to move it.
+        if (old_pos == new_pos and
+                (new_list_id == modified_card.list_id or
+                 new_list_id is None)):
+            return modified_card
 
-        old_list = _worklist_get(item.list_id)
+        # "old_list" is the list the item is moving from, and "new_list" is
+        # the list the item is moving to. In some cases (a simple reordering,
+        # or a card being archived) these are the same list, but separate
+        # variables exist to keep the reordering code simple.
+        old_list = _worklist_get(modified_card.list_id)
+        new_list = old_list
+        if new_list_id is not None:
+            new_list = _worklist_get(new_list_id)
 
-        if list_id is not None and list_id != item.list_id:
-            # Item has moved from one list into a different one.
-            # Move the item and clean up the positions.
-            new_list = _worklist_get(list_id)
-            old_list.items.remove(item)
-            old_list.items = old_list.items.order_by(
-                models.WorklistItem.list_position)
-            for list_item in old_list.items[old_pos:]:
-                list_item.list_position -= 1
-            normalize_positions(old_list)
+        # First decrement the position of everything past the old position
+        # by one, "removing" the item from the list. Archived items are
+        # ignored, since they are not really part of the ordering and are
+        # all stored with a position of 99999.
+        for card in old_list.items:
+            if card.list_position > old_pos and not card.archived:
+                card.list_position -= 1
 
-            new_list.items = new_list.items.order_by(
-                models.WorklistItem.list_position)
-            for list_item in new_list.items[list_position:]:
-                list_item.list_position += 1
-            new_list.items.append(item)
-            normalize_positions(new_list)
-        else:
-            # Item has changed position in the list.
-            # Update the position of every item between the original
-            # position and the final position.
-            old_list.items = old_list.items.order_by(
-                models.WorklistItem.list_position)
-            if old_pos > list_position:
-                direction = 'down'
-                modified = old_list.items[list_position:old_pos + 1]
-            else:
-                direction = 'up'
-                modified = old_list.items[old_pos:list_position + 1]
+        # Next, increment the position of everything at or past the new
+        # position by one, creating "space" for the item. Archived items are
+        # ignored again.
+        for card in new_list.items:
+            if card.list_position >= new_pos and not card.archived:
+                card.list_position += 1
 
-            for list_item in modified:
-                if direction == 'up' and list_item != item:
-                    list_item.list_position -= 1
-                elif direction == 'down' and list_item != item:
-                    list_item.list_position += 1
+        # Finally, update the position of the item we're actually moving
+        modified_card.list_position = new_pos
+        if new_list_id is not None:
+            modified_card.list_id = new_list_id
 
-            normalize_positions(old_list)
+    return modified_card
+
+
+def archive_item(item_id):
+    update_item(item_id, {'archived': True})
+
+    # Archived items are moved to the distant "bottom" of worklists. Calling
+    # move_item neatly updates the positions of other items in the list to
+    # compensate for the archived item.
+    move_item(item_id, 99999)
 
 
 def update_item(item_id, updated):
