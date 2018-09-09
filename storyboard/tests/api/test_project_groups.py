@@ -40,6 +40,12 @@ class TestProjectGroups(base.FunctionalTest):
         self.assertEqual("projectgroup1", response['name'])
         self.assertEqual("C Sort - foo", response['title'])
 
+    def test_get_by_name(self):
+        response = self.get_json(path=self.resource + '/1')
+        self.assertEqual(1, response['id'])
+        self.assertEqual("projectgroup1", response['name'])
+        self.assertEqual("C Sort - foo", response['title'])
+
     def test_get_empty(self):
         response = self.get_json(path=self.resource + "/999",
                                  expect_errors=True)

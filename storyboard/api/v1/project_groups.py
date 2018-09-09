@@ -15,9 +15,11 @@
 
 from oslo_config import cfg
 from pecan import abort
+from pecan.decorators import expose
 from pecan import response
 from pecan import rest
 from pecan.secure import secure
+from six.moves.urllib.parse import unquote
 
 import wsme.types as wtypes
 import wsmeext.pecan as wsme_pecan
@@ -35,6 +37,12 @@ from storyboard.db.api import projects
 CONF = cfg.CONF
 
 
+def _is_int(s):
+    # 20 is the number of digits in a 64-bit integer, which is realistically
+    # way more than the number of Project Groups likely to be created.
+    return len(s) < 20 and s.isdigit()
+
+
 class ProjectsSubcontroller(rest.RestController):
     """This controller should be used to list, add or remove projects from a
     Project Group.
@@ -42,7 +50,7 @@ class ProjectsSubcontroller(rest.RestController):
 
     @decorators.db_exceptions
     @secure(checks.guest)
-    @wsme_pecan.wsexpose([wmodels.Project], int)
+    @wsme_pecan.wsexpose([wmodels.Project], wtypes.text)
     def get(self, project_group_id):
         """Get projects inside a project group.
 
@@ -50,17 +58,20 @@ class ProjectsSubcontroller(rest.RestController):
 
           curl https://my.example.org/api/v1/project_groups/55/projects
 
-        :param project_group_id: An ID of the project group.
+        :param project_group_id: An ID or name of the project group.
         """
 
-        project_group = project_groups.project_group_get(project_group_id)
+        if _is_int(project_group_id):
+            group = project_groups.project_group_get(int(project_group_id))
+        else:
+            group = project_groups.project_group_get_by_name(project_group_id)
 
-        if not project_group:
+        if not group:
             raise exc.NotFound(_("Project Group %s not found")
                                % project_group_id)
 
         return [wmodels.Project.from_db_model(project)
-                for project in project_group.projects]
+                for project in group.projects]
 
     @decorators.db_exceptions
     @secure(checks.superuser)
@@ -118,7 +129,7 @@ class ProjectGroupsController(rest.RestController):
     @decorators.db_exceptions
     @secure(checks.guest)
     @wsme_pecan.wsexpose(wmodels.ProjectGroup, int)
-    def get_one(self, project_group_id):
+    def get_one_by_id(self, project_group_id):
         """Retrieve information about the given project group.
 
         Example::
@@ -134,6 +145,23 @@ class ProjectGroupsController(rest.RestController):
                                % project_group_id)
 
         return wmodels.ProjectGroup.from_db_model(group)
+
+    @decorators.db_exceptions
+    @secure(checks.guest)
+    @wsme_pecan.wsexpose(wmodels.ProjectGroup, wtypes.text)
+    def get_one_by_name(self, project_group_name):
+        """Retrieve information about the given project group.
+
+        :param project_group_name: Project group name.
+
+        """
+        group = project_groups.project_group_get_by_name(project_group_name)
+
+        if group:
+            return wmodels.ProjectGroup.from_db_model(group)
+        else:
+            raise exc.NotFound(_("Project Group %s not found") %
+                               project_group_name)
 
     @decorators.db_exceptions
     @secure(checks.guest)
@@ -258,3 +286,21 @@ class ProjectGroupsController(rest.RestController):
             abort(400, not_empty_exc.message)
 
     projects = ProjectsSubcontroller()
+
+    @expose()
+    def _route(self, args, request):
+        if request.method == 'GET' and len(args) > 0:
+            something = unquote(args[0])
+
+            if _is_int(something):
+                if len(args) == 1:
+                    return self.get_one_by_id, args
+            elif args[-1] != 'projects':
+                return self.get_one_by_name, ["/".join(args)]
+            else:
+                # If a getting a groups' projects by name, handle the case
+                # where the project group has slashes in the name by joining
+                # all but the last arg with slashes.
+                args = ["/".join(args[:-1]), args[-1]]
+
+        return super(ProjectGroupsController, self)._route(args, request)
