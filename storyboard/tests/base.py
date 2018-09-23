@@ -18,6 +18,7 @@
 import os
 import os.path
 import shutil
+import sqlite3
 import stat
 import uuid
 
@@ -35,6 +36,7 @@ import testtools
 import storyboard.common.working_dir as working_dir
 from storyboard.db.api import base as db_api_base
 from storyboard.db.migration.cli import get_alembic_config
+from storyboard.db import models
 import storyboard.tests.mock_data as mock_data
 
 
@@ -152,9 +154,19 @@ class DbTestCase(WorkingDirTestCase):
         CONF.set_override("connection", dburi, group="database")
         self._full_db_name = self.test_connection + '/' + self.db_name
         LOG.info('using database %s', CONF.database.connection)
+        LOG.info('test_connection %r', self.test_connection)
 
         if self.test_connection.startswith('sqlite://'):
             self.using_sqlite = True
+            filename = self._full_db_name[9:]
+            if filename[:2] == '//':
+                filename = filename[1:]
+            if not os.path.exists(filename):
+                # NOTE(dhellmann): Connect and disconnect to create
+                # the empty database file.
+                sqlite3.connect(filename).close()
+            engine = sqlalchemy.create_engine(self._full_db_name)
+            models.Base.metadata.create_all(engine)
         else:
             self.using_sqlite = False
             # The engine w/o db name

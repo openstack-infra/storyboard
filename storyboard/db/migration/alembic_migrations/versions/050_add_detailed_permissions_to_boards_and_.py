@@ -31,9 +31,11 @@ from sqlalchemy.dialects import mysql
 from storyboard.db.api import base as api_base
 from storyboard.db.api import boards
 from storyboard.db.api import worklists
+from storyboard.db.migration import utils
 from storyboard.db import models
 
 
+@utils.not_sqlite
 def upgrade(active_plugins=None, options=None):
     op.create_table('board_permissions',
         sa.Column('board_id', sa.Integer(), nullable=True),
