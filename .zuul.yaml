@@ -10,6 +10,8 @@
     name: openstack-infra/storyboard
     check:
       jobs:
+        - tox-cover:
+            timeout: 6000
         - storyboard-tox-sqlite
         - tox-pep8
         - tox-py27:
