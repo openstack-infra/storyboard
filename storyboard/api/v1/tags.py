@@ -87,7 +87,7 @@ class TagsController(rest.RestController):
 
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wmodels.Story, int, body=[wtypes.text])
-    def put(self, story_id, tags):
+    def put(self, story_id, tags=[], body=[]):
         """Add a list of tags to a Story.
 
         Example::
@@ -100,6 +100,7 @@ class TagsController(rest.RestController):
         :param story_id: An id of a Story to which the tags should be added.
         :param tags: A list of tags to be added.
         """
+        tags = (tags or []) + (body or [])
 
         story = stories_api.story_get(
             story_id, current_user=request.current_user_id)
