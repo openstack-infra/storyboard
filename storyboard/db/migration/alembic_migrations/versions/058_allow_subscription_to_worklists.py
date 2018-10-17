@@ -27,11 +27,14 @@ down_revision = '057'
 from alembic import op
 import sqlalchemy as sa
 
+from storyboard.db.migration import utils
+
 old_type_enum = sa.Enum('task', 'story', 'project', 'project_group')
 new_type_enum = sa.Enum(
     'task', 'story', 'project', 'project_group', 'worklist')
 
 
+@utils.not_sqlite
 def upgrade(active_plugins=None, options=None):
     dialect = op.get_bind().engine.dialect
     if dialect.supports_alter:

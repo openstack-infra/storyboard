@@ -28,9 +28,11 @@ from alembic import op
 import sqlalchemy as sa
 
 from storyboard.db.decorators import UTCDateTime
+from storyboard.db.migration import utils
 from storyboard.db.models import MYSQL_MEDIUM_TEXT
 
 
+@utils.not_sqlite
 def upgrade(active_plugins=None, options=None):
     op.create_table(
         'comments_history',

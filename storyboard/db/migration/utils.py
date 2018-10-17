@@ -11,29 +11,17 @@
 # under the License.
 #
 
-"""index story_storytags
-
-Revision ID: a6e048164572
-Revises: 062
-Create Date: 2018-06-25 17:13:43.992561
-
-"""
-
-# revision identifiers, used by Alembic.
-revision = '063'
-down_revision = '062'
-
+import functools
 
 from alembic import op
 
-from storyboard.db.migration import utils
 
-
-@utils.not_sqlite
-def upgrade(active_plugins=None, options=None):
-    op.create_index('story_storytags_idx',
-                    'story_storytags', ['story_id'])
-
-
-def downgrade(active_plugins=None, options=None):
-    op.drop_index('story_storytags_idx')
+def not_sqlite(f):
+    "Decorator to skip migrations for sqlite databases."
+    @functools.wraps(f)
+    def upgrade(active_plugins=None, options=None):
+        dialect = op.get_bind().engine.dialect
+        if dialect.name == 'sqlite':
+            return
+        return f(active_plugins, options)
+    return upgrade

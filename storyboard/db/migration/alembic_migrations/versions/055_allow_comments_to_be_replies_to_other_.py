@@ -27,7 +27,10 @@ down_revision = '054'
 from alembic import op
 import sqlalchemy as sa
 
+from storyboard.db.migration import utils
 
+
+@utils.not_sqlite
 def upgrade(active_plugins=None, options=None):
     op.add_column(
         'comments', sa.Column('in_reply_to', sa.Integer(), nullable=True))

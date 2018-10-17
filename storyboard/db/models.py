@@ -63,6 +63,30 @@ def table_args():
 MYSQL_MEDIUM_TEXT = UnicodeText().with_variant(MEDIUMTEXT(), 'mysql')
 
 
+class ManagedFullText(FullText):
+
+    @classmethod
+    def build_fulltext(cls, table):
+        """Override FullText to avoid adding DDL instructions.
+
+        This mix-in replaces sqlalchemy_fulltext.FullText and does not
+        automatically cause the database engine to create the full text
+        search index columns. We do that using our alembic migration
+        scripts, instead.
+
+        We need this class to support running the unit tests under sqlite,
+        which doesn't support the full text indexing features of MySQL,
+        since sqlalchemy-fulltext-search always runs the DDL, even if the
+        database dialect is not 'mysql'.
+
+        After the change in
+        https://github.com/mengzhuo/sqlalchemy-fulltext-search/pull/15
+        is approved and released we can remove this class.
+
+        """
+        return
+
+
 class CommonLength(object):
     top_large_length = 255
     top_middle_length = 100
@@ -137,7 +161,7 @@ team_membership = Table(
 )
 
 
-class User(FullText, ModelBuilder, Base):
+class User(ManagedFullText, ModelBuilder, Base):
     __table_args__ = (
         schema.UniqueConstraint('email', name='uniq_user_email'),
     )
@@ -255,7 +279,7 @@ class Permission(ModelBuilder, Base):
 
 
 # TODO(mordred): Do we really need name and title?
-class Project(FullText, ModelBuilder, Base):
+class Project(ManagedFullText, ModelBuilder, Base):
     """Represents a software project."""
 
     __table_args__ = (
@@ -300,7 +324,7 @@ story_storytags = Table(
 )
 
 
-class Story(FullText, ModelBuilder, Base):
+class Story(ManagedFullText, ModelBuilder, Base):
     __tablename__ = 'stories'
 
     __fulltext_columns__ = ['title', 'description']
@@ -324,7 +348,7 @@ class Story(FullText, ModelBuilder, Base):
                       "tasks", "events", "tags"]
 
 
-class Task(FullText, ModelBuilder, Base):
+class Task(ManagedFullText, ModelBuilder, Base):
     __fulltext_columns__ = ['title']
 
     TASK_STATUSES = {'todo': 'Todo',
@@ -504,7 +528,7 @@ class TimeLineEvent(ModelBuilder, Base):
     event_info = Column(UnicodeText(), nullable=True)
 
 
-class Comment(FullText, ModelBuilder, Base):
+class Comment(ManagedFullText, ModelBuilder, Base):
     __fulltext_columns__ = ['content']
 
     id = Column(Integer, primary_key=True)
@@ -514,7 +538,7 @@ class Comment(FullText, ModelBuilder, Base):
     parent = relationship('Comment', remote_side=[id], backref='children')
 
 
-class HistoricalComment(FullText, ModelBuilder, Base):
+class HistoricalComment(ManagedFullText, ModelBuilder, Base):
     __tablename__ = 'comments_history'
     __fulltext_columns__ = ['content']
 
@@ -569,7 +593,7 @@ class WorklistItem(ModelBuilder, Base):
                       "item_id"]
 
 
-class FilterCriterion(FullText, ModelBuilder, Base):
+class FilterCriterion(ManagedFullText, ModelBuilder, Base):
     __tablename__ = "filter_criteria"
     __fulltext_columns__ = ['title']
 
@@ -594,7 +618,7 @@ class WorklistFilter(ModelBuilder, Base):
     _public_fields = ["id", "list_id", "type"]
 
 
-class Worklist(FullText, ModelBuilder, Base):
+class Worklist(ManagedFullText, ModelBuilder, Base):
     __tablename__ = "worklists"
     __fulltext_columns__ = ['title']
 
@@ -622,7 +646,7 @@ class BoardWorklist(ModelBuilder, Base):
     _public_fields = ["id", "board_id", "list_id", "position"]
 
 
-class Board(FullText, ModelBuilder, Base):
+class Board(ManagedFullText, ModelBuilder, Base):
     __tablename__ = "boards"
     __fulltext_columns__ = ['title', 'description']
 
@@ -651,7 +675,7 @@ worklist_permissions = Table(
 )
 
 
-class DueDate(FullText, ModelBuilder, Base):
+class DueDate(ManagedFullText, ModelBuilder, Base):
     __tablename__ = "due_dates"
     __fulltext_columns__ = ['name']
 
