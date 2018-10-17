@@ -26,10 +26,7 @@ down_revision = '062'
 
 from alembic import op
 
-from storyboard.db.migration import utils
 
-
-@utils.not_sqlite
 def upgrade(active_plugins=None, options=None):
     op.create_index('story_storytags_idx',
                     'story_storytags', ['story_id'])

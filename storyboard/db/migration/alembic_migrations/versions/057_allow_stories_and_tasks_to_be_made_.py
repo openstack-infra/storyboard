@@ -37,10 +37,7 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import mysql
 
-from storyboard.db.migration import utils
 
-
-@utils.not_sqlite
 def upgrade(active_plugins=None, options=None):
     op.create_table(
         'story_permissions',

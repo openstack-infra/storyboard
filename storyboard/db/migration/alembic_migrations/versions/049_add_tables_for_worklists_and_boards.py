@@ -28,12 +28,9 @@ from alembic import op
 import sqlalchemy as sa
 
 import storyboard
-from storyboard.db.migration import utils
 
 
-@utils.not_sqlite
 def upgrade(active_plugins=None, options=None):
-
     op.create_table('worklists',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('created_at',
