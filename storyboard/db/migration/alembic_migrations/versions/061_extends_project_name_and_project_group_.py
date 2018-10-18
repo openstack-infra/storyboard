@@ -27,10 +27,7 @@ down_revision = '060'
 from alembic import op
 import sqlalchemy as sa
 
-from storyboard.db.migration import utils
 
-
-@utils.not_sqlite
 def upgrade(active_plugins=None, options=None):
     dialect = op.get_bind().engine.dialect
     if dialect.supports_alter:

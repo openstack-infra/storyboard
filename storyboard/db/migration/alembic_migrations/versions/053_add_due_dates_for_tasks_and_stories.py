@@ -28,10 +28,8 @@ from alembic import op
 import sqlalchemy as sa
 
 from storyboard.db.decorators import UTCDateTime
-from storyboard.db.migration import utils
 
 
-@utils.not_sqlite
 def upgrade(active_plugins=None, options=None):
     op.create_table(
         'due_dates',
