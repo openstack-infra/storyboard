@@ -402,7 +402,7 @@ class StoryTag(ModelBuilder, Base):
         schema.UniqueConstraint('name', name='uniq_story_tags_name'),
     )
     name = Column(String(CommonLength.top_short_length))
-    stories = relationship('StoryTag', secondary='story_storytags')
+    stories = relationship('Story', secondary='story_storytags')
 
 
 # Authorization models
