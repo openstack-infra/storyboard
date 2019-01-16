@@ -288,9 +288,16 @@ class Tag(base.APIBase):
     name = wtypes.text
     """The tag name"""
 
+    popularity = int
+    """The number of stories with this tag"""
+
     @classmethod
     def sample(cls):
         return cls(name="low_hanging_fruit")
+
+    @nodoc
+    def set_popularity(self, tag):
+        self.popularity = len(tag.stories)
 
 
 class Task(base.APIBase):

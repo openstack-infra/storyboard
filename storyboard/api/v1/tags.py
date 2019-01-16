@@ -48,7 +48,9 @@ class TagsController(rest.RestController):
         tag = tags_api.tag_get_by_id(tag_id)
 
         if tag:
-            return wmodels.Tag.from_db_model(tag)
+            tag_model = wmodels.Tag.from_db_model(tag)
+            tag_model.set_popularity(tag)
+            return tag_model
         else:
             raise exc.NotFound(_("Tag %s not found") % tag_id)
 
@@ -76,14 +78,24 @@ class TagsController(rest.RestController):
                                         limit=limit,
                                         offset=offset)
 
-            return [wmodels.Tag.from_db_model(t) for t in tags]
+            result = []
+            for t in tags:
+                tag = wmodels.Tag.from_db_model(t)
+                tag.set_popularity(t)
+                result.append(tag)
+            return result
 
         story = stories_api.story_get(
             story_id, current_user=request.current_user_id)
         if not story:
             raise exc.NotFound("Story %s not found" % story_id)
 
-        return [wmodels.Tag.from_db_model(t) for t in story.tags]
+        result = []
+        for t in story.tags:
+            tag = wmodels.Tag.from_db_model(t)
+            tag.set_popularity(t)
+            result.append(tag)
+        return result
 
     @secure(checks.authenticated)
     @wsme_pecan.wsexpose(wmodels.Story, int, body=[wtypes.text])
