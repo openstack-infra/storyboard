@@ -434,7 +434,7 @@ class ItemsSubcontroller(rest.RestController):
             raise exc.NotFound(_("Item %s refers to a non-existent task or "
                                  "story.") % item_id)
 
-        worklists_api.add_item(
+        card = worklists_api.add_item(
             id, item_id, item_type, list_position,
             current_user=request.current_user_id)
 
@@ -443,13 +443,12 @@ class ItemsSubcontroller(rest.RestController):
             "item_id": item_id,
             "item_title": item.title,
             "item_type": item_type,
-            "position": list_position
+            "position": card.list_position
         }
 
         events_api.worklist_contents_changed_event(id, user_id, added=added)
 
-        return wmodels.WorklistItem.from_db_model(
-            worklists_api.get_item_at_position(id, list_position))
+        return wmodels.WorklistItem.from_db_model(card)
 
     @decorators.db_exceptions
     @secure(checks.authenticated)
@@ -511,7 +510,7 @@ class ItemsSubcontroller(rest.RestController):
         if list_id != card.list_id and list_id is not None:
             new['worklist_id'] = list_id
 
-        worklists_api.move_item(id, item_id, list_position, list_id)
+        worklists_api.move_item(item_id, list_position, list_id)
 
         if display_due_date is not None:
             if display_due_date == -1:
@@ -557,8 +556,8 @@ class ItemsSubcontroller(rest.RestController):
         if card is None:
             raise exc.NotFound(_("Item %s seems to have already been deleted,"
                                  " try refreshing your page.") % item_id)
-        worklists_api.update_item(item_id, {'archived': True})
-        worklists_api.normalize_positions(worklist)
+
+        worklists_api.archive_item(item_id)
 
         item = None
         if card.item_type == 'story':
