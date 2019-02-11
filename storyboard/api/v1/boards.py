@@ -79,7 +79,7 @@ def update_lanes(board_dict, board_id):
 
     for lane in board_dict['lanes']:
         if lane.list_id not in existing_list_ids:
-            lane.worklist = None
+            del lane.worklist
             boards_api.add_lane(board, lane.as_dict(omit_unset=True))
             events_api.board_lanes_changed_event(board_id,
                                                  request.current_user_id,
@@ -343,7 +343,8 @@ class BoardsController(rest.RestController):
                                        created_board.title,
                                        created_board.description)
         for lane in lanes:
-            boards_api.add_lane(created_board, lane.as_dict())
+            del lane.worklist
+            boards_api.add_lane(created_board, lane.as_dict(omit_unset=True))
             events_api.board_lanes_changed_event(created_board.id,
                                                  user_id,
                                                  added=serialize_lane(lane))
