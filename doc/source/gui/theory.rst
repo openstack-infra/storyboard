@@ -86,7 +86,7 @@ criterai for an automatic worklist:
 .. image:: _assets/example-automatic-worklist-filters.png
 
 For more information about how to create and edit worklists, see
-:ref: 'this documentation <worklists>'.
+:doc:`this documentation<worklists>`.
 
 We also have boards, which are akin to collections of
 worklists. Here's an example:
@@ -114,7 +114,7 @@ lanes or change the metadata of the board itself (eg: its title or
 description).
 
 For documentation on how to create boards, add users/owners, etc
-:ref: 'that can be located here <boards>'.
+:doc:`that can be located here<boards>`.
 
 Complex Priority
 ================
