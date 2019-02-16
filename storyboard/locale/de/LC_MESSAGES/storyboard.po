@@ -1,0 +1,496 @@
+# Frank Kloeker <eumel@arcor.de>, 2018. #zanata
+msgid ""
+msgstr ""
+"Project-Id-Version: storyboard VERSION\n"
+"Report-Msgid-Bugs-To: https://bugs.launchpad.net/openstack-i18n/\n"
+"POT-Creation-Date: 2019-02-15 17:38+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2018-12-14 10:13+0000\n"
+"Last-Translator: Frank Kloeker <eumel@arcor.de>\n"
+"Language-Team: German\n"
+"Language: de\n"
+"X-Generator: Zanata 4.3.3\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid " "
+msgstr " "
+
+#, python-format
+msgid "%(name)s %(id)s not found"
+msgstr "%(name)s %(id)s nicht gefunden"
+
+#, python-format
+msgid "%(type)s %(id)s not found"
+msgstr "%(type)s %(id)s nicht gefunden"
+
+#, python-format
+msgid "'%s'"
+msgstr "'%s'"
+
+#, python-format
+msgid "'%s'."
+msgstr "'%s'."
+
+msgid "A lane must have a worklist_id."
+msgstr "Eine Linie muss eine worklist_id haben."
+
+msgid "A superuser is missing an openid field"
+msgstr "Einem Superuser fehlt ein Openid-Feld."
+
+msgid "An item in a worklist must be either a story or a task"
+msgstr ""
+"Ein Element in einer Arbeitsliste muss entweder eine Story oder eine Aufgabe "
+"sein."
+
+msgid "An unknown exception occurred"
+msgstr "Es ist eine unbekannte Ausnahme aufgetreten."
+
+msgid "Available commands"
+msgstr "Verfügbare Befehle"
+
+#, python-format
+msgid "Board %s not found"
+msgstr "Board %s nicht gefunden"
+
+#, python-format
+msgid "Branch %(b_id)s doesn't associate with project %(p_id)s."
+msgstr "Der Branch %(b_id)s ist nicht mit dem Projekt %(p_id)s verbunden."
+
+#, python-format
+msgid "Branch %s must be restricted."
+msgstr "Branch %s muss eingeschränkt werden."
+
+#, python-format
+msgid "Branch %s not found"
+msgstr "Branch %s nicht gefunden"
+
+#, python-format
+msgid "Branch %s not found."
+msgstr "Branch %s nicht gefunden."
+
+msgid "Can't change expiration date."
+msgstr "Das Ablaufdatum kann nicht geändert werden."
+
+msgid "Can't change story type."
+msgstr "Der Typ der Story kann nicht geändert werden."
+
+msgid "Can't create access token."
+msgstr "Zugriffstoken können nicht erstellt werden."
+
+msgid "Can't create expired branch."
+msgstr "Kann keinen abgelaufenen Branch erstellen."
+
+msgid "Can't create expired milestone."
+msgstr "Abgelaufener Meilenstein kann nicht angelegt werden."
+
+msgid "Can't create story of this type."
+msgstr "Kann keine solche Story erstellen."
+
+msgid "Can't make a private story have no users or teams"
+msgstr ""
+"Kann keine private Story machen, da ich keine Benutzer oder Teams habe."
+
+msgid "Cannot send message, publisher is connecting."
+msgstr "Kann keine Nachricht senden, der Publisher verbindet sich."
+
+msgid "Clearing timer..."
+msgstr "Löschtimer..."
+
+msgid "Column is invalid or not found"
+msgstr "Spalte ist ungültig oder nicht gefunden"
+
+#, python-format
+msgid "Comment %s not found"
+msgstr "Kommentar %s nicht gefunden"
+
+msgid "Connection Closed"
+msgstr "Verbindung geschlossen"
+
+msgid "Connection to database failed."
+msgstr "Die Verbindung zur Datenbank ist fehlgeschlagen."
+
+msgid "Creating a new channel"
+msgstr "Erstellen eines neuen Kanals"
+
+msgid "Database Exception"
+msgstr "Datenbankausnahme"
+
+msgid "Database in dead lock"
+msgstr "Datenbank im Deadlock"
+
+msgid "Database object"
+msgstr "Datenbankobjekt"
+
+msgid "Database object already exists."
+msgstr "Das Datenbankobjekt ist bereits vorhanden."
+
+msgid "Database object must be empty"
+msgstr "Datenbankobjekt muss leer sein"
+
+#, python-format
+msgid "Declaring exchange %s"
+msgstr "Deklaration des Austauschs %s"
+
+msgid "Deletion of comments is disabled by the server administrator."
+msgstr "Das Löschen von Kommentaren wird vom Serveradministrator deaktiviert."
+
+#, python-format
+msgid "Due date %s not found"
+msgstr "Fälligkeitsdatum %s nicht gefunden"
+
+msgid "Editing of comments is disabled by the server administrator."
+msgstr ""
+"Die Bearbeitung von Kommentaren wird vom Serveradministrator deaktiviert."
+
+msgid "Error in object"
+msgstr "Fehler im Objekt"
+
+#, python-format
+msgid "Event %s not found"
+msgstr "Ereignis %s nicht gefunden"
+
+msgid "Field"
+msgstr "Feld"
+
+msgid "Foreign key error."
+msgstr "Fremdschlüsselfehler."
+
+#, python-format
+msgid ""
+"Invalid event_type requested. Event type must be one of the following: %s"
+msgstr ""
+"Ungültiger Event_type angefordert. Der Ereignistyp muss einer der folgenden "
+"sein: %s"
+
+msgid "Invalid sort field"
+msgstr "Ungültiges Sortierfeld"
+
+#, python-format
+msgid "Invalid sort_field [%s]"
+msgstr "Ungültiges Sortierfeld[%s]"
+
+#, python-format
+msgid "Item %s refers to a non-existent task or story."
+msgstr ""
+"Item %s bezieht sich auf eine nicht existierende Aufgabe oder Geschichte."
+
+#, python-format
+msgid "Item %s seems to have already been deleted, try refreshing your page."
+msgstr ""
+"Item %s scheint bereits gelöscht worden zu sein, versuchen Sie, Ihre Seite "
+"zu aktualisieren."
+
+#, python-format
+msgid "Item %s seems to have been deleted, try refreshing your page."
+msgstr ""
+"Item %s scheint gelöscht worden zu sein, versuchen Sie, Ihre Seite zu "
+"aktualisieren."
+
+#, python-format
+msgid "Master branch of project %d not found."
+msgstr "Master Branch des Projekts %d nicht gefunden."
+
+#, python-format
+msgid "Milestone %(m_id)s doesn't associate with branch %(b_id)s."
+msgstr "Meilenstein %(m_id)s assoziiert nicht mit Branch %(b_id)s."
+
+#, python-format
+msgid "Milestone %s not found"
+msgstr "Meilenstein %s nicht gefunden"
+
+#, python-format
+msgid "Milestone %s not found."
+msgstr "Meilenstein %s nicht gefunden."
+
+msgid "Milestones can only be associated with merged tasks"
+msgstr ""
+"Meilensteine können nur mit zusammengeführten Aufgaben verknüpft werden."
+
+msgid "No details available."
+msgstr "Keine Details verfügbar."
+
+msgid "No messages available, sleeping for 5 seconds."
+msgstr "Keine Nachrichten verfügbar, warte 5 Sekunden."
+
+#, python-format
+msgid "Now you can't add story with type %s."
+msgstr "Jetzt können Sie keine Story mit dem Typ %s hinzufügen."
+
+#, python-format
+msgid "Now you can't change story type to %s."
+msgstr "Jetzt können Sie den Storytyp nicht mehr in %s ändern."
+
+msgid "Object not found"
+msgstr "Objekt nicht gefunden"
+
+msgid ""
+"Only grant types \"authorization_code\" and \"refresh_token\" are supported."
+msgstr ""
+"Es werden nur die Zugriffsarten \"authorization_code\" und \"refresh_token\" "
+"unterstützt."
+
+msgid "Our authorization server declined your credentials."
+msgstr "Unser Autorisierungsserver hat Ihre Zugangsdaten abgelehnt."
+
+#, python-format
+msgid "Permission %s does not exist"
+msgstr "Die Berechtigung %s existiert nicht."
+
+msgid "Permission Denied"
+msgstr "Erlaubnis verweigert"
+
+#, python-format
+msgid "Permission with codename %s not found"
+msgstr "Berechtigung mit Codename %s nicht gefunden"
+
+#, python-format
+msgid "Permissions for story %d not found."
+msgstr "Berechtigungen für Story %d nicht gefunden."
+
+msgid "Please permit access to your email address."
+msgstr "Bitte erlauben Sie den Zugriff auf Ihre E-Mail-Adresse."
+
+msgid "Please permit access to your name."
+msgstr "Bitte erlauben Sie den Zugriff auf Ihren Namen."
+
+#, python-format
+msgid "Project %s not found"
+msgstr "Projekt %s nicht gefunden"
+
+#, python-format
+msgid "Project Group %s not found"
+msgstr "Projektgruppe %s nicht gefunden"
+
+msgid "Project group must be empty."
+msgstr "Die Projektgruppe muss leer sein."
+
+msgid "Project group not found."
+msgstr "Projektgruppe nicht gefunden."
+
+msgid "Scheduling reconnect in 5 seconds..."
+msgstr "Plane die Wiederverbindung in 5 Sekunden....."
+
+#, python-format
+msgid "Sending message to %(name)s [%(topic)s]"
+msgstr "Nachricht an %(name)s senden [%(topic)s]"
+
+#, python-format
+msgid "Story %s not found"
+msgstr "Story %s nicht gefunden"
+
+#, python-format
+msgid "Story type %s not found."
+msgstr "Story-Typ %s nicht gefunden."
+
+#, python-format
+msgid "Tag %s not found"
+msgstr "Tag %s nicht gefunden"
+
+#, python-format
+msgid "Task %s not found"
+msgstr "Aufgabe %s nicht gefunden"
+
+#, python-format
+msgid "Task %s not found."
+msgstr "Aufgabe %s nicht gefunden."
+
+#, python-format
+msgid "Team %s not found"
+msgstr "Team %s nicht gefunden"
+
+msgid "Team must be empty."
+msgstr "Das Team muss leer sein."
+
+msgid "Team not found."
+msgstr "Team nicht gefunden."
+
+#, python-format
+msgid "The Project %(id)d is already in Project Group %(group_id)d"
+msgstr ""
+"Das Projekt %(id)d ist bereits in der Projektgruppe %(group_id)d enthalten."
+
+#, python-format
+msgid "The Project %(id)d is not in Project Group %(group_id)d"
+msgstr "Das Projekt %(id)d ist nicht in der Projektgruppe %(group_id)d."
+
+#, python-format
+msgid "The Story %(id)d already has a tag %(tag)s"
+msgstr "Die Story %(id)d hat bereits ein Tag %(tag)s."
+
+#, python-format
+msgid "The Story %(story_id)d has no tag %(tag)s"
+msgstr "Die Story %(story_id)d hat kein Tag %(tag)s"
+
+#, python-format
+msgid "The User %(user_id)d is already in Team %(team_id)d"
+msgstr "Der Benutzer %(user_id)d ist bereits im Team %(team_id)d."
+
+#, python-format
+msgid "The User %(user_id)d is not in Team %(team_id)d"
+msgstr "Der Benutzer %(user_id)d ist nicht im Team %(team_id)d."
+
+msgid "This action is limited to superusers only."
+msgstr "Diese Aktion ist auf Superuser beschränkt."
+
+msgid "This token already exist."
+msgstr "Dieses Token existiert bereits."
+
+#, python-format
+msgid "Token %s not found."
+msgstr "Token %s nicht gefunden."
+
+msgid "URL story_id and task.story_id do not match"
+msgstr "URL story_id und task.story_id stimmen nicht überein."
+
+msgid "Unicode parameter is passed to a database without encoding directive"
+msgstr ""
+"Unicode-Parameter wird an eine Datenbank ohne Kodierungsanweisung übergeben."
+
+msgid "Unknown value."
+msgstr "Unbekannter Wert."
+
+#, python-format
+msgid "User %s not found"
+msgstr "Benutzer %s nicht gefunden"
+
+#, python-format
+msgid "Worklist %s not found"
+msgstr "Arbeitsliste %s nicht gefunden"
+
+msgid "You are already subscribed to this resource."
+msgstr "Sie sind bereits bei dieser Ressource angemeldet."
+
+msgid "You are missing either the target_type or the target_id"
+msgstr "Sie haben entweder den target_type oder die target_id vergessen."
+
+msgid "You are not admin and can't do this."
+msgstr "Sie sind kein Admin und können das nicht tun."
+
+msgid "You are not allowed to update this comment."
+msgstr "Es ist Ihnen nicht erlaubt, diesen Kommentar zu aktualisieren."
+
+msgid "You are not allowed to update this user."
+msgstr "Es ist Ihnen nicht erlaubt, diesen Benutzer zu aktualisieren."
+
+msgid "You can only remove your own subscriptions."
+msgstr "Sie können nur Ihre eigenen Abonnements entfernen."
+
+msgid "You can only subscribe to resources on your own."
+msgstr "Sie können Ressourcen nur auf eigene Faust abonnieren."
+
+#, python-format
+msgid "You can't associate branch %s with another project."
+msgstr "Sie können den Branch %s nicht mit einem anderen Projekt verknüpfen."
+
+#, python-format
+msgid "You can't associate milestone %s with another branch."
+msgstr "Sie können Meilenstein %s nicht mit einem anderen Branch verknüpfen."
+
+#, python-format
+msgid "You can't associate task to expired milestone %s."
+msgstr ""
+"Sie können die Aufgabe nicht mit abgelaufenem Meilenstein %s verknüpfen."
+
+#, python-format
+msgid "You can't associate task with expired branch %s."
+msgstr ""
+"Sie können die Aufgabe nicht mit dem abgelaufenen Branch %s verknüpfen."
+
+msgid "You can't change author of story."
+msgstr "Sie können den Autor der Story nicht ändern."
+
+msgid "You can't change author of task."
+msgstr "Sie können den Autor der Aufgabe nicht ändern."
+
+msgid "You can't change preferences of other users."
+msgstr "Sie können die Einstellungen anderer Benutzer nicht ändern."
+
+msgid "You can't read preferences of other users."
+msgstr "Sie können die Einstellungen anderer Benutzer nicht lesen."
+
+msgid "You can't select author of story."
+msgstr "SIe können den Autor der Story nicht auswählen."
+
+msgid "You can't select author of task."
+msgstr "Sie können den Autor der Aufgabe nicht auswählen."
+
+msgid "You can't select the creator of a board."
+msgstr "Sie können den Ersteller eines Boards nicht auswählen."
+
+msgid "You can't select the creator of a due date."
+msgstr "Sie können den Ersteller eines Fälligkeitsdatums nicht auswählen."
+
+msgid "You can't select the creator of a worklist."
+msgstr "Sie können den Ersteller einer Arbeitsliste nicht auswählen."
+
+msgid "You cannot subscribe to a nonexistent resource."
+msgstr "Sie können keine nicht existierende Ressource abonnieren."
+
+msgid "You did not provide a client_id."
+msgstr "Sie haben keine client_id angegeben."
+
+msgid "You did not provide a redirect_uri."
+msgstr "Sie haben keine redirect_uri angegeben."
+
+msgid "You did not provide a response_type."
+msgstr "Sie haben keinen response_type angegeben."
+
+msgid "You did not provide a scope."
+msgstr "Sie haben keinen Skope angegeben."
+
+msgid "You did not provide a valid client_id."
+msgstr "Sie haben keine gültige client_id angegeben."
+
+msgid "You did not provide a valid redirect_uri."
+msgstr "Sie haben kein gültiges redirect_uri angegeben."
+
+msgid "You do not have access to this record."
+msgstr "Sie haben keinen Zugriff auf diesen Datensatz."
+
+msgid "You must log in to do this."
+msgstr "Dazu müssen Sie sich einloggen."
+
+msgid "You must provide a revision or relative delta"
+msgstr "Sie müssen eine Revision oder ein relatives Delta angeben."
+
+msgid "You must select a project for task."
+msgstr "Sie müssen ein Projekt für die Aufgabe auswählen."
+
+msgid "You must select a story for task."
+msgstr "Sie müssen eine Story für die Aufgabe auswählen."
+
+msgid "already exists."
+msgstr "existiert bereits."
+
+msgid "is invalid."
+msgstr "ist ungültig."
+
+msgid "migrations could not be completed successfully"
+msgstr "Migrationen konnten nicht erfolgreich abgeschlossen werden."
+
+msgid "response_type must be 'code'"
+msgstr "response_type muss 'code' sein"
+
+msgid "scope must be 'user'."
+msgstr "Der Skope muss \"user\" sein."
+
+msgid "the story_id of a task cannot be changed through this API"
+msgstr "Die story_id einer Aufgabe kann über diese API nicht geändert werden."
+
+msgid "token_entity.user_id or user_id is wrong."
+msgstr "token_entity.user_id oder user_id ist falsch."
+
+msgid "user_id is missing."
+msgstr "user_id fehlt."
+
+msgid "value"
+msgstr "Wert"
+
+#, python-format
+msgid "with field value '%s'"
+msgstr "mit dem Feldwert'%s'."
+
+msgid "with some of unique fields"
+msgstr "mit einigen der einzigartigen Felder"
