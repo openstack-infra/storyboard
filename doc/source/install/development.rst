@@ -12,33 +12,29 @@ install instructions for those are detailed in their own repos
 https://git.openstack.org/cgit/openstack/boartty/).
 
 This install guide will cover the API and the most widely-used
-StoryBoard webclient.
+StoryBoard webclient, and assumes being run on Ubuntu 16.04 or
+newer. The instructions are mostly portable to other distributions.
 
 
 Installing and Upgrading the API server
 =======================================
 
-.. note::
-
-   If you are using a Virtual Machine (VM), all commands that begin with
-   ``tox`` will need to be preceeded by ``sudo``.
-
 1. To start the API server, make sure you have the following packages installed
    locally:
 
-   * libpq-dev
-   * libmysqlclient-dev
-   * python-dev
+   * build-essential
+   * python3-dev
+   * python3-pip
    * MySQL
 
      ::
 
-       sudo apt-get update
-       sudo apt-get install libpq-dev libmysqlclient-dev python-dev
-       sudo apt-get install mysql-server-5.7    #Here you will be asked to set a password
+       sudo apt update
+       sudo apt install build-essential python3-dev python3-pip
+       sudo apt install mysql-server-5.7    # Here you will be asked to set a password
        mysql --version
 
-   .. note:: MySQL must be >= 5.6
+   .. note:: MySQL must be >= 5.6, to support fulltext indexes on InnoDB tables
 
 
 2. Clone the StoryBoard repository::
@@ -47,13 +43,13 @@ Installing and Upgrading the API server
     cd storyboard
 
 
-3. Add MySQL user and create database:
+3. Create database:
 
    .. note::
 
       You will need to replace the ``$DB_USER`` with ``root``.  It
       will prompt for a password; this is the password you set when
-      you ran ``sudo apt-get mysql-server-5.6`` in step 1.
+      you ran ``sudo apt-get mysql-server-5.7`` in step 1.
 
    ::
 
@@ -66,17 +62,21 @@ Installing and Upgrading the API server
     cp ./etc/storyboard.conf.sample ./etc/storyboard.conf
 
 
-5. Edit ``./etc/storyboard.conf`` and in the ``oauth`` section, add your IP
-   Adress to the list of ``valid_oauth_clients``. Then in the ``database``
-   section, on the line which reads
-   ``# connection = mysql+pymysql://root:pass@127.0.0.1:3306/storyboard?charset=utf8mb4``,
-   replace the ``pass`` with your password (the same as used in the above
-   steps). On both of these lines you will need to remove the ``#``.
+5. Edit ``./etc/storyboard.conf`` and make the following changes:
+
+   * in the ``oauth`` section, add your IP Address to the list of ``valid_oauth_clients``
+   * in the ``database`` section, on the line which reads
+     ``# connection = mysql+pymysql://root:pass@127.0.0.1:3306/storyboard?charset=utf8mb4``,
+     replace the ``pass`` with your password (the same as used in the above
+     steps)
+
+   Uncomment both of these lines by removing the ``#``.
+
 
 6. Install tox::
 
-     sudo apt-get install python-pip
-     pip install tox
+     sudo pip3 install tox
+
 
 7. Upgrade DB schema to the latest version::
 
@@ -95,12 +95,10 @@ Installing the Javascript-based web client
 1. To build and start the web client, you will need this dependency set
    installed locally:
 
-   * Python 2.6 or 2.7
-   * Node.js v0.10.29 or newer (see https://nodejs.org/en/download/package-manager/ for more information on getting the right package for your distribution)
+   * tox
+   * Node.js v0.10.29 or newer (see https://nodejs.org/en/download/package-manager/
+     for more information on getting the right package for your distribution)
    * npm v1.3.10 or newer (this will be bundled with Node.js)
-
-   (Ubuntu Trusty packages are sufficient, even though they indicate an older
-   version. MySQL must be >= 5.6.)
 
 
 2. Clone the StoryBoard webclient::
@@ -193,14 +191,9 @@ Optional steps: Seed database with base data
 Optional steps: Set up the notifications daemon
 ===============================================
 
-.. note::
-
-   If you followed the "Launch the development VM" instuctions above,
-   this step is unnecessary.
-
 1. Install rabbitmq on your development machine::
 
-    sudo apt-get install rabbitmq-server
+    sudo apt install rabbitmq-server
 
 2. Create a rabbitmq user/password for StoryBoard (more information
    can be found in the `rabbitmq manpages`_)::
