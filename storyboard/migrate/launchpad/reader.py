@@ -39,4 +39,4 @@ class LaunchpadReader(object):
         return self.next()
 
     def next(self):
-        return self.task_iterator.next()
+        return next(self.task_iterator)
