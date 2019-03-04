@@ -19,7 +19,7 @@ The story describes what behavior is desired. Implementation details
 are generally not inluded.
 
 Create a Story
---------------
+----------------
 
 To create a story in StoryBoard:
 
@@ -51,6 +51,19 @@ To create a story in StoryBoard:
 
 #. You will see your newly created story with a default task automatically generated
    to have the same name as the story.
+
+Private Stories
+----------------
+
+They are created the same way that regular stories are with additional steps.
+
+#. After you've taken the first few steps to create the story- entered a title and
+   description- there is a checkbox labeled 'Private or Security Vulnerability' that
+   should be checked.
+#. After checking the box, click the :guilabel:`Add Team or User` button to search
+   for and add members of the vulnerability management team or core security
+   groups. Whoever you add will be able to view the story. You will be able to view
+   the story by default.
 
 What is a Task?
 ~~~~~~~~~~~~~~~
