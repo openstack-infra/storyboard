@@ -28,6 +28,7 @@ down_revision = '050'
 from alembic import op
 import json
 import sqlalchemy as sa
+from sqlalchemy.sql import column
 from sqlalchemy.sql.expression import table
 
 
@@ -45,7 +46,7 @@ def upgrade(active_plugins=None, options=None):
 
     stories_dict = {}
     for story in bind.execute(
-            sa.select(columns=['id', 'title'],
+            sa.select(columns=[column('id'), column('title')],
                       from_obj=sa.Table('stories',
                                         sa.MetaData()))):
         stories_dict[story.id] = story.title
