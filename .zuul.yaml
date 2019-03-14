@@ -18,6 +18,7 @@
             timeout: 6000
         - tox-py35:
             timeout: 6000
+            nodeset: ubuntu-xenial
     gate:
       jobs:
         - storyboard-tox-sqlite
@@ -26,6 +27,7 @@
             timeout: 6000
         - tox-py35:
             timeout: 6000
+            nodeset: ubuntu-xenial
     post:
       jobs:
         - publish-openstack-python-branch-tarball
