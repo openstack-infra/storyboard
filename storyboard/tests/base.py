@@ -35,6 +35,7 @@ import testtools
 import storyboard.common.working_dir as working_dir
 from storyboard.db.api import base as db_api_base
 from storyboard.db.migration.cli import get_alembic_config
+from storyboard.db import models
 import storyboard.tests.mock_data as mock_data
 
 
@@ -52,6 +53,15 @@ class TestCase(testtools.TestCase):
 
     """Test case base class for all unit tests."""
 
+    @classmethod
+    def setUpClass(cls):
+        env_test_db = os.environ.get('STORYBOARD_TEST_DB')
+        if env_test_db is not None:
+            cls.test_connection = env_test_db
+        else:
+            cls.test_connection = ("mysql+pymysql://openstack_citest:"
+                                   "openstack_citest@127.0.0.1:3306")
+
     def setUp(self):
         """Run before each test method to initialize test environment."""
 
@@ -64,13 +74,6 @@ class TestCase(testtools.TestCase):
             test_timeout = 0
         if test_timeout > 0:
             self.useFixture(fixtures.Timeout(test_timeout, gentle=True))
-
-        env_test_db = os.environ.get('STORYBOARD_TEST_DB')
-        if env_test_db is not None:
-            self.test_connection = env_test_db
-        else:
-            self.test_connection = ("mysql+pymysql://openstack_citest:"
-                                    "openstack_citest@127.0.0.1:3306")
 
         self.useFixture(fixtures.NestedTempfile())
         self.useFixture(fixtures.TempHomeDir())
@@ -138,39 +141,60 @@ class WorkingDirTestCase(TestCase):
 
 class DbTestCase(WorkingDirTestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        super(DbTestCase, cls).setUpClass()
+        cls.setup_db()
+
+    @classmethod
+    def tearDownClass(cls):
+        super(DbTestCase, cls).setUpClass()
+        cls._drop_db()
+
     def setUp(self):
         super(DbTestCase, self).setUp()
-        self.setup_db()
 
-    def setup_db(self):
+    def tearDown(self):
+        super(DbTestCase, self).tearDown()
 
-        self.db_name = "storyboard_test_db_%s" % uuid.uuid4()
-        self.db_name = self.db_name.replace("-", "_")
-        dburi = self.test_connection + "/%s" % self.db_name
+        # Remove test data from the database, and reset counters
+        for tbl in reversed(models.Base.metadata.sorted_tables):
+            if tbl.name not in ('story_types', 'may_mutate_to'):
+                self._engine.execute(tbl.delete())
+            if not self.using_sqlite:
+                self._engine.execute(
+                    "ALTER TABLE %s AUTO_INCREMENT = 0;" % tbl.name)
+
+    @classmethod
+    def setup_db(cls):
+        cls.db_name = "storyboard_test_db_%s" % uuid.uuid4()
+        cls.db_name = cls.db_name.replace("-", "_")
+        dburi = cls.test_connection + "/%s" % cls.db_name
         if dburi.startswith('mysql+pymysql://'):
             dburi += "?charset=utf8mb4"
         CONF.set_override("connection", dburi, group="database")
-        self._full_db_name = self.test_connection + '/' + self.db_name
+        cls._full_db_name = cls.test_connection + '/' + cls.db_name
         LOG.info('using database %s', CONF.database.connection)
 
-        if self.test_connection.startswith('sqlite://'):
-            self.using_sqlite = True
+        if cls.test_connection.startswith('sqlite://'):
+            cls.using_sqlite = True
         else:
-            self.using_sqlite = False
+            cls.using_sqlite = False
             # The engine w/o db name
             engine = sqlalchemy.create_engine(
-                self.test_connection)
-            engine.execute("CREATE DATABASE %s" % self.db_name)
+                cls.test_connection)
+            engine.execute("CREATE DATABASE %s" % cls.db_name)
 
         alembic_config = get_alembic_config()
         alembic_config.storyboard_config = CONF
-
         command.upgrade(alembic_config, "head")
-        self.addCleanup(self._drop_db)
 
-    def _drop_db(self):
-        if self.test_connection.startswith('sqlite://'):
-            filename = self._full_db_name[9:]
+        cls._engine = sqlalchemy.create_engine(dburi)
+
+    @classmethod
+    def _drop_db(cls):
+        if cls.test_connection.startswith('sqlite://'):
+            filename = cls._full_db_name[9:]
             if filename[:2] == '//':
                 filename = filename[1:]
             if os.path.exists(filename):
@@ -182,12 +206,12 @@ class DbTestCase(WorkingDirTestCase):
                               filename, err)
         else:
             engine = sqlalchemy.create_engine(
-                self.test_connection)
+                cls.test_connection)
             try:
-                engine.execute("DROP DATABASE %s" % self.db_name)
+                engine.execute("DROP DATABASE %s" % cls.db_name)
             except Exception as err:
                 LOG.error('failed to drop database %s: %s',
-                          self.db_name, err)
+                          cls.db_name, err)
         db_api_base.cleanup()
 
 PATH_PREFIX = '/v1'
