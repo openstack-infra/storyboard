@@ -21,6 +21,7 @@ from storyboard.db.models import AccessToken
 from storyboard.db.models import Branch
 from storyboard.db.models import Comment
 from storyboard.db.models import Milestone
+from storyboard.db.models import Permission
 from storyboard.db.models import Project
 from storyboard.db.models import ProjectGroup
 from storyboard.db.models import Story
@@ -36,6 +37,7 @@ def load():
     """Load a batch of useful data into the database that our tests can work
     with.
     """
+    session = db.get_session(autocommit=False, in_request=False)
     now = datetime.datetime.now(tz=pytz.utc)
     expires_at = now + datetime.timedelta(seconds=3600)
     expired_at = now + datetime.timedelta(seconds=-3600)
@@ -57,7 +59,8 @@ def load():
              openid='otheruser_openid',
              full_name='Other User',
              is_superuser=False)
-    ])
+    ], session)
+    users = session.query(User).all()
 
     # Load some preferences for the above users.
     load_data([
@@ -86,7 +89,7 @@ def load():
                        key='plugin_email_digest',
                        value='False',
                        type='bool'),
-    ])
+    ], session)
 
     # Load a variety of sensibly named access tokens.
     load_data([
@@ -110,7 +113,7 @@ def load():
             access_token='expired_user_token',
             expires_in=3600,
             expires_at=expired_at)
-    ])
+    ], session)
 
     # Create some test projects.
     projects = load_data([
@@ -126,7 +129,7 @@ def load():
             id=3,
             name='tests/project3',
             description='Project 1 Description - foo')
-    ])
+    ], session)
 
     # Create some test project groups.
     load_data([
@@ -153,7 +156,17 @@ def load():
             name='projectgroup3',
             title='A Sort - foo'
         )
-    ])
+    ], session)
+
+    # Create some permissions
+    load_data([
+        Permission(
+            name='view_story_6',
+            codename='view_story',
+            users=[users[0]]
+        )
+    ], session)
+    permissions = session.query(Permission).all()
 
     # Create some stories.
     load_data([
@@ -181,8 +194,15 @@ def load():
             id=5,
             title="A Test story 5 - oh hai",
             description="Test Description - oh hai"
+        ),
+        Story(
+            id=6,
+            title="Test Private Story",
+            description="For Super User's eyes only",
+            private=True,
+            permissions=[permissions[0]]
         )
-    ])
+    ], session)
 
     # Create some tasks
     load_data([
@@ -229,8 +249,19 @@ def load():
             branch_id=2,
             assignee_id=1,
             priority='medium'
+        ),
+        Task(
+            id=5,
+            creator_id=1,
+            title='Task in private story',
+            status='todo',
+            story_id=6,
+            project_id=2,
+            branch_id=2,
+            assignee_id=1,
+            priority='medium'
         )
-    ])
+    ], session)
 
     # Generate some timeline events for the above stories.
     load_data([
@@ -280,28 +311,48 @@ def load():
                        '"old_assignee_id": null, '
                        '"task_id": 1, '
                        '"new_assignee_id": 2}'
+        ),
+        TimeLineEvent(
+            id=7,
+            story_id=6,
+            author_id=1,
+            event_type=event.STORY_CREATED,
+            event_info='{"story_id": 6, '
+                       '"story_title": "Test Private Story"}'
         )
-    ])
+    ], session)
 
-    # Create a comment.
+    # Create some comments.
     load_data([
         Comment(
             id=1,
             content="Test Comment",
             is_active=True
+        ),
+        Comment(
+            id=2,
+            content="Comment on a private story",
+            is_active=True
         )
-    ])
+    ], session)
 
-    # Create a timeline event for the above comment.
+    # Create timeline events for the above comments.
     load_data([
         TimeLineEvent(
-            id=7,
+            id=8,
             story_id=1,
             comment_id=1,
             author_id=1,
             event_type=event.USER_COMMENT
+        ),
+        TimeLineEvent(
+            id=9,
+            story_id=6,
+            comment_id=2,
+            author_id=1,
+            event_type=event.USER_COMMENT
         )
-    ])
+    ], session)
 
     # Load some subscriptions.
     load_data([
@@ -323,7 +374,7 @@ def load():
             target_type='story',
             target_id=1
         ),
-    ])
+    ], session)
 
     # Load some branches
     load_data([
@@ -345,7 +396,7 @@ def load():
             name='master',
             restricted=True
         )
-    ])
+    ], session)
 
     # Load some milestones
     load_data([
@@ -359,27 +410,30 @@ def load():
             name='test_milestone_02',
             branch_id=2
         )
-    ])
+    ], session)
 
     # Load some teams
     load_data([
         Team(
             id=1,
-            name='test_team_1'
+            name='test_team_1',
+            users=[users[0]]
         ),
         Team(
             id=2,
-            name='test_team_2'
+            name='test_team_2',
+            users=users[1:]
         )
-    ])
+    ], session)
 
 
-def load_data(data):
+def load_data(data, session=None):
     """Pre load test data into the database.
 
     :param data An iterable collection of database models.
     """
-    session = db.get_session(autocommit=False, in_request=False)
+    if session is None:
+        session = db.get_session(autocommit=False, in_request=False)
 
     for entity in data:
         session.add(entity)

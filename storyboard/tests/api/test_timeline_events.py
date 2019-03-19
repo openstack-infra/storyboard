@@ -18,6 +18,10 @@ from storyboard.tests import base
 
 class TestTimelineEvents(base.FunctionalTest):
 
+    def setUp(self):
+        super(TestTimelineEvents, self).setUp()
+        self.default_headers['Authorization'] = 'Bearer valid_superuser_token'
+
     def test_get_all_events(self):
         """Assert that we can retrieve a list of events from a story."""
 
@@ -26,6 +30,26 @@ class TestTimelineEvents(base.FunctionalTest):
         # There should be three events.
         self.assertEqual(200, response.status_code)
         self.assertEqual(3, len(response.json))
+
+    def test_get_all_events_privacy(self):
+        """Assert that events for private stories are access controlled."""
+
+        url = '/stories/6/events'
+        response = self.get_json(url, expect_errors=True)
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(2, len(response.json))
+
+        # The user with token `valid_user_token` can't see the story, and
+        # so shouldn't be able to see the events
+        headers = {'Authorization': 'Bearer valid_user_token'}
+        response = self.get_json(url, headers=headers, expect_errors=True)
+        self.assertEqual(0, len(response.json))
+
+        # Unauthenticated users shouldn't be able to see anything in private
+        # stories
+        self.default_headers.pop('Authorization')
+        response = self.get_json(url, expect_errors=True)
+        self.assertEqual(0, len(response.json))
 
     def test_filter_by_event_type(self):
         """Assert that we can correctly filter an event by event type."""

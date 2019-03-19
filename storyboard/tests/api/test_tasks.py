@@ -107,7 +107,34 @@ class TestTasksPrimary(base.FunctionalTest):
 
     def test_tasks_endpoint(self):
         response = self.get_json(self.resource)
+        self.assertEqual(5, len(response))
+
+        # Check that tasks in private stories are correctly filtered
+        headers = {'Authorization': 'Bearer valid_user_token'}
+        response = self.get_json(self.resource, headers=headers)
         self.assertEqual(4, len(response))
+        self.default_headers.pop('Authorization')
+        response = self.get_json(self.resource)
+        self.assertEqual(4, len(response))
+
+    def test_private_task_visibility(self):
+        url = self.resource + '/5'
+        # Task with id 5 is in a private story which the user with token
+        # `valid_superuser_token` can see
+        response = self.get_json(url)
+        self.assertEqual('Task in private story', response['title'])
+
+        # The user with token `valid_user_token` can't see the story, and
+        # so shouldn't be able to see the task
+        headers = {'Authorization': 'Bearer valid_user_token'}
+        response = self.get_json(url, headers=headers, expect_errors=True)
+        self.assertEqual(404, response.status_code)
+
+        # Unauthenticated users shouldn't be able to see anything in private
+        # stories
+        self.default_headers.pop('Authorization')
+        response = self.get_json(url, expect_errors=True)
+        self.assertEqual(404, response.status_code)
 
     def test_create(self):
         result = self.post_json(self.resource, self.task_01)
@@ -273,6 +300,38 @@ class TestTasksNestedController(base.FunctionalTest):
         # Get an existing task under a given story
 
         self.assertEqual(400, response.status_code)
+
+    def test_tasks_endpoint_privacy(self):
+        self.resource = '/stories/6/tasks'
+        response = self.get_json(self.resource)
+        self.assertEqual(1, len(response))
+
+        # Check that tasks in private stories are correctly filtered
+        headers = {'Authorization': 'Bearer valid_user_token'}
+        response = self.get_json(self.resource, headers=headers)
+        self.assertEqual(0, len(response))
+        self.default_headers.pop('Authorization')
+        response = self.get_json(self.resource)
+        self.assertEqual(0, len(response))
+
+    def test_private_task_visibility(self):
+        url = '/stories/6/tasks/5'
+        # Task with id 5 is in a private story which the user with token
+        # `valid_superuser_token` can see
+        response = self.get_json(url)
+        self.assertEqual('Task in private story', response['title'])
+
+        # The user with token `valid_user_token` can't see the story, and
+        # so shouldn't be able to see the task
+        headers = {'Authorization': 'Bearer valid_user_token'}
+        response = self.get_json(url, headers=headers, expect_errors=True)
+        self.assertEqual(404, response.status_code)
+
+        # Unauthenticated users shouldn't be able to see anything in private
+        # stories
+        self.default_headers.pop('Authorization')
+        response = self.get_json(url, expect_errors=True)
+        self.assertEqual(404, response.status_code)
 
     def test_create(self):
         result = self.post_json(self.resource, {
