@@ -29,7 +29,12 @@ class SqlAlchemySearchImpl(search_engine.SearchEngine):
 
     def _build_fulltext_search(self, model_cls, query, q,
                                mode=FullTextMode.BOOLEAN):
-        return query.filter(FullTextSearch(q, model_cls, mode=mode))
+        boolean_search_operators = ['+', '-', '~', '<', '>']
+        if(q[0] in boolean_search_operators or (q[0] == '"' and q[-1] == '"')
+           or q[-1] == '*'):
+            return query.filter(FullTextSearch(q, model_cls, mode=mode))
+
+        return query.filter(FullTextSearch(q + '*', model_cls, mode=mode))
 
     def _apply_pagination(self, model_cls, query, marker=None,
                           offset=None, limit=None, sort_field='id',
