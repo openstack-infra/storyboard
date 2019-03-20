@@ -15,6 +15,181 @@ This install guide will cover the API and the most widely-used
 StoryBoard webclient, and assumes being run on Ubuntu 16.04 or
 newer. The instructions are mostly portable to other distributions.
 
+The recommended way to set up your machine for developing StoryBoard
+is to use the docker-compose.yml file provided. However, we also
+provide instructions for a manual setup if preferred.
+
+
+Using Docker
+============
+
+This approach uses Docker to run the services required by StoryBoard,
+such as MySQL and RabbitMQ. The StoryBoard API and webclient are run
+on the host machine directly, to reduce cycle time when developing.
+They use ``tox`` to run using virtualenvs to minimise the amount of
+manual installation required.
+
+Upon completion of these steps, you should have a usable StoryBoard
+API running at ``http://localhost:8080/`` and a usable StoryBoard
+webclient served at ``http://localhost:9000/``.
+
+
+1. Install docker
+-----------------
+
+Follow the `docker installation instructions
+<https://docs.docker.com/install/>`_ for your platform.
+
+.. note:: On Linux, be sure to add your user to the docker group to
+  avoid needing sudo::
+
+    sudo usermod -aG docker your-user
+
+  You'll need to log out and in again for this to take effect.
+
+
+2. Install docker-compose
+-------------------------
+
+Either install using pip::
+
+  pip3 install --user docker-compose
+
+or follow `the instructions
+<https://docs.docker.com/compose/install/>`_ for your platform.
+
+
+3. Get the code
+---------------
+
+The code is stored using git, so you'll need to have git installed::
+
+  sudo apt install git
+
+The code for the API and webclient can then be cloned::
+
+  git clone https://git.openstack.org/openstack-infra/storyboard
+  git clone https://git.openstack.org/openstack-infra/storyboard-webclient
+  cd storyboard
+
+
+4. Run containers
+-----------------
+
+Currently the docker-compose.yml file sets up 3 containers to
+provide the following services
+
+- MySQL
+- Swift
+- RabbitMQ
+
+The containers can be started by doing the following, starting in the
+root of the ``storyboard`` repository::
+
+  cd docker
+  docker-compose up
+
+.. note:: You can make the docker-compose process run in the background
+  by instead doing::
+
+    cd docker
+    docker-compose up -d
+
+
+5. Install dependencies
+-----------------------
+
+Some dependencies are needed to run the API and build the webclient. On
+Ubuntu, you can install these with::
+
+  sudo apt install build-essential python3-dev
+  pip3 install --user tox
+
+
+6. Migrate the database
+-----------------------
+
+At this point you could run StoryBoard, but its useless with an empty
+database. The migrations are run using the ``storyboard-db-manage``
+script, which you can run using tox in the root of the ``storyboard``
+repository::
+
+  tox -e venv -- storyboard-db-manage --config-file ./docker/storyboard.conf upgrade head
+
+This command runs all the database migrations in order. Under the hood
+it uses `alembic <https://alembic.sqlalchemy.org/en/latest/>`_, and
+has a similar CLI.
+
+
+7. Run the API
+--------------
+
+The API is run using the ``storyboard-api`` command. Again this can
+be run using tox in the root of the ``storyboard`` repository::
+
+  tox -e venv -- storyboard-api --config-file ./docker/storyboard.conf
+
+The ``docker/storyboard.conf`` configuration file is contains config
+which is already set up to use the containers created earlier, so
+there is no need for manual configuration.
+
+The output of this command should finish with something like::
+
+  2019-03-20 11:25:44.862 22047 INFO storyboard.api.app [-] Starting server in PID 22047
+  2019-03-20 11:25:44.863 22047 INFO storyboard.api.app [-] Configuration:
+  2019-03-20 11:25:44.863 22047 INFO storyboard.api.app [-] serving on 0.0.0.0:8080, view at http://127.0.0.1:8080
+
+At that point, the API is running successfully. You can stop it using
+Ctrl+C or by closing your terminal.
+
+
+8. Serve the webclient
+----------------------
+
+The storyboard-webclient repository provides a tox target which builds
+the webclient and serves it using a development server. You can run it
+using tox in the root of the ``storyboard-webclient`` repository::
+
+  tox -e grunt_no_api -- serve
+
+This will take a little while to run as it obtains the required dependencies
+using ``npm``, and builds node-sass.
+
+The output of this command should finish with something like::
+
+  Running "connect:livereload" (connect) task
+  Started connect web server on http://localhost:9000
+
+  Running "watch" task
+  Waiting...
+
+At that point the webclient is being served successfully. You can stop it
+using Ctrl+C or by closing the terminal. Any changes to existing files in
+the codebase will cause it to automatically rebuild the webclient and
+refresh the page in your browser, to help streamline the development
+workflow.
+
+You can view it in a browser at ``http://localhost:9000/``. You should also
+be able to log in here. The provided configuration file uses Ubuntu One as
+the OpenID provider, so you'll need an Ubuntu One account to do so.
+
+
+9. Enable notifications
+-----------------------
+
+Notifications in StoryBoard are handled by workers which subscribe to
+events on a message queue. Currently only RabbitMQ is supported. The
+docker-compose.yml file runs a RabbitMQ server, and the provided config
+file is already set up to enable notifications.
+
+To run the workers so that notifications are actually created, use tox
+in the root of the ``storyboard`` repository::
+
+  tox -e storyboard-worker-daemon --config-file ./docker/storyboard.conf
+
+This will start 5 workers to listen for events and create any relevant
+notifications.
+
 
 Installing and Upgrading the API server
 =======================================
