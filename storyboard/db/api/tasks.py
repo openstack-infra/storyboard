@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from storyboard.db.api import base as api_base
+from storyboard.db.api import projects as projects_api
 from storyboard.db.api import stories as stories_api
 from storyboard.db import models
 
@@ -66,14 +67,17 @@ def task_create(values):
 
     if task:
         stories_api.story_update_updated_at(task.story_id)
+        # Update updated_at in projects when task is created
+        projects_api.project_update_updated_at(task.project_id)
     return task
 
 
 def task_update(task_id, values):
     task = api_base.entity_update(models.Task, task_id, values)
-
     if task:
         stories_api.story_update_updated_at(task.story_id)
+        # Update updated_at in projects when task is updated
+        projects_api.project_update_updated_at(task.project_id)
     return task
 
 
@@ -82,6 +86,8 @@ def task_delete(task_id):
 
     if task:
         stories_api.story_update_updated_at(task.story_id)
+        # Update updated_at in projects when task/story is deleted
+        projects_api.project_update_updated_at(task.project_id)
         api_base.entity_hard_delete(models.Task, task_id)
 
 

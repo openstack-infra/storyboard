@@ -21,6 +21,7 @@ from sqlalchemy.orm import subqueryload
 from storyboard._i18n import _
 from storyboard.common import exception as exc
 from storyboard.db.api import base as api_base
+from storyboard.db.api import projects as projects_api
 from storyboard.db.api import story_tags
 from storyboard.db.api import story_types
 from storyboard.db.api import teams as teams_api
@@ -77,7 +78,6 @@ def story_get_all(title=None, description=None, status=None, assignee_id=None,
         sort_field = 'id'
     if not sort_dir:
         sort_dir = 'asc'
-
     if not isinstance(status, list) and status is not None:
         status = [status]
 
@@ -253,12 +253,29 @@ def story_create(values):
 
 def story_update(story_id, values, current_user=None):
     api_base.entity_update(models.Story, story_id, values)
+    project_ids = get_project_ids(story_id, current_user=current_user)
+
+    for project_id in project_ids:
+        projects_api.project_update_updated_at(project_id)
+
     return story_get(story_id, current_user=current_user)
+
+
+def get_project_ids(story_id, current_user=None):
+    session = api_base.get_session()
+    with session.begin(subtransactions=True):
+        story = story_get_simple(story_id, session=session,
+                current_user=current_user)
+        if not story:
+            raise exc.NotFound(_("%(name)s not found") %
+                               {'name': "Story"})
+        project_ids = {task.project_id for task in story.tasks}
+    session.expunge(story)
+    return project_ids
 
 
 def story_update_updated_at(story_id):
     session = api_base.get_session()
-
     with session.begin(subtransactions=True):
         story = story_get_simple(story_id, session=session,
                                  no_permissions=True)
@@ -293,6 +310,7 @@ def story_add_tag(story_id, tag_name, current_user=None):
 
         story.tags.append(tag)
         story.updated_at = datetime.datetime.now(tz=pytz.utc)
+
         session.add(story)
     session.expunge(story)
 

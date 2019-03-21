@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+import datetime
+import pytz
 from storyboard.common.master_branch_helper import MasterBranchHelper
 from storyboard.db.api import base as api_base
 from storyboard.db.api import branches as branches_api
@@ -92,6 +95,16 @@ def project_create(values):
 
 def project_update(project_id, values):
     return api_base.entity_update(models.Project, project_id, values)
+
+
+def project_update_updated_at(project_id):
+    session = api_base.get_session()
+    project = project_get(project_id)
+    if project:
+        with session.begin(subtransactions=True):
+            project.updated_at = datetime.datetime.now(tz=pytz.utc)
+            session.add(project)
+        session.expunge(project)
 
 
 def project_build_query(project_group_id, **kwargs):
