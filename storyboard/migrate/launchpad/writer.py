@@ -66,6 +66,11 @@ class LaunchpadWriter(object):
                   one first." % (project_name))
             sys.exit(1)
 
+    def build_priority_tag(self, priority):
+        """Writes in the tag, the project name, and your priority."""
+        priority_tag = '{}-{}'.format(self.project.name, priority)
+        return self.build_tag(priority_tag)
+
     def write_tags(self, bug):
         """Extracts the tags from a launchpad bug, seeds/loads them in the
         StoryBoard database, and returns a list of the corresponding entities.
@@ -226,6 +231,9 @@ class LaunchpadWriter(object):
         if len(title) > 100:
             title = title[:97] + '...'
             description = bug.title + '\n\n' + description
+
+        # Create priority tag
+        tags.append(self.build_priority_tag(priority))
 
         # Sanity check.
         story = {
