@@ -111,7 +111,8 @@ class Project(base.APIBase):
             name="StoryBoard",
             description="This is an awesome project.",
             is_active=True,
-            repo_url="git://git.openstack.org/openstack-infra/storyboard.git")
+            repo_url="https://git.openstack.org/openstack-infra/storyboard.git"
+        )
 
 
 class ProjectGroup(base.APIBase):
