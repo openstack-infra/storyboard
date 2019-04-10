@@ -36,6 +36,24 @@ class TestComments(base.FunctionalTest):
         response = self.get_json(self.comments_resource % self.story_id)
         self.assertEqual(0, len(response))
 
+    def test_comments_privacy(self):
+        url = '/stories/6/comments'
+        response = self.get_json(url, expect_errors=True)
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(1, len(response.json))
+
+        # The user with token `valid_user_token` can't see the story, and
+        # so shouldn't be able to see the comment
+        headers = {'Authorization': 'Bearer valid_user_token'}
+        response = self.get_json(url, headers=headers, expect_errors=True)
+        self.assertEqual(0, len(response.json))
+
+        # Unauthenticated users shouldn't be able to see anything in private
+        # stories
+        self.default_headers.pop('Authorization')
+        response = self.get_json(url, expect_errors=True)
+        self.assertEqual(0, len(response.json))
+
     def test_create(self):
         self.post_json(self.comments_resource % self.story_id, self.comment_01)
         self.post_json(self.comments_resource % self.story_id, self.comment_02)

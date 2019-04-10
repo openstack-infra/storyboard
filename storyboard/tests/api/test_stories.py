@@ -33,7 +33,29 @@ class TestStories(base.FunctionalTest):
 
     def test_stories_endpoint(self):
         response = self.get_json(self.resource)
-        self.assertEqual(5, len(response))
+        self.assertEqual(6, len(response))
+
+    def test_private_story_visibility(self):
+        url = self.resource + '/6'
+        story = self.get_json(url)
+
+        # User with token `valid_superuser_token` has permission to see
+        # the story, so should be able to get it without issue.
+        self.assertEqual(story['title'], 'Test Private Story')
+        self.assertTrue(story['private'])
+        self.assertEqual(1, len(story['users']))
+        self.assertEqual('Super User', story['users'][0]['full_name'])
+        self.assertEqual(0, len(story['teams']))
+
+        # User with token `valid_user_token` doesn't have permission
+        headers = {'Authorization': 'Bearer valid_user_token'}
+        response = self.get_json(url, headers=headers, expect_errors=True)
+        self.assertEqual(404, response.status_code)
+
+        # Unauthenticated users shouldn't be able to see private stories
+        self.default_headers.pop('Authorization')
+        response = self.get_json(url, expect_errors=True)
+        self.assertEqual(404, response.status_code)
 
     def test_create(self):
         response = self.post_json(self.resource, self.story_01)
@@ -62,22 +84,22 @@ class TestStories(base.FunctionalTest):
         self.assertEqual(story['story_type_id'],
                          created_story['story_type_id'])
 
-    @unittest.skip("vulnerabilities are not supported.")
-    def test_create_private_vulnerability(self):
+    def test_create_private_story(self):
         story = {
             'title': 'StoryBoard',
             'description': 'Awesome Task Tracker',
-            'story_type_id': 3
+            'private': True,
+            'users': [{'id': 1}]
         }
         response = self.post_json(self.resource, story)
         created_story = response.json
 
         self.assertEqual(story['title'], created_story['title'])
         self.assertEqual(story['description'], created_story['description'])
-        self.assertEqual(story['story_type_id'],
-                         created_story['story_type_id'])
+        self.assertEqual(story['private'],
+                         created_story['private'])
 
-    @unittest.skip("vulnerabilities are not supported.")
+    @unittest.skip("public vulnerabilities are not supported.")
     def test_create_public_vulnerability(self):
         story = {
             'title': 'StoryBoard',
@@ -129,25 +151,31 @@ class TestStories(base.FunctionalTest):
                                      {'story_type_id': story_type_id})
             self.assertEqual(story_type_id, response.json['story_type_id'])
 
-    @unittest.skip("vulnerabilities are not supported.")
-    def test_update_private_to_public_vulnerability(self):
+    def test_update_private_to_public(self):
         story = {
             'title': 'StoryBoard',
             'description': 'Awesome Task Tracker',
-            'story_type_id': 3
+            'private': True
         }
 
         response = self.post_json(self.resource, story)
         created_story = response.json
 
-        self.assertEqual(story["story_type_id"],
-                         created_story["story_type_id"])
+        self.assertEqual(story['private'],
+                         created_story['private'])
 
         response = self.put_json(self.resource +
-                                 ('/%s' % created_story["id"]),
-                                 {'story_type_id': 4})
-        created_story = response.json
-        self.assertEqual(4, created_story['story_type_id'])
+                                 ('/%s' % created_story['id']),
+                                 {'private': False})
+        updated_story = response.json
+        self.assertFalse(updated_story['private'])
+
+        # Check that a different user can see the story
+        headers = {'Authorization': 'Bearer valid_user_token'}
+        api_story = self.get_json(self.resource + '/%s' % created_story['id'],
+                                  headers=headers)
+        self.assertEqual(story['title'], api_story['title'])
+        self.assertEqual(story['description'], api_story['description'])
 
     def test_update_restricted_branches(self):
         response = self.put_json(self.resource + '/1', {'story_type_id': 2},
