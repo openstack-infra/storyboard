@@ -191,117 +191,245 @@ This will start 5 workers to listen for events and create any relevant
 notifications.
 
 
-Installing and Upgrading the API server
-=======================================
+Manual Installation
+===================
 
-1. To start the API server, make sure you have the following packages installed
-   locally:
+1. Install dependencies
+-----------------------
 
-   * build-essential
-   * python3-dev
-   * python3-pip
-   * MySQL
+To start the API server, make sure you have the following packages installed
+locally:
 
-     ::
+* build-essential
+* python3-dev
+* python3-pip
+* MySQL
 
-       sudo apt update
-       sudo apt install build-essential python3-dev python3-pip
-       sudo apt install mysql-server-5.7    # Here you will be asked to set a password
-       mysql --version
+  ::
 
-   .. note:: MySQL must be >= 5.6, to support fulltext indexes on InnoDB tables
+    sudo apt update
+    sudo apt install build-essential python3-dev python3-pip
+    sudo apt install mysql-server-5.7    # Here you should be asked to set a password
+    mysql --version
+
+.. note:: MySQL must be >= 5.6, to support fulltext indexes on InnoDB tables
+
+.. warning:: On Ubuntu 17.10 or newer mysql won't ask to set a root
+  password. You'll need to manually set one, which you can read how to
+  do `here
+  <https://websiteforstudents.com/mysql-server-installed-without-password-for-root-on-ubuntu-17-10-18-04/>`_.
 
 
-2. Clone the StoryBoard repository::
+2. Get the code
+---------------
+
+The code is stored using git, so you'll need to have git installed::
+
+  sudo apt install git
+
+The code for the API and webclient can then be cloned::
+
 
     git clone https://git.openstack.org/openstack-infra/storyboard
+    git clone https://git.openstack.org/openstack-infra/storyboard-webclient
     cd storyboard
 
 
-3. Create database:
+3. Create database
+------------------
 
-   .. note::
+StoryBoard requires a single database. These commands create one called
+``storyboard``, and delete any existing database with the same name.
 
-      You will need to replace the ``$DB_USER`` with ``root``.  It
-      will prompt for a password; this is the password you set when
-      you ran ``sudo apt-get mysql-server-5.7`` in step 1.
+::
 
-   ::
+  mysql -u root -p -e 'DROP DATABASE IF EXISTS storyboard;'
+  mysql -u root -p -e 'CREATE DATABASE storyboard;'
 
-     mysql -u $DB_USER -p -e 'DROP DATABASE IF EXISTS storyboard;'
-     mysql -u $DB_USER -p -e 'CREATE DATABASE storyboard;'
+.. note:: If you want to use a non-root user, change ``root`` to the
+  desired username.
 
 
-4. Copy the sample configuration file::
+4. Create a config file
+-----------------------
+
+StoryBoard needs a configuration file to run. The minimum useable
+configuration needs to contain an uncommented ``connection`` line
+in addition to the sample content, to allow a database connection.
+
+::
 
     cp ./etc/storyboard.conf.sample ./etc/storyboard.conf
 
+To make this into a useable config file, some changes are needed.
+Edit ``./etc/storyboard.conf`` and make the following changes:
 
-5. Edit ``./etc/storyboard.conf`` and make the following changes:
+- Update the ``connection`` line in the ``database`` section to replace
+  ``root:pass`` with the username and password you're using to connect
+  to the database. This is likely ``root`` and the password you chose
+  when installing MySQL.
 
-   * in the ``oauth`` section, add your IP Address to the list of ``valid_oauth_clients``
-   * in the ``database`` section, on the line which reads
-     ``# connection = mysql+pymysql://root:pass@127.0.0.1:3306/storyboard?charset=utf8mb4``,
-     replace the ``pass`` with your password (the same as used in the above
-     steps)
+Uncomment this line by removing the ``#``, ensuring there is no
+whitespace at the start of the line.
 
-   Uncomment both of these lines by removing the ``#``.
-
-
-6. Install tox::
-
-     sudo pip3 install tox
-
-
-7. Upgrade DB schema to the latest version::
-
-    tox -e venv -- storyboard-db-manage --config-file ./etc/storyboard.conf upgrade head
+.. warning:: If you are running the API in a VM, and plan to access it
+  remotely, ie. by its IP address or hostname, you also need to add
+  that IP address or hostname to the ``valid_oauth_clients`` line in
+  the ``oauth`` section. Uncomment this line too.
 
 
-8. Start the API server::
+5. Install tox
+--------------
+
+StoryBoard uses tox for both running tests and managing a virtualenv
+for running the development servers.
+
+::
+
+  pip3 install --user tox
+
+.. note:: If this is your first time passing ``--user`` to pip, you
+  will likely need to add ``~/.local/bin`` to your PATH.
+
+
+6. Migrate the database
+-----------------------
+
+At this point you could run StoryBoard, but its useless with an empty
+database. The migrations are run using the ``storyboard-db-manage``
+script, which you can run using tox in the root of the ``storyboard``
+repository::
+
+  tox -e venv -- storyboard-db-manage --config-file ./etc/storyboard.conf upgrade head
+
+This command runs all the database migrations in order. Under the hood
+it uses `alembic <https://alembic.sqlalchemy.org/en/latest/>`_, and
+has a similar CLI.
+
+
+7. Run the API
+--------------
+
+The API is run using the ``storyboard-api`` command. Again this can
+be run using tox in the root of the ``storyboard`` repository::
+
+  tox -e venv -- storyboard-api --config-file ./etc/storyboard.conf
+
+The output of this command should finish with something like::
+
+  2019-03-20 11:25:44.862 22047 INFO storyboard.api.app [-] Starting server in PID 22047
+  2019-03-20 11:25:44.863 22047 INFO storyboard.api.app [-] Configuration:
+  2019-03-20 11:25:44.863 22047 INFO storyboard.api.app [-] serving on 0.0.0.0:8080, view at http://127.0.0.1:8080
+
+At that point, the API is running successfully. You can stop it using
+Ctrl+C or by closing your terminal.
+
+
+8. Serve the webclient
+----------------------
+
+The storyboard-webclient repository provides a tox target which builds
+the webclient and serves it using a development server. You can run it
+using tox in the root of the ``storyboard-webclient`` repository::
+
+  tox -e grunt_no_api -- serve
+
+This will take a little while to run as it obtains the required dependencies
+using ``npm``, and builds node-sass.
+
+The output of this command should finish with something like::
+
+  Running "connect:livereload" (connect) task
+  Started connect web server on http://localhost:9000
+
+  Running "watch" task
+  Waiting...
+
+At that point the webclient is being served successfully. You can stop it
+using Ctrl+C or by closing the terminal. Any changes to existing files in
+the codebase will cause it to automatically rebuild the webclient and
+refresh the page in your browser, to help streamline the development
+workflow.
+
+You can view it in a browser at ``http://localhost:9000/``. You should also
+be able to log in here. The provided configuration file uses Ubuntu One as
+the OpenID provider, so you'll need an Ubuntu One account to do so.
+
+
+Optional: Enable notifications
+------------------------------
+
+Notifications in StoryBoard are handled by workers which subscribe to
+events on a message queue. Currently only RabbitMQ is supported.
+
+
+1. Install rabbitmq on your development machine
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The first step to enable notifications is to get RabbitMQ installed
+on your development instance.
+
+::
+
+    sudo apt install rabbitmq-server
+
+
+2. Set up rabbitmq
+~~~~~~~~~~~~~~~~~~
+
+Create a rabbitmq user/password for StoryBoard (more information
+can be found in the `rabbitmq manpages`_)::
+
+  #                         (username) (password)
+  sudo rabbitmqctl add_user storyboard storyboard
+  sudo rabbitmqctl set_permissions -p / storyboard ".*" ".*" ".*"
+
+.. _rabbitmq manpages: https://www.rabbitmq.com/rabbitmqctl.8.html#User_Management
+
+
+3. Configure notifications
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+StoryBoard needs various keys set in its configuration file to know
+how to use RabbitMQ, and the notifications functionality needs to be
+explicitly enabled.
+
+Set the following configuration in your storyboard.conf file, replacing
+the userid and password as needed if you used something different in
+the previous step::
+
+    [DEFAULT]
+    enable_notifications = True
+
+    [notifications]
+    rabbit_host=127.0.0.1
+    rabbit_login_method = AMQPLAIN
+    rabbit_userid = storyboard
+    rabbit_password = storyboard
+    rabbit_port = 5672
+    rabbit_virtual_host = /
+
+
+4. Restart the API
+~~~~~~~~~~~~~~~~~~
+
+If the API is running, restart it now to pick up the configuration
+changes. Use Ctrl+C to stop the existing process, and again use tox
+in the root of the ``storyboard`` repository::
 
     tox -e venv -- storyboard-api --config-file ./etc/storyboard.conf
 
 
-Installing the Javascript-based web client
-==========================================
+5. Run the workers
+~~~~~~~~~~~~~~~~~~
 
+To run the workers so that notifications are actually created, use tox
+in the root of the ``storyboard`` repository::
 
-1. To build and start the web client, you will need this dependency set
-   installed locally:
+  tox -e storyboard-worker-daemon --config-file ./etc/storyboard.conf
 
-   * tox
-   * Node.js v0.10.29 or newer (see https://nodejs.org/en/download/package-manager/
-     for more information on getting the right package for your distribution)
-   * npm v1.3.10 or newer (this will be bundled with Node.js)
-
-
-2. Clone the StoryBoard webclient::
-
-    git clone https://git.openstack.org/openstack-infra/storyboard-webclient
-    cd storyboard-webclient
-
-
-3. Do **one** of the following that applies to you.
-
-   a. Run a local development server, which uses the localhost API.
-
-      ::
-
-        tox -egrunt_no_api -- serve
-
-   b. Run a local development server, which binds to a specific IP and
-      consumes the localhost API.
-
-      ::
-
-        tox -egrunt_no_api -- serve --hostname 0.0.0.0
-
-   c. Run a local development server, which uses the production API.
-
-      ::
-
-        tox -egrunt_no_api -- serve:prod
+This will start 5 workers to listen for events and create any relevant
+notifications.
 
 
 Using your development StoryBoard
@@ -311,17 +439,21 @@ Once the API and the webclient development server are running, you can
 use your development instance of StoryBoard in a few ways.
 
 By default, the webclient development server uses port 9000, and so
-can be accessed by navigating to `http://localhost:9000/` in a web browser.
-In order to log in, the hostname or IP address being used here will need to
-be in the `valid_oauth_clients` key of `./etc/storyboard.conf` for the API.
+can be accessed by navigating to http://localhost:9000/ in a web browser
+running on the same machine.
+
+If your browser is on a different machine, the hostname or IP address of the
+machine running the API will need to be in the ``valid_oauth_clients`` key of
+``./etc/storyboard.conf`` for the API in order to log in.
 
 By default, the API server uses port 8080, and so the API can be accessed
-at `http://localhost:8080/`. That will produce a 404 as the API doesn't
-actually serve anything on the `/` endpoint. The API endpoints that are
-available are documented on the :doc:`../webapi/v1` page.
+at http://localhost:8080/. That will produce a 404 as the API doesn't
+actually serve anything on the ``/`` endpoint, but that counter-intuitively
+means its probably working. The API endpoints that are available are documented
+on the :doc:`../webapi/v1` page.
 
-The webclient server also forwards `/api` to the API server, so it is also
-possible to use the API by sending requests to `http://localhost:9000/api/`.
+The webclient server also forwards ``/api`` to the API server, so it is also
+possible to use the API by sending requests to http://localhost:9000/api/.
 
 
 Make user an admin - current bug
@@ -361,41 +493,3 @@ Optional steps: Seed database with base data
 4. Create the projects and projectgroups in the DB::
 
     tox -e venv -- storyboard-db-manage --config-file ./etc/storyboard.conf load_projects ./etc/projects.yaml
-
-
-Optional steps: Set up the notifications daemon
-===============================================
-
-1. Install rabbitmq on your development machine::
-
-    sudo apt install rabbitmq-server
-
-2. Create a rabbitmq user/password for StoryBoard (more information
-   can be found in the `rabbitmq manpages`_)::
-
-    #                         (username) (password)
-    sudo rabbitmqctl add_user storyboard storyboard
-    sudo rabbitmqctl set_permissions -p / storyboard ".*" ".*" ".*"
-
-.. _rabbitmq manpages: https://www.rabbitmq.com/rabbitmqctl.8.html#User_Management
-
-3. Set up your storyboard.conf file for notifications using rabbitmq::
-
-    [DEFAULT]
-    enable_notifications = True
-
-    [notifications]
-    rabbit_host=127.0.0.1
-    rabbit_login_method = AMQPLAIN
-    rabbit_userid = storyboard
-    rabbit_password = storyboard
-    rabbit_port = 5672
-    rabbit_virtual_host = /
-
-4. Restart your API server (if it is running)::
-
-    tox -e venv "storyboard-api --config-file ./etc/storyboard.conf"
-
-5. Run the worker daemon::
-
-    tox -e venv "storyboard-worker-daemon --config-file ./etc/storyboard.conf"
