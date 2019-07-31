@@ -1,1 +1,0 @@
-Worklist "{{ resource.title }}" had its content updated by {{ author.full_name }}

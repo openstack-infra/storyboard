@@ -1,1 +1,0 @@
-Tag "{{query_string.split('=', 1)[1]}}" was deleted from story "{{resource.title}}"

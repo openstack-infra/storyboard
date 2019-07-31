@@ -1,1 +1,0 @@
-Tag "{{resource.tags[-1].name}}" was added to story "{{resource.title}}"

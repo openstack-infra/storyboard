@@ -1,5 +1,0 @@
-Story "{{resource.title}}" was created by {{author.full_name}}:
-
-URL: {{url}}#!/story/{{resource.id}}
-
-Description: {{resource.description}}

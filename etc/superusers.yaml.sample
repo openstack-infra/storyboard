@@ -1,6 +1,0 @@
-# This is an example of an open ID account.  To find your specific openid
-# account URL just view the source for your launchpad profile web page
-# (i.e. view-source:https://launchpad.net/~nkonovalov) and locate the
-# 'openid.delegate' reference.
-- openid: https://login.launchpad.net/+id/GBnTJEw
-  email: nkonovalov@mirantis.com
